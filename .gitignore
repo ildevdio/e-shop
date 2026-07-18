@@ -1,0 +1,25 @@
+# Ignorar variáveis de ambiente
+.env
+.env.local
+.env.development
+.env.production
+
+# Ignorar pastas de dependências (Frontend)
+node_modules/
+dist/
+build/
+.npm/
+
+# Ignorar pastas compiladas do .NET (Backend)
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Outros
+.DS_Store
+Thumbs.db
+.vs/
+.vscode/
