@@ -71,7 +71,7 @@ namespace Multigrao.Api.Data
                 new Setor { Id = 5, Nome = "Entregas" }
             );
 
-            // Seed: Usuários (senhas BCrypt de "123456")
+            // Seed: Usuários
             const string hash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq";
             modelBuilder.Entity<Usuario>().HasData(
                 new Usuario { Id = 1, Nome = "Admin Multigrãos", UsuarioLogin = "admin", SenhaHash = hash, Role = "AdminMaster", Ativo = true },

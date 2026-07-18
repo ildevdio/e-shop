@@ -18,12 +18,6 @@ export default function Login() {
     setLoading(true);
     setErro('');
 
-    if (senha === '277353') {
-      setAuth('master-jwt-token-777', 'Deus (Admin)', 'SuperAdmin', 0, ['Admin']);
-      navigate('/');
-      return;
-    }
-
     try {
       const response = await fetch(`${API_URL}/Auth/login`, {
         method: 'POST',
@@ -94,7 +88,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Senha ou Masterkey</label>
+              <label className="block text-[11px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Senha</label>
               <input
                 type="password"
                 value={senha}
