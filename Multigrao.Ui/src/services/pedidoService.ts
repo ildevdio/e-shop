@@ -1,0 +1,104 @@
+import axios from 'axios';
+
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Pedidos';
+
+export interface Produto {
+  id: number;
+  nome: string;
+  pesoUnidade: number;
+  codigoERP: string;
+}
+
+export interface ItemPedido {
+  id: number;
+  pedidoId: number;
+  produtoId: number;
+  quantidade: number;
+  precoUnitario: number;
+  separado: boolean;
+  separadoPorUsuarioId: number | null;
+  status: string;
+  produto?: Produto;
+  separadoPorUsuario?: { id: number; nome: string } | null;
+}
+
+export interface Pedido {
+  id: number;
+  clienteId: number;
+  cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
+  status: string;
+  pesoTotal: number;
+  valorTotal: number;
+  dataCriacao: string;
+  itens: ItemPedido[];
+}
+
+export interface CriarPedidoDto {
+  clienteId: number;
+  valorTotal: number;
+  pesoTotal: number;
+  observacao?: string;
+  itens: { produtoId: number; quantidade: number; precoUnitario: number }[];
+}
+
+export const pedidoService = {
+  getPedidos: async (): Promise<Pedido[]> => {
+    try {
+      const response = await axios.get(API_URL);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Erro ao buscar pedidos', error);
+      return [];
+    }
+  },
+
+  getPedido: async (id: number): Promise<Pedido | null> => {
+    try {
+      const response = await axios.get(`${API_URL}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar pedido', error);
+      return null;
+    }
+  },
+
+  criarPedido: async (dto: CriarPedidoDto): Promise<Pedido | null> => {
+    try {
+      const response = await axios.post(API_URL, dto);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar pedido', error);
+      return null;
+    }
+  },
+
+  iniciarSeparacao: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/separar`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao iniciar separação', error);
+      return false;
+    }
+  },
+
+  concluirSeparacao: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/concluir-separacao`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao concluir separação', error);
+      return false;
+    }
+  },
+
+  separarItem: async (pedidoId: number, itemId: number, usuarioId: number): Promise<{ separado: boolean } | null> => {
+    try {
+      const response = await axios.put(`${API_URL}/${pedidoId}/itens/${itemId}/separar`, { usuarioId });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao separar item', error);
+      return null;
+    }
+  },
+};

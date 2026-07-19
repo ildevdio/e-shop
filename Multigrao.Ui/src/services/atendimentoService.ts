@@ -109,6 +109,16 @@ export const atendimentoService = {
     return response.data;
   },
 
+  getUsuarios: async (): Promise<{ id: number; nome: string; setores: string[] }[]> => {
+    try {
+      const response = await axios.get((import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Usuarios');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error("Erro ao buscar usuários", error);
+      return [];
+    }
+  },
+
   criarAtendimento: async (nome: string, telefone?: string, interesse?: string): Promise<ChatSession> => {
     const response = await axios.post(API_URL, { nome, telefone, interesse, origem: 'Manual' });
     const a = response.data;

@@ -1,20 +1,24 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Topbar from './Topbar';
+import FloatingProducts from './FloatingProducts';
 import { useAuthStore } from '../store/authStore';
 
 export default function Layout() {
-  const { role, setores } = useAuthStore();
+  const { role, setores, usuarioId } = useAuthStore();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#f5f4f0]">
-      {/* Sidebar — renders hamburger button + floating dropdown (fixed positioned) */}
-      <Sidebar role={role} setores={setores} />
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      <Sidebar role={role} setores={setores} usuarioId={usuarioId} />
 
-      {/* Main Content Area — full width */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden m-2 sm:m-3 lg:m-4 rounded-xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-black/5 bg-[#f5f4f0]">
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <Outlet />
+      <div className="flex flex-1 flex-col h-full overflow-hidden min-w-0 ml-3">
+        <Topbar />
+
+        <main className="relative flex-1 overflow-hidden">
+          <FloatingProducts className="z-0" />
+          <div className="relative z-10 h-full overflow-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -65,6 +65,31 @@ namespace Multigrao.Api.Controllers
             return Ok(rotas);
         }
 
+        [HttpGet("motoristas")]
+        public async Task<IActionResult> GetMotoristas()
+        {
+            var motoristas = await _context.Usuarios
+                .Where(u => u.Ativo && u.UsuarioSetores.Any(us => us.Setor!.Nome == "Entregas"))
+                .Select(u => new { u.Id, u.Nome })
+                .ToListAsync();
+
+            return Ok(motoristas);
+        }
+
+        [HttpGet("pedidos-prontos")]
+        public async Task<IActionResult> GetPedidosProntos()
+        {
+            var pedidos = await _context.Pedidos
+                .Where(p => p.Status == "ProntoEntrega")
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .OrderByDescending(p => p.Id)
+                .ToListAsync();
+
+            return Ok(pedidos);
+        }
+
         [HttpPost("rotas/gerar")]
         public async Task<IActionResult> GerarRota([FromBody] GerarRotaDto dto)
         {

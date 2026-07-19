@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { PackageOpen, Check, Play, QrCode, MapPin, Search, User, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { PackageOpen, Check, Play, QrCode, MapPin, Search, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { pedidoService, type Pedido } from '../services/pedidoService';
 
-interface ItemPedido {
+interface ItemPedidoLocal {
   id: number;
   nome: string;
   quantidade: number;
@@ -12,216 +13,336 @@ interface ItemPedido {
   separadoPor?: string;
 }
 
-interface Pedido {
+interface PedidoLocal {
   id: number;
   cliente: string;
   status: 'Pendente' | 'EmSeparacao' | 'ProntoEntrega';
-  itens: ItemPedido[];
+  itens: ItemPedidoLocal[];
   assumidoPor?: string;
-  dataAssumido?: string;
 }
 
+function mapearPedido(p: Pedido): PedidoLocal {
+  return {
+    id: p.id,
+    cliente: p.cliente?.razaoSocialNome ?? 'Cliente #' + p.clienteId,
+    status: p.status === 'EmSeparacao' ? 'EmSeparacao' : p.status === 'ProntoEntrega' ? 'ProntoEntrega' : 'Pendente',
+    itens: (p.itens ?? []).map((it, idx) => ({
+      id: it.id,
+      nome: it.produto?.nome ?? `Item #${it.produtoId}`,
+      quantidade: it.quantidade,
+      unidade: 'kg',
+      localizacao: `Prateleira ${String.fromCharCode(65 + (idx % 4))}${(idx % 6) + 1}`,
+      separado: it.separado,
+      separadoPor: it.separadoPorUsuario?.nome,
+    })),
+    assumidoPor: p.itens?.find(it => it.separadoPorUsuario)?.separadoPorUsuario?.nome,
+  };
+}
+
+type Step = 'fila' | 'separacao' | 'concluido';
+
 export default function Separacao() {
+  const usuarioId = useAuthStore(state => state.usuarioId);
   const nome = useAuthStore(state => state.nome);
+  const [pedidos, setPedidos] = useState<PedidoLocal[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [filtro, setFiltro] = useState('');
+  const [step, setStep] = useState<Step>('fila');
+  const [pedidoAtivo, setPedidoAtivo] = useState<PedidoLocal | null>(null);
 
-  const [pedidos, setPedidos] = useState<Pedido[]>([
-    {
-      id: 1001, cliente: 'Mercado São João', status: 'Pendente',
-      itens: [
-        { id: 1, nome: 'Castanha do Pará', quantidade: 10, unidade: 'kg', localizacao: 'Prateleira A3', separado: false },
-        { id: 2, nome: 'Amendoim Torrado', quantidade: 5, unidade: 'kg', localizacao: 'Prateleira B1', separado: false },
-        { id: 3, nome: 'Nozes', quantidade: 3, unidade: 'kg', localizacao: 'Prateleira A1', separado: false },
-      ]
-    },
-    {
-      id: 1002, cliente: 'Empório Natural', status: 'EmSeparacao',
-      assumidoPor: 'Maria',
-      dataAssumido: '09:15',
-      itens: [
-        { id: 4, nome: 'Aveia em Flocos', quantidade: 8, unidade: 'kg', localizacao: 'Corredor C2', separado: true, separadoPor: 'Maria' },
-        { id: 5, nome: 'Semente de Chia', quantidade: 15, unidade: 'kg', localizacao: 'Prateleira D4', separado: false },
-      ]
-    },
-    {
-      id: 1003, cliente: 'Supermercado Nova Era', status: 'ProntoEntrega',
-      assumidoPor: 'Carlos',
-      itens: [
-        { id: 6, nome: 'Nozes (500g)', quantidade: 20, unidade: 'un', localizacao: 'Prateleira A1', separado: true, separadoPor: 'Carlos' },
-      ]
-    },
-  ]);
-
-  const assumirPedido = (id: number) => {
-    setPedidos(pedidos.map(p => p.id === id ? { ...p, status: 'EmSeparacao', assumidoPor: nome || 'Usuário', dataAssumido: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) } : p));
+  const carregar = async () => {
+    setCarregando(true);
+    const dados = await pedidoService.getPedidos();
+    setPedidos(dados.map(mapearPedido));
+    setCarregando(false);
   };
 
-  const toggleItem = (pedidoId: number, itemId: number) => {
-    setPedidos(pedidos.map(p => {
-      if (p.id === pedidoId && p.status === 'EmSeparacao') {
-        const novosItens = p.itens.map(i => i.id === itemId ? { ...i, separado: !i.separado, separadoPor: !i.separado ? (nome || 'Usuário') : undefined } : i);
-        return { ...p, itens: novosItens };
-      }
-      return p;
-    }));
+  useEffect(() => { carregar(); }, []);
+
+  const filtrados = pedidos.filter(p => {
+    if (!filtro) return true;
+    const termo = filtro.toLowerCase();
+    return String(p.id).includes(termo) || p.cliente.toLowerCase().includes(termo);
+  });
+
+  const pendentes = filtrados.filter(p => p.status === 'Pendente');
+  const emSeparacao = filtrados.filter(p => p.status === 'EmSeparacao');
+
+  const assumirPedido = async (pedido: PedidoLocal) => {
+    const ok = await pedidoService.iniciarSeparacao(pedido.id);
+    if (ok) {
+      await carregar();
+      setPedidoAtivo({ ...pedido, status: 'EmSeparacao' });
+      setStep('separacao');
+    }
   };
 
-  const concluirSeparacao = (id: number) => {
-    setPedidos(pedidos.map(p => p.id === id ? { ...p, status: 'ProntoEntrega' } : p));
+  const retomarPedido = (pedido: PedidoLocal) => {
+    setPedidoAtivo(pedido);
+    setStep('separacao');
   };
+
+  const toggleItem = async (itemId: number) => {
+    if (!usuarioId || !pedidoAtivo) return;
+    await pedidoService.separarItem(pedidoAtivo.id, itemId, usuarioId);
+    const atualizado = await pedidoService.getPedido(pedidoAtivo.id);
+    if (atualizado) {
+      const mapped = mapearPedido(atualizado);
+      setPedidoAtivo(mapped);
+      setPedidos(prev => prev.map(p => p.id === mapped.id ? mapped : p));
+    }
+  };
+
+  const concluirSeparacao = async () => {
+    if (!pedidoAtivo) return;
+    const ok = await pedidoService.concluirSeparacao(pedidoAtivo.id);
+    if (ok) {
+      await carregar();
+      setStep('concluido');
+    }
+  };
+
+  const voltarParaFila = () => {
+    setPedidoAtivo(null);
+    setStep('fila');
+  };
+
+  const totalItens = pedidoAtivo?.itens.length ?? 0;
+  const itensSeparados = pedidoAtivo?.itens.filter(i => i.separado).length ?? 0;
+  const progresso = totalItens > 0 ? (itensSeparados / totalItens) * 100 : 0;
+  const todosSeparados = totalItens > 0 && itensSeparados === totalItens;
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
-            <PackageOpen size={28} /> Setor de Separação
-          </h1>
-          <p className="text-gray-500 mt-1">Separe os itens, registre quem separou e libere para expedição.</p>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Buscar pedido..."               className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-hidden">
-        {/* Coluna 1: Pendentes */}
-        <div className="bg-[#f8fafc] rounded-[2rem] p-5 border border-gray-100 flex flex-col h-full shadow-sm">
-          <h2 className="font-semibold text-gray-700 mb-5 flex items-center justify-between px-1">
-            Aguardando Separação
-            <span className="bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-full font-bold">{pedidos.filter(p => p.status === 'Pendente').length}</span>
-          </h2>
-          <div className="space-y-4 overflow-y-auto pr-2 pb-4 custom-scrollbar">
-            {pedidos.filter(p => p.status === 'Pendente').map(p => (
-              <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-gray-100/50 hover:shadow-md transition-all">
-                <div className="flex justify-between items-start mb-3">
-                  <span className="font-bold text-gray-900">Pedido #{p.id}</span>
-                  <span className="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">{p.itens.length} itens</span>
-                </div>
-                <p className="text-sm text-gray-500 mb-1">{p.cliente}</p>
-                <p className="text-xs text-gray-400 mb-4">{p.itens.reduce((acc, i) => acc + i.quantidade, 0)} {p.itens[0]?.unidade || 'un'} total</p>
-                <button onClick={() => assumirPedido(p.id)} className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-semibold tracking-wide flex items-center justify-center gap-2 hover:bg-black shadow-sm transition-all">
-                  <Play size={16} /> ASSUMIR PEDIDO
-                </button>
+      {/* PASSO 1 — FILA */}
+      {step === 'fila' && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">Passo 1 de 3</span>
               </div>
-            ))}
-            {pedidos.filter(p => p.status === 'Pendente').length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">Nenhum pedido pendente</div>
-            )}
+              <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
+                <PackageOpen size={28} /> Fila de Separação
+              </h1>
+              <p className="text-gray-500 mt-1">Escolha um pedido para iniciar a separação dos itens.</p>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar pedido..."
+                value={filtro}
+                onChange={e => setFiltro(e.target.value)}
+                className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Coluna 2: Em Separação */}
-        <div className="bg-blue-50/50 rounded-[2rem] p-5 border border-blue-100/50 flex flex-col h-full shadow-sm">
-          <h2 className="font-semibold text-blue-900 mb-5 flex items-center justify-between px-1">
-            Em Separação
-            <span className="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-bold">{pedidos.filter(p => p.status === 'EmSeparacao').length}</span>
-          </h2>
-          <div className="space-y-4 overflow-y-auto pr-2 pb-4 custom-scrollbar">
-            {pedidos.filter(p => p.status === 'EmSeparacao').map(p => {
-              const total = p.itens.length;
-              const concluidos = p.itens.filter(i => i.separado).length;
-              const prontoParaConcluir = total === concluidos;
-              const progresso = total > 0 ? (concluidos / total) * 100 : 0;
-
-              return (
-                <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-blue-100 hover:shadow-md transition-all">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <div className="font-bold text-blue-900">Pedido #{p.id}</div>
-                      <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                        <User size={10} /> {p.assumidoPor} • <Clock size={10} /> {p.dataAssumido}
-                      </div>
+          {carregando ? (
+            <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Carregando pedidos...</div>
+          ) : pendentes.length === 0 && emSeparacao.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <PackageOpen size={28} className="text-gray-300" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-700">Nenhum pedido na fila</h3>
+                <p className="text-sm text-gray-400 mt-1">Novos pedidos aparecerão aqui quando chegarem.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {pendentes.map(p => (
+                <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-gray-100/50 hover:shadow-md transition-all flex items-center gap-5">
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-gray-700">#{p.id}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-gray-900">{p.cliente}</div>
+                    <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                      <span>{p.itens.length} itens</span>
+                      <span className="text-gray-300">·</span>
+                      <span>{p.itens.reduce((acc, i) => acc + i.quantidade, 0)} {p.itens[0]?.unidade || 'un'}</span>
                     </div>
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{concluidos}/{total}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mb-3">{p.cliente}</p>
-
-                  {/* Barra de progresso */}
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
-                    <div className="h-full bg-gradient-to-r from-gray-800 to-gray-600 rounded-full transition-all duration-500" style={{ width: `${progresso}%` }} />
-                  </div>
-
-                  {/* Checklist */}
-                  <div className="space-y-2.5 mb-5">
-                    {p.itens.map(item => (
-                      <div
-                        key={item.id}
-                        onClick={() => toggleItem(p.id, item.id)}
-                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${item.separado ? 'bg-gray-100/50 ring-1 ring-gray-300' : 'bg-gray-50 hover:bg-gray-100'}`}
-                      >
-                        <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all shrink-0 ${item.separado ? 'bg-black text-white shadow-sm' : 'border border-gray-300 bg-white'}`}>
-                          {item.separado && <Check size={14} strokeWidth={3} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className={`text-sm font-medium block ${item.separado ? 'text-gray-800 line-through opacity-70' : 'text-gray-700'}`}>
-                            {item.nome}
-                          </span>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-gray-400">{item.quantidade} {item.unidade}</span>
-                            <span className="text-xs text-gray-300">|</span>
-                            <span className="text-xs text-blue-500 flex items-center gap-0.5"><MapPin size={10} /> {item.localizacao}</span>
-                          </div>
-                          {item.separado && item.separadoPor && (
-                            <span className="text-[10px] text-black mt-0.5 block">Separado por: {item.separadoPor}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
                   <button
-                    onClick={() => concluirSeparacao(p.id)}
-                    disabled={!prontoParaConcluir}
-                    className={`w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all shadow-sm ${
-                      prontoParaConcluir ? 'bg-black text-white hover:bg-gray-800 shadow-black/20' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
+                    onClick={() => assumirPedido(p)}
+                    className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide flex items-center gap-2 hover:bg-black shadow-sm transition-all shrink-0"
                   >
-                    {prontoParaConcluir ? 'FINALIZAR SEPARAÇÃO' : `Aguardar todos os itens (${concluidos}/${total})`}
+                    <Play size={16} /> Assumir
                   </button>
                 </div>
-              );
-            })}
-            {pedidos.filter(p => p.status === 'EmSeparacao').length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">Nenhum pedido em separação</div>
-            )}
+              ))}
+
+              {emSeparacao.length > 0 && (
+                <>
+                  <div className="pt-4 pb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Em separação (retomar)</span>
+                  </div>
+                  {emSeparacao.map(p => {
+                    const t = p.itens.length;
+                    const c = p.itens.filter(i => i.separado).length;
+                    return (
+                      <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-all flex items-center gap-5">
+                        <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
+                          <span className="text-xs font-bold text-white">#{p.id}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-gray-900">{p.cliente}</div>
+                          <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                            <span>{c}/{t} itens</span>
+                            <span className="text-gray-300">·</span>
+                            <span>{p.assumidoPor || 'Você'}</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mt-2">
+                            <div className="h-full bg-gray-800 rounded-full transition-all" style={{ width: `${t > 0 ? (c / t) * 100 : 0}%` }} />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => retomarPedido(p)}
+                          className="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-gray-200 transition-all shrink-0"
+                        >
+                          Retomar <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* PASSO 2 — SEPARAÇÃO */}
+      {step === 'separacao' && pedidoAtivo && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">Passo 2 de 3</span>
+              </div>
+              <h1 className="text-2xl font-serif font-bold text-gray-900">
+                Separar Pedido #{pedidoAtivo.id}
+              </h1>
+              <p className="text-gray-500 mt-1">{pedidoAtivo.cliente} — {nome || 'Operador'}</p>
+            </div>
+            <button
+              onClick={voltarParaFila}
+              className="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-gray-200 transition-all"
+            >
+              <ArrowLeft size={16} /> Voltar
+            </button>
           </div>
-        </div>
 
-        {/* Coluna 3: Pronto para Expedição */}
-        <div className="bg-gray-100/50 rounded-[2rem] p-5 border border-gray-200/50 flex flex-col h-full shadow-sm">
-          <h2 className="font-semibold text-gray-900 mb-5 flex items-center justify-between px-1">
-            Pronto para Expedição
-            <span className="bg-gray-200 text-gray-800 text-xs px-2.5 py-1 rounded-full font-bold">{pedidos.filter(p => p.status === 'ProntoEntrega').length}</span>
-          </h2>
-          <div className="space-y-4 overflow-y-auto pr-2 pb-4 custom-scrollbar">
-            {pedidos.filter(p => p.status === 'ProntoEntrega').map(p => (
-              <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-all text-center">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3 text-black">
-                  <Check size={24} strokeWidth={3} />
+          {/* Progresso */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100/50">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-gray-700">Progresso da Separação</span>
+              <span className="text-sm font-bold text-gray-900">{itensSeparados}/{totalItens} itens</span>
+            </div>
+            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gray-900 rounded-full transition-all duration-500"
+                style={{ width: `${progresso}%` }}
+              />
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-xs text-gray-400">
+              <span>{totalItens - itensSeparados} restantes</span>
+              <span className="text-gray-300">·</span>
+              <span>{Math.round(progresso)}% concluído</span>
+            </div>
+          </div>
+
+          {/* Lista de Itens */}
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {pedidoAtivo.itens.map((item, idx) => (
+              <div
+                key={item.id}
+                onClick={() => !item.separado && toggleItem(item.id)}
+                className={`bg-white p-4 rounded-2xl shadow-sm ring-1 transition-all flex items-center gap-4 ${
+                  item.separado
+                    ? 'ring-gray-300 bg-gray-50/50'
+                    : 'ring-gray-100/50 hover:ring-gray-300 cursor-pointer hover:shadow-md'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm bg-gray-100 text-gray-500">
+                  {idx + 1}
                 </div>
-                <div className="font-bold text-gray-900">Pedido #{p.id}</div>
-                <p className="text-sm text-gray-500 mb-1">{p.cliente}</p>
-                {p.assumidoPor && (
-                  <p className="text-xs text-gray-400 mb-3">Separado por: {p.assumidoPor}</p>
+                <div className="w-6 h-6 rounded-md flex items-center justify-center transition-all shrink-0 border border-gray-300 bg-white">
+                  {item.separado && (
+                    <div className="w-full h-full bg-black rounded-md flex items-center justify-center">
+                      <Check size={14} strokeWidth={3} className="text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className={`text-sm font-semibold block ${item.separado ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                    {item.nome}
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-gray-500 font-medium">{item.quantidade} {item.unidade}</span>
+                    <span className="text-gray-300">·</span>
+                    <span className="text-xs text-gray-500 flex items-center gap-0.5">
+                      <MapPin size={10} /> {item.localizacao}
+                    </span>
+                  </div>
+                </div>
+                {item.separado && item.separadoPor && (
+                  <span className="text-[10px] text-gray-500 shrink-0">{item.separadoPor}</span>
                 )}
-
-                <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center gap-2 border border-dashed border-gray-200">
-                  <QrCode size={36} className="text-gray-400" />
-                  <span className="text-xs text-gray-500 font-mono tracking-widest font-semibold bg-white px-2 py-1 rounded-md shadow-sm">QR-{p.id}</span>
-                </div>
-
-                <div className="mt-3 text-xs text-gray-400">
-                  {p.itens.length} itens • Pronto para conferência
-                </div>
               </div>
             ))}
-            {pedidos.filter(p => p.status === 'ProntoEntrega').length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">Nenhum pedido pronto</div>
-            )}
+          </div>
+
+          {/* Botão Finalizar */}
+          <div className="pt-2">
+            <button
+              onClick={concluirSeparacao}
+              disabled={!todosSeparados}
+              className={`w-full py-4 rounded-2xl text-sm font-bold tracking-wide transition-all ${
+                todosSeparados
+                  ? 'bg-gray-900 text-white hover:bg-black shadow-lg shadow-black/10'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {todosSeparados ? 'FINALIZAR SEPARAÇÃO' : `Separe todos os itens primeiro (${itensSeparados}/${totalItens})`}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* PASSO 3 — CONCLUÍDO */}
+      {step === 'concluido' && pedidoAtivo && (
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="text-center anim-scale-in">
+            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 size={40} className="text-white" />
+            </div>
+            <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Separação Concluída</h1>
+            <p className="text-gray-500 text-lg mb-8">Pedido #{pedidoAtivo.id} — {pedidoAtivo.cliente}</p>
+
+            <div className="bg-white rounded-2xl p-8 shadow-sm ring-1 ring-gray-100/50 inline-block mb-8">
+              <div className="w-32 h-32 bg-gray-50 rounded-xl flex items-center justify-center border border-dashed border-gray-200 mb-4">
+                <QrCode size={64} className="text-gray-400" />
+              </div>
+              <span className="text-sm font-mono font-bold text-gray-700 tracking-widest">QR-{pedidoAtivo.id}</span>
+              <p className="text-xs text-gray-400 mt-2">Pronto para conferência</p>
+            </div>
+
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => { setPedidoAtivo(null); setStep('fila'); carregar(); }}
+                className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-black transition-all"
+              >
+                <ArrowLeft size={16} /> Voltar à Fila
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

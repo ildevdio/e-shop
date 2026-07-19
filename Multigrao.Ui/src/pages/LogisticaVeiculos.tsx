@@ -1,23 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigation, Plus, Search, CheckCircle2, Edit3, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { logisticaService, type Veiculo } from '../services/logisticaService';
 
 export default function LogisticaVeiculos() {
-  const [veiculos, setVeiculos] = useState([
-    { id: 1, modelo: 'Fiat Fiorino', placa: 'ABC-1234', capacidade: '600kg', status: 'Disponível' },
-    { id: 2, modelo: 'VW Delivery', placa: 'XYZ-9876', capacidade: '1200kg', status: 'Em Rota' },
-    { id: 3, modelo: 'Mercedes Sprinter', placa: 'DEF-5678', capacidade: '1800kg', status: 'Disponível' },
-  ]);
-
+  const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [busca, setBusca] = useState('');
   const [showNovo, setShowNovo] = useState(false);
   const [novoVeiculo, setNovoVeiculo] = useState({ modelo: '', placa: '', capacidade: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
-  const adicionarVeiculo = () => {
+  const carregarVeiculos = async () => {
+    try {
+      setIsLoading(true);
+      const data = await logisticaService.getVeiculos();
+      setVeiculos(data);
+    } catch {
+      setVeiculos([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarVeiculos();
+  }, []);
+
+  const veiculosFiltrados = veiculos.filter(v =>
+    v.modelo.toLowerCase().includes(busca.toLowerCase()) ||
+    v.placa.toLowerCase().includes(busca.toLowerCase())
+  );
+
+  const adicionarVeiculo = async () => {
     if (!novoVeiculo.modelo.trim()) return;
-    setVeiculos([...veiculos, { id: Date.now(), modelo: novoVeiculo.modelo, placa: novoVeiculo.placa, capacidade: novoVeiculo.capacidade, status: 'Disponível' }]);
-    setNovoVeiculo({ modelo: '', placa: '', capacidade: '' });
-    setShowNovo(false);
+    try {
+      setIsSaving(true);
+      const created = await logisticaService.criarVeiculo({
+        modelo: novoVeiculo.modelo,
+        placa: novoVeiculo.placa,
+        pesoMaximo: parseFloat(novoVeiculo.capacidade) || 0,
+      });
+      if (created) setVeiculos(prev => [...prev, created]);
+      setNovoVeiculo({ modelo: '', placa: '', capacidade: '' });
+      setShowNovo(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const removerVeiculo = async (id: number) => {
+    const ok = await logisticaService.excluirVeiculo(id);
+    if (ok) setVeiculos(prev => prev.filter(v => v.id !== id));
   };
 
   return (
@@ -36,45 +71,41 @@ export default function LogisticaVeiculos() {
         <div className="p-6 flex justify-between items-center border-b border-gray-100">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input type="text" placeholder="Buscar veículo..."               className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
+            <input type="text" placeholder="Buscar veículo..." value={busca} onChange={e => setBusca(e.target.value)}
+              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
           </div>
           <button onClick={() => setShowNovo(true)} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Novo Veículo
           </button>
         </div>
 
-        <div className="flex-1 overflow-x-auto">
+        <div className="flex-1 overflow-auto">
           <table className="w-full text-left text-sm text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 font-semibold">Modelo</th>
                 <th className="px-6 py-3 font-semibold">Placa</th>
                 <th className="px-6 py-3 font-semibold">Capacidade</th>
-                <th className="px-6 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {veiculos.map(veiculo => (
-                <tr key={veiculo.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{veiculo.modelo}</td>
-                  <td className="px-6 py-4 font-mono text-xs">{veiculo.placa}</td>
-                  <td className="px-6 py-4">{veiculo.capacidade}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ${
-                      veiculo.status === 'Disponível' ? 'bg-gray-100 text-gray-800 ring-black/20' : 'bg-amber-50 text-amber-700 ring-amber-500/20'
-                    }`}>
-                      {veiculo.status === 'Disponível' && <CheckCircle2 size={12} className="mr-1" />}
-                      {veiculo.status === 'Em Rota' && <Navigation size={12} className="mr-1" />}
-                      {veiculo.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-blue-600 hover:underline mr-3 flex items-center gap-1 inline-flex"><Edit3 size={14} /> Editar</button>
-                    <button onClick={() => setVeiculos(veiculos.filter(v => v.id !== veiculo.id))} className="text-red-600 hover:underline flex items-center gap-1 inline-flex"><Trash2 size={14} /> Remover</button>
-                  </td>
-                </tr>
-              ))}
+              {isLoading ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">Carregando...</td></tr>
+              ) : veiculosFiltrados.length === 0 ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">Nenhum veículo encontrado.</td></tr>
+              ) : (
+                veiculosFiltrados.map(veiculo => (
+                  <tr key={veiculo.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-900">{veiculo.modelo}</td>
+                    <td className="px-6 py-4 font-mono text-xs">{veiculo.placa}</td>
+                    <td className="px-6 py-4">{veiculo.pesoMaximo ? `${veiculo.pesoMaximo}kg` : '—'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => removerVeiculo(veiculo.id)} className="text-gray-600 hover:underline flex items-center gap-1 inline-flex"><Trash2 size={14} /> Remover</button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -87,11 +118,11 @@ export default function LogisticaVeiculos() {
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Modelo *</label><input type="text" value={novoVeiculo.modelo} onChange={e => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Fiat Fiorino" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Placa</label><input type="text" value={novoVeiculo.placa} onChange={e => setNovoVeiculo({ ...novoVeiculo, placa: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="ABC-1234" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Capacidade</label><input type="text" value={novoVeiculo.capacidade} onChange={e => setNovoVeiculo({ ...novoVeiculo, capacidade: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="600kg" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Capacidade (kg)</label><input type="text" value={novoVeiculo.capacidade} onChange={e => setNovoVeiculo({ ...novoVeiculo, capacidade: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="600" /></div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setShowNovo(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Adicionar</button>
+              <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim() || isSaving} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() && !isSaving ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>{isSaving ? 'Salvando...' : 'Adicionar'}</button>
             </div>
           </div>
         </div>

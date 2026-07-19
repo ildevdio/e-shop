@@ -1,59 +1,134 @@
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #000000;
-  --color-secondary: #ffffff;
+@theme inline {
+  --color-background: #f5f5f5;
+  --color-foreground: #0a0a0a;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+
+  --color-primary: #0a0a0a;
+  --color-primary-foreground: #fafafa;
+
+  --color-secondary: #f0f0f0;
+  --color-secondary-foreground: #0a0a0a;
+
+  --color-muted: #e5e5e5;
+  --color-muted-foreground: #737373;
+
+  --color-accent: #0a0a0a;
+  --color-accent-foreground: #fafafa;
+
+  --color-destructive: #dc2626;
+  --color-success: #16a34a;
+  --color-warning: #737373;
+
+  --color-border: #e5e5e5;
+  --color-input: #e5e5e5;
+  --color-ring: #0a0a0a;
+
+  --color-sidebar: #0a0a0a;
+  --color-sidebar-foreground: #d4d4d4;
+  --color-muted-foreground: #a3a3a3;
+  --color-sidebar-muted: #737373;
+  --color-sidebar-border: #262626;
+  --color-sidebar-accent: #ffffff;
+  --color-sidebar-active: #171717;
+
   --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
 }
 
+* {
+  border-color: var(--color-border);
+}
+
 body {
-  background-color: #f5f4f0;
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-body);
-  color: #1a1a1a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Heading font utility */
 .font-heading {
   font-family: var(--font-heading);
 }
 
-/* Corporate accent line */
-.corporate-accent {
-  position: relative;
-}
-.corporate-accent::after {
-  content: '';
-  display: block;
-  width: 40px;
-  height: 2px;
-  background: #000;
-  margin-top: 8px;
+/* ── Animações ── */
+
+@keyframes grain-breathe {
+  0%, 100% { opacity: 0.06; }
+  50% { opacity: 0.14; }
 }
 
-/* Scrollbar Customizada Premium */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-/* Corporate selection color */
+.grain-animate {
+  animation: grain-breathe 8s ease-in-out infinite;
+}
+
+.anim-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
+.anim-fade-in { animation: fade-in 0.4s ease-out both; }
+.anim-slide-in-left { animation: slide-in-left 0.4s ease-out both; }
+.anim-scale-in { animation: scale-in 0.35s ease-out both; }
+
+.anim-delay-1 { animation-delay: 0.05s; }
+.anim-delay-2 { animation-delay: 0.1s; }
+.anim-delay-3 { animation-delay: 0.15s; }
+.anim-delay-4 { animation-delay: 0.2s; }
+.anim-delay-5 { animation-delay: 0.25s; }
+.anim-delay-6 { animation-delay: 0.3s; }
+
+/* ── Produtos flutuantes ── */
+
+@keyframes floating-product {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(10px) scale(var(--fp-scale));
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-30px) scale(var(--fp-scale));
+  }
+  85% {
+    opacity: 1;
+  }
+}
+
+/* Scrollbar — conteúdo */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* Scrollbar — sidebar */
+.sidebar-scrollbar::-webkit-scrollbar { width: 4px; }
+.sidebar-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
 ::selection {
-  background: rgba(0, 0, 0, 0.12);
-  color: #000;
+  background: rgba(0,0,0,0.15);
+  color: #0a0a0a;
 }

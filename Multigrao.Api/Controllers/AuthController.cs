@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
 using Multigrao.Api.DTOs;
+using Multigrao.Api.Models;
 using Multigrao.Api.Services;
 
 namespace Multigrao.Api.Controllers
@@ -12,11 +13,13 @@ namespace Multigrao.Api.Controllers
     {
         private readonly IAuthService _authService;
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthService authService, AppDbContext context)
+        public AuthController(IAuthService authService, AppDbContext context, IConfiguration configuration)
         {
             _authService = authService;
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
@@ -36,6 +39,39 @@ namespace Multigrao.Api.Controllers
             var token = _authService.GenerateJwtToken(usuario);
 
             var setores = usuario.UsuarioSetores.Select(us => us.Setor!.Nome).ToList();
+
+            return Ok(new LoginResponseDto
+            {
+                Token = token,
+                Nome = usuario.Nome,
+                Role = usuario.Role,
+                UsuarioId = usuario.Id,
+                Setores = setores
+            });
+        }
+
+        [HttpPost("validar-senha-mestre")]
+        public async Task<IActionResult> ValidarSenhaMestre([FromBody] ValidarSenhaMestreDto request)
+        {
+            var masterPassword = Environment.GetEnvironmentVariable("MASTER_PASSWORD")
+                ?? _configuration["MasterPassword"]
+                ?? string.Empty;
+
+            if (string.IsNullOrEmpty(masterPassword) || request.Senha != masterPassword)
+                return Unauthorized(new { message = "Senha mestre inválida." });
+
+            var usuario = new Usuario
+            {
+                Id = 0,
+                Nome = "Administrador",
+                UsuarioLogin = "admin",
+                Role = "Admin",
+                Ativo = true
+            };
+
+            var token = _authService.GenerateJwtToken(usuario);
+
+            var setores = _context.Setores.Select(s => s.Nome).ToList();
 
             return Ok(new LoginResponseDto
             {

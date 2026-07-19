@@ -145,7 +145,7 @@ export default function ComercialContatos() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-x-auto">
+        <div className="flex-1 overflow-auto">
           <table className="w-full text-left text-sm text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
               <tr>
@@ -174,8 +174,8 @@ export default function ComercialContatos() {
                       <button onClick={(e) => { e.stopPropagation(); abrirEditar(ct); }} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Editar">
                         <Pencil size={14} className="text-gray-500" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); deletar(ct.id); }} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
-                        <Trash2 size={14} className="text-red-500" />
+                      <button onClick={(e) => { e.stopPropagation(); deletar(ct.id); }} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Excluir">
+                        <Trash2 size={14} className="text-gray-500" />
                       </button>
                     </div>
                   </td>

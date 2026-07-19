@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -13,6 +14,7 @@ interface Usuario {
 }
 
 export default function Configuracoes() {
+  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>('usuarios');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
@@ -25,12 +27,49 @@ export default function Configuracoes() {
   const [corPrincipal, setCorPrincipal] = useState('#000000');
   const [corSalva, setCorSalva] = useState(false);
 
+  const [senhaMestreModal, setSenhaMestreModal] = useState(false);
+  const [senhaMestreInput, setSenhaMestreInput] = useState('');
+  const [senhaMestreErro, setSenhaMestreErro] = useState('');
+  const [senhaMestreLoading, setSenhaMestreLoading] = useState(false);
+
   const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas'];
   const perfis = ['AdminMaster', 'SuperAdmin', 'Comum'];
 
+  const isAdmin = role === 'AdminMaster';
+  const acessoPermitido = isAdmin || senhaMestreVerificada;
+
   useEffect(() => {
-    carregarUsuarios();
-  }, []);
+    if (acessoPermitido) {
+      carregarUsuarios();
+    }
+  }, [acessoPermitido]);
+
+  const validarSenhaMestre = async () => {
+    setSenhaMestreLoading(true);
+    setSenhaMestreErro('');
+
+    try {
+      const response = await fetch(`${API_URL}/Auth/validar-senha-mestre`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senha: senhaMestreInput })
+      });
+
+      if (!response.ok) {
+        setSenhaMestreErro('Senha mestre inválida.');
+        setSenhaMestreLoading(false);
+        return;
+      }
+
+      setSenhaMestreVerificada(true);
+      setSenhaMestreModal(false);
+      setSenhaMestreInput('');
+    } catch {
+      setSenhaMestreErro('Erro de comunicação com o servidor.');
+    }
+
+    setSenhaMestreLoading(false);
+  };
 
   const carregarUsuarios = async () => {
     try {
@@ -137,6 +176,58 @@ export default function Configuracoes() {
     setTimeout(() => setCorSalva(false), 2000);
   };
 
+  if (!acessoPermitido) {
+    return (
+      <div className="space-y-6 h-full flex flex-col items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock size={32} className="text-gray-400" />
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-gray-900 mb-2">Acesso Restrito</h1>
+          <p className="text-gray-500 mb-6">Esta área requer autorização de administrador.</p>
+          <button
+            onClick={() => setSenhaMestreModal(true)}
+            className="bg-black text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <Lock size={16} /> Informar Senha Mestre
+          </button>
+        </div>
+
+        {senhaMestreModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-serif font-bold text-gray-900">Senha Mestre</h2>
+                <button onClick={() => { setSenhaMestreModal(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">Insira a senha mestre para acessar as configurações do sistema.</p>
+              {senhaMestreErro && (
+                <div className="bg-gray-50 text-gray-700 p-3 rounded-xl text-sm mb-4 text-center border border-gray-200">
+                  {senhaMestreErro}
+                </div>
+              )}
+              <input
+                type="password"
+                value={senhaMestreInput}
+                onChange={(e) => setSenhaMestreInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && validarSenhaMestre()}
+                className="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm tracking-widest text-center"
+                placeholder="••••••"
+                autoFocus
+              />
+              <div className="flex gap-3 justify-end mt-6">
+                <button onClick={() => { setSenhaMestreModal(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+                <button onClick={validarSenhaMestre} disabled={!senhaMestreInput.trim() || senhaMestreLoading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${senhaMestreInput.trim() && !senhaMestreLoading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                  {senhaMestreLoading ? 'Validando...' : 'Validar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -207,26 +298,26 @@ export default function Configuracoes() {
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
                           {usuario.setores.map(setor => (
-                            <span key={setor} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{setor}</span>
+                            <span key={setor} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{setor}</span>
                           ))}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ring-1 ${
-                          usuario.perfil === 'AdminMaster' ? 'bg-purple-50 text-purple-700 ring-purple-500/20' : usuario.perfil === 'SuperAdmin' ? 'bg-amber-50 text-amber-700 ring-amber-500/20' : 'bg-gray-100 text-gray-700 ring-gray-500/20'
+                          usuario.perfil === 'AdminMaster' ? 'bg-gray-50 text-gray-700 ring-gray-500/20' : usuario.perfil === 'SuperAdmin' ? 'bg-gray-50 text-gray-700 ring-gray-500/20' : 'bg-gray-100 text-gray-700 ring-gray-500/20'
                         }`}>{usuario.perfil}</span>
                       </td>
                       <td className="px-6 py-4">
                         <button onClick={() => toggleAtivo(usuario.id)} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                          usuario.ativo ? 'bg-gray-100 text-gray-800 ring-1 ring-black/20 hover:bg-gray-200' : 'bg-red-50 text-red-700 ring-1 ring-red-500/20 hover:bg-red-100'
+                          usuario.ativo ? 'bg-gray-100 text-gray-800 ring-1 ring-black/20 hover:bg-gray-200' : 'bg-gray-50 text-gray-700 ring-1 ring-gray-500/20 hover:bg-gray-100'
                         }`}>
                           {usuario.ativo ? <Check size={12} /> : <X size={12} />}
                           {usuario.ativo ? 'Ativo' : 'Inativo'}
                         </button>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button onClick={() => abrirEdicao(usuario)} className="text-blue-600 hover:underline mr-3 flex items-center gap-1 inline-flex text-sm"><Edit3 size={14} /> Editar</button>
-                        <button onClick={() => excluirUsuario(usuario.id)} className="text-red-600 hover:underline flex items-center gap-1 inline-flex text-sm"><Trash2 size={14} /> Excluir</button>
+                        <button onClick={() => abrirEdicao(usuario)} className="text-gray-600 hover:underline mr-3 flex items-center gap-1 inline-flex text-sm"><Edit3 size={14} /> Editar</button>
+                        <button onClick={() => excluirUsuario(usuario.id)} className="text-gray-700 hover:underline flex items-center gap-1 inline-flex text-sm"><Trash2 size={14} /> Excluir</button>
                       </td>
                     </tr>
                   ))}
@@ -244,8 +335,8 @@ export default function Configuracoes() {
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="pb-3 font-semibold text-gray-700">Módulo</th>
-                    <th className="pb-3 font-semibold text-center text-purple-700">AdminMaster</th>
-                    <th className="pb-3 font-semibold text-center text-amber-700">SuperAdmin</th>
+                    <th className="pb-3 font-semibold text-center text-gray-700">AdminMaster</th>
+                    <th className="pb-3 font-semibold text-center text-gray-700">SuperAdmin</th>
                     <th className="pb-3 font-semibold text-center text-gray-700">Comum</th>
                   </tr>
                 </thead>
@@ -267,7 +358,7 @@ export default function Configuracoes() {
                       <td className="py-3 text-center">{item.admin ? <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-200 text-black rounded-lg"><Check size={16} strokeWidth={3} /></span> : <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-100 text-gray-400 rounded-lg"><X size={16} strokeWidth={3} /></span>}</td>
                       <td className="py-3 text-center">{item.super ? <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-200 text-black rounded-lg"><Check size={16} strokeWidth={3} /></span> : <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-100 text-gray-400 rounded-lg"><X size={16} strokeWidth={3} /></span>}</td>
                       <td className="py-3 text-center">
-                        {typeof item.comum === 'string' ? <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{item.comum}</span> : item.comum ? <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-200 text-black rounded-lg"><Check size={16} strokeWidth={3} /></span> : <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-100 text-gray-400 rounded-lg"><X size={16} strokeWidth={3} /></span>}
+                        {typeof item.comum === 'string' ? <span className="text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded-full">{item.comum}</span> : item.comum ? <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-200 text-black rounded-lg"><Check size={16} strokeWidth={3} /></span> : <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-100 text-gray-400 rounded-lg"><X size={16} strokeWidth={3} /></span>}
                       </td>
                     </tr>
                   ))}
@@ -376,7 +467,7 @@ export default function Configuracoes() {
                   ))}
                 </div>
                 {formNovoUsuario.setores.length >= setoresConfig.maxPorUsuario && (
-                  <p className="text-xs text-amber-600 mt-1">Máximo de {setoresConfig.maxPorUsuario} setores atingido.</p>
+                  <p className="text-xs text-gray-600 mt-1">Máximo de {setoresConfig.maxPorUsuario} setores atingido.</p>
                 )}
               </div>
             </div>

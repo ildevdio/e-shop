@@ -26,6 +26,7 @@ export default function OmnichannelChat() {
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [contatoSearch, setContatoSearch] = useState('');
   const [isManualMode, setIsManualMode] = useState(false);
+  const [attendants, setAttendants] = useState<{ id: number; nome: string; setores: string[] }[]>([]);
 
   const [contextMenu, setContextMenu] = useState<{ messageId: string; x: number; y: number } | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -48,6 +49,7 @@ export default function OmnichannelChat() {
 
   useEffect(() => {
     carregarAtendimentos();
+    atendimentoService.getUsuarios().then(setAttendants).catch(() => setAttendants([]));
   }, []);
 
   useEffect(() => {
@@ -63,84 +65,18 @@ export default function OmnichannelChat() {
     };
   }, []);
 
-  const mockChats: ChatSession[] = [
-    {
-      id: '1',
-      lead: {
-        nome: 'Mercearia São Jorge', telefone: '(11) 99234-1122',
-        interesse: 'Castanha de Caju W1, Chia Orgânica', origem: 'WhatsApp',
-        bairro: 'Vila Mariana', quantidade: '80', embalagem: 'A Granel (Sacaria 20kg)',
-        pagamento: 'Boleto Faturado (14 dias)', tipoCliente: 'Empório / Produtos Naturais',
-        vendaFechada: false, resumoIA: '',
-      },
-      messages: [
-        { id: 'm1', text: 'Olá! Tudo bem? Vi que vocês trabalham com castanhas e sementes.', sender: 'user', timestamp: '2026-07-18T09:15:00' },
-        { id: 'm2', text: 'Olá! Tudo sim, obrigado pelo contato. Sim, trabalhamos com uma linha completa de castanhas, sementes e oleaginosas. O que está precisando?', sender: 'bot', timestamp: '2026-07-18T09:15:30' },
-        { id: 'm3', text: 'Preciso de 50kg de Castanha de Caju W1 e 30kg de Chia Orgânica.', sender: 'user', timestamp: '2026-07-18T09:16:00' },
-        { id: 'm4', text: 'Perfeito! Temos ambos disponíveis. A castanha W1 está a R$89,90/kg e a Chia Orgânica a R$42,50/kg. Qual seria a forma de entrega e pagamento?', sender: 'bot', timestamp: '2026-07-18T09:16:45' },
-        { id: 'm5', text: 'Entrega na Vila Mariana, preferência por boleto faturado.', sender: 'user', timestamp: '2026-07-18T09:17:20' },
-      ],
-      iaActive: true,
-    },
-    {
-      id: '2',
-      lead: {
-        nome: 'Distribuidora Horizonte', telefone: '(11) 98812-3344',
-        interesse: 'Amendoim Torrado, Castanha-do-Pará', origem: 'Telefone',
-        bairro: 'Brás', quantidade: '200', embalagem: 'A Granel (Saco 25kg)',
-        pagamento: '', tipoCliente: 'Indústria de Alimentos',
-        vendaFechada: false, resumoIA: '',
-      },
-      messages: [
-        { id: 'm6', text: 'Bom dia! Somos da Distribuidora Horizonte. Precisamos de uma cotação urgente para amendoim e castanha-do-pará.', sender: 'user', timestamp: '2026-07-18T08:30:00' },
-        { id: 'm7', text: 'Bom dia! Claro, me passa as quantidades que o comercial prepara a proposta.', sender: 'bot', timestamp: '2026-07-18T08:30:20' },
-        { id: 'm8', text: '200kg de amendoim torrado e 100kg de castanha-do-pará, tudo em sacos de 25kg.', sender: 'user', timestamp: '2026-07-18T08:31:00' },
-      ],
-      iaActive: true,
-    },
-    {
-      id: '3',
-      lead: {
-        nome: 'Padaria Pão Dourado', telefone: '(11) 97766-5588',
-        interesse: 'Farinha de Trigo, Açúcar Cristal', origem: 'Indicação',
-        bairro: 'Pinheiros', quantidade: '150', embalagem: 'Fracionado (Sacola 5kg)',
-        pagamento: 'PIX', tipoCliente: 'Varejo',
-        vendaFechada: true, resumoIA: 'RESUMO IA:\n- Cliente: Padaria Pão Dourado\n- Interesse: Farinha de Trigo e Açúcar Cristal\n- Bairro: Pinheiros\n- Venda fechada via PIX.',
-      },
-      messages: [
-        { id: 'm9', text: 'Olá, preciso de farinha de trigo e açúcar para minha padaria.', sender: 'user', timestamp: '2026-07-17T14:00:00' },
-        { id: 'm10', text: 'Claro! Qual quantidade e embalagem?', sender: 'bot', timestamp: '2026-07-17T14:00:30' },
-        { id: 'm11', text: '100kg de farinha e 50kg de açúcar, preferência em sacolas menores.', sender: 'user', timestamp: '2026-07-17T14:01:00' },
-      ],
-      iaActive: false,
-    },
-  ];
-
   const carregarAtendimentos = async () => {
     try {
       setIsLoading(true);
       const data = await atendimentoService.getAtendimentos();
-      if (data.length > 0) {
-        setChats(data);
-        setActiveChatId(data[0].id);
-      } else {
-        setChats(mockChats);
-        setActiveChatId(mockChats[0].id);
-      }
+      setChats(data);
+      if (data.length > 0) setActiveChatId(data[0].id);
     } catch {
-      setChats(mockChats);
-      setActiveChatId(mockChats[0].id);
+      setChats([]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const mockAttendants = [
-    { id: '1', name: 'Marcos Silva (Vendas)', sector: 'Comercial' },
-    { id: '2', name: 'Julia Torres (Vendas)', sector: 'Comercial' },
-    { id: '3', name: 'Carlos Souza (Técnico)', sector: 'Logística' },
-    { id: '4', name: 'Roberto (Admin)', sector: 'Diretoria' }
-  ];
 
   const activeChat = chats.find(c => c.id === activeChatId) || chats[0] || null;
 
@@ -543,7 +479,7 @@ export default function OmnichannelChat() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex bg-white m-2 sm:m-3 lg:m-4 rounded-xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-black/5">
+    <div className="h-full flex bg-white overflow-hidden">
       <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => handleFileSelect(e, 'file')} />
       <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e, 'image')} />
 
@@ -677,12 +613,12 @@ export default function OmnichannelChat() {
                         <div className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 w-64 z-50">
                           <span className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 block">Transferir para:</span>
                           <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
-                            {mockAttendants.map(att => (
-                              <button key={att.id} onClick={() => confirmTransfer(att.name)} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl text-left transition-colors">
-                                <div className="w-8 h-8 rounded-full bg-gray-200 text-black flex items-center justify-center font-bold text-sm">{att.name.charAt(0)}</div>
+                            {attendants.map(att => (
+                              <button key={att.id} onClick={() => confirmTransfer(att.nome)} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl text-left transition-colors">
+                                <div className="w-8 h-8 rounded-full bg-gray-200 text-black flex items-center justify-center font-bold text-sm">{att.nome.charAt(0)}</div>
                                 <div className="flex flex-col">
-                                  <span className="text-sm font-semibold text-gray-700">{att.name}</span>
-                                  <span className="text-[10px] text-gray-500">{att.sector}</span>
+                                  <span className="text-sm font-semibold text-gray-700">{att.nome}</span>
+                                  <span className="text-[10px] text-gray-500">{att.setores?.join(', ') || 'Sem setor'}</span>
                                 </div>
                               </button>
                             ))}
@@ -786,7 +722,7 @@ export default function OmnichannelChat() {
                             <Pencil size={15} className="text-gray-400" /> Editar
                           </button>
                           <button onClick={() => { setDeleteConfirmId(msg.id); setContextMenu(null); }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors">
                             <Trash2 size={15} /> Excluir
                           </button>
                         </>
@@ -809,7 +745,7 @@ export default function OmnichannelChat() {
                       Cancelar
                     </button>
                     <button onClick={() => handleDeleteMessage(deleteConfirmId)}
-                      className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors">
+                      className="flex-1 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-colors">
                       Excluir
                     </button>
                   </div>
@@ -820,16 +756,16 @@ export default function OmnichannelChat() {
             {/* Input */}
             <div className="p-4 border-t border-gray-100 shrink-0 bg-white">
               {isRecording ? (
-                <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl p-3">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-red-700">{formatRecordingTime(recordingTime)}</span>
-                  <div className="flex-1 h-8 bg-red-100 rounded-full overflow-hidden mx-2">
-                    <div className="h-full bg-red-300 rounded-full animate-pulse" style={{ width: `${Math.min((recordingTime / 60) * 100, 100)}%` }} />
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl p-3">
+                  <div className="w-3 h-3 bg-gray-500 rounded-full animate-pulse" />
+                  <span className="text-sm font-medium text-gray-700">{formatRecordingTime(recordingTime)}</span>
+                  <div className="flex-1 h-8 bg-gray-100 rounded-full overflow-hidden mx-2">
+                    <div className="h-full bg-gray-400 rounded-full animate-pulse" style={{ width: `${Math.min((recordingTime / 60) * 100, 100)}%` }} />
                   </div>
-                  <button onClick={cancelRecording} className="p-2 hover:bg-red-100 rounded-xl transition-colors text-red-500" title="Cancelar">
+                  <button onClick={cancelRecording} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500" title="Cancelar">
                     <X size={20} />
                   </button>
-                  <button onClick={stopRecording} className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm" title="Enviar">
+                  <button onClick={stopRecording} className="p-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors shadow-sm" title="Enviar">
                     <Send size={18} />
                   </button>
                 </div>
@@ -868,7 +804,7 @@ export default function OmnichannelChat() {
                 <div className="absolute bottom-[80px] left-16 bg-white border border-gray-100 rounded-2xl p-2 w-56 shadow-xl z-50 flex flex-col gap-1">
                   <button onClick={() => { imageInputRef.current?.click(); setIsAttachMenuOpen(false); }}
                     className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center"><ImageIcon size={18} /></div>
+                    <div className="w-10 h-10 rounded-full bg-gray-500 text-white flex items-center justify-center"><ImageIcon size={18} /></div>
                     <span className="text-sm font-medium text-gray-700">Foto ou Imagem</span>
                   </button>
                   <button onClick={() => { fileInputRef.current?.click(); setIsAttachMenuOpen(false); }}
@@ -973,7 +909,7 @@ export default function OmnichannelChat() {
               </div>
             </div>
             <div className="p-4 border-t border-gray-100 space-y-2">
-              {!isLeadValid && <div className="text-[10px] text-amber-600 font-bold text-center">Preencha os campos obrigatórios (*)</div>}
+              {!isLeadValid && <div className="text-[10px] text-gray-500 font-bold text-center">Preencha os campos obrigatórios (*)</div>}
               <button onClick={simulateVendaFechada} disabled={activeChat.lead.vendaFechada || !isLeadValid}
                 className="w-full bg-gray-100 text-gray-700 border border-gray-200 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors disabled:opacity-50">
                 {activeChat.lead.vendaFechada ? 'Venda Registrada' : 'Confirmar Pedido'}

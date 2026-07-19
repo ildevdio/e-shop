@@ -6,7 +6,9 @@ interface AuthState {
   role: string | null;
   usuarioId: number | null;
   setores: string[];
+  senhaMestreVerificada: boolean;
   setAuth: (token: string, nome: string, role: string, usuarioId: number, setores: string[]) => void;
+  setSenhaMestreVerificada: (verificada: boolean) => void;
   logout: () => void;
 }
 
@@ -16,6 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   role: localStorage.getItem('role'),
   usuarioId: localStorage.getItem('usuarioId') ? Number(localStorage.getItem('usuarioId')) : null,
   setores: JSON.parse(localStorage.getItem('setores') || '[]'),
+  senhaMestreVerificada: localStorage.getItem('senhaMestreVerificada') === 'true',
   
   setAuth: (token, nome, role, usuarioId, setores) => {
     localStorage.setItem('token', token);
@@ -26,12 +29,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ token, nome, role, usuarioId, setores });
   },
   
+  setSenhaMestreVerificada: (verificada) => {
+    localStorage.setItem('senhaMestreVerificada', verificada.toString());
+    set({ senhaMestreVerificada: verificada });
+  },
+  
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('nome');
     localStorage.removeItem('role');
     localStorage.removeItem('usuarioId');
     localStorage.removeItem('setores');
-    set({ token: null, nome: null, role: null, usuarioId: null, setores: [] });
+    localStorage.removeItem('senhaMestreVerificada');
+    set({ token: null, nome: null, role: null, usuarioId: null, setores: [], senhaMestreVerificada: false });
   }
 }));

@@ -219,6 +219,11 @@ namespace Multigrao.Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("TipoPessoa")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Clientes");
@@ -241,7 +246,8 @@ namespace Multigrao.Api.Migrations
                             Numero = "",
                             RazaoSocialNome = "Padaria Pão Dourado",
                             RegimeTributario = "",
-                            Telefone = "(81) 3333-4444"
+                            Telefone = "(81) 3333-4444",
+                            TipoPessoa = "PJ"
                         },
                         new
                         {
@@ -260,7 +266,8 @@ namespace Multigrao.Api.Migrations
                             Numero = "",
                             RazaoSocialNome = "Supermercado Fresh",
                             RegimeTributario = "",
-                            Telefone = "(81) 3333-5555"
+                            Telefone = "(81) 3333-5555",
+                            TipoPessoa = "PJ"
                         },
                         new
                         {
@@ -279,7 +286,8 @@ namespace Multigrao.Api.Migrations
                             Numero = "",
                             RazaoSocialNome = "Loja Naturalzinha",
                             RegimeTributario = "",
-                            Telefone = "(81) 3333-6666"
+                            Telefone = "(81) 3333-6666",
+                            TipoPessoa = "PJ"
                         });
                 });
 
@@ -410,6 +418,35 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Conversas");
                 });
 
+            modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativa")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("AutorId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AutorId");
+
+                    b.ToTable("Enquetes");
+                });
+
             modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
                 {
                     b.Property<int>("Id")
@@ -523,6 +560,32 @@ namespace Multigrao.Api.Migrations
                     b.HasIndex("UsuarioRemetenteId");
 
                     b.ToTable("Mensagens");
+                });
+
+            modelBuilder.Entity("Multigrao.Api.Models.OpcaoEnquete", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EnqueteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnqueteId");
+
+                    b.ToTable("OpcoesEnquete");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
@@ -883,6 +946,37 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Multigrao.Api.Models.VotoEnquete", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataVoto")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EnqueteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OpcaoEnqueteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnqueteId");
+
+                    b.HasIndex("OpcaoEnqueteId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("VotosEnquete");
+                });
+
             modelBuilder.Entity("Multigrao.Api.Models.AtendimentoLead", b =>
                 {
                     b.HasOne("Multigrao.Api.Models.Conversa", "Conversa")
@@ -927,6 +1021,17 @@ namespace Multigrao.Api.Migrations
                         .HasForeignKey("ClienteId");
 
                     b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
+                {
+                    b.HasOne("Multigrao.Api.Models.Usuario", "Autor")
+                        .WithMany()
+                        .HasForeignKey("AutorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Autor");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
@@ -992,6 +1097,17 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("UsuarioRemetente");
                 });
 
+            modelBuilder.Entity("Multigrao.Api.Models.OpcaoEnquete", b =>
+                {
+                    b.HasOne("Multigrao.Api.Models.Enquete", "Enquete")
+                        .WithMany("Opcoes")
+                        .HasForeignKey("EnqueteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Enquete");
+                });
+
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
                 {
                     b.HasOne("Multigrao.Api.Models.Cliente", "Cliente")
@@ -1041,6 +1157,33 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Multigrao.Api.Models.VotoEnquete", b =>
+                {
+                    b.HasOne("Multigrao.Api.Models.Enquete", "Enquete")
+                        .WithMany("Votos")
+                        .HasForeignKey("EnqueteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Multigrao.Api.Models.OpcaoEnquete", "OpcaoEnquete")
+                        .WithMany()
+                        .HasForeignKey("OpcaoEnqueteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Multigrao.Api.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Enquete");
+
+                    b.Navigation("OpcaoEnquete");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
                 {
                     b.Navigation("Contatos");
@@ -1051,6 +1194,13 @@ namespace Multigrao.Api.Migrations
             modelBuilder.Entity("Multigrao.Api.Models.Conversa", b =>
                 {
                     b.Navigation("Mensagens");
+                });
+
+            modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
+                {
+                    b.Navigation("Opcoes");
+
+                    b.Navigation("Votos");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>

@@ -7,6 +7,11 @@ namespace Multigrao.Api.DTOs
         public string Senha { get; set; } = string.Empty;
     }
 
+    public class ValidarSenhaMestreDto
+    {
+        public string Senha { get; set; } = string.Empty;
+    }
+
     public class LoginResponseDto
     {
         public string Token { get; set; } = string.Empty;
@@ -181,5 +186,19 @@ namespace Multigrao.Api.DTOs
         public string? Pagamento { get; set; }
         public string? TipoCliente { get; set; }
         public bool? IAAtiva { get; set; }
+    }
+
+    // Enquetes
+    public class CriarEnqueteDto
+    {
+        public string Titulo { get; set; } = string.Empty;
+        public int AutorId { get; set; }
+        public List<string> Opcoes { get; set; } = new();
+    }
+
+    public class VotarEnqueteDto
+    {
+        public int OpcaoEnqueteId { get; set; }
+        public int UsuarioId { get; set; }
     }
 }

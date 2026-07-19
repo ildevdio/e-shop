@@ -80,7 +80,7 @@ export default function ComercialListaAtendimentos() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-x-auto">
+        <div className="flex-1 overflow-auto">
           <table className="w-full text-left text-sm text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
               <tr>
@@ -110,22 +110,22 @@ export default function ComercialListaAtendimentos() {
                   <td className="px-6 py-4">{a.lead.tipoCliente || '—'}</td>
                   <td className="px-6 py-4">
                     {a.lead.vendaFechada ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-black ring-1 ring-black/20">
                         <CheckCircle size={12} /> Fechado
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 ring-1 ring-gray-300">
                         Aberto
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4">
                     {a.iaActive ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-black ring-1 ring-black/20">
                         <Bot size={12} /> Ativa
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-500 ring-1 ring-gray-200">
                         <User size={12} /> Humano
                       </span>
                     )}
@@ -190,8 +190,8 @@ export default function ComercialListaAtendimentos() {
                 </div>
               </div>
               {detalhe.lead.resumoIA && (
-                <div className="bg-blue-50 rounded-xl p-4 mt-3">
-                  <span className="text-blue-600 text-xs uppercase tracking-wider font-semibold">Resumo IA</span>
+                <div className="bg-gray-100 rounded-xl p-4 mt-3">
+                  <span className="text-gray-500 text-xs uppercase tracking-wider font-semibold">Resumo IA</span>
                   <p className="text-gray-700 mt-1 whitespace-pre-line">{detalhe.lead.resumoIA}</p>
                 </div>
               )}
@@ -202,7 +202,7 @@ export default function ComercialListaAtendimentos() {
                     {detalhe.messages.map(m => (
                       <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-start' : 'justify-end'}`}>
                         <div className={`px-3 py-2 rounded-xl text-sm max-w-[80%] ${
-                          m.sender === 'user' ? 'bg-gray-100 text-gray-700' : m.sender === 'bot' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                          m.sender === 'user' ? 'bg-gray-100 text-gray-700' : 'bg-black text-white'
                         }`}>
                           {m.text}
                         </div>

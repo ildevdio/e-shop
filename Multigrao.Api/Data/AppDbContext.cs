@@ -27,6 +27,10 @@ namespace Multigrao.Api.Data
         public DbSet<Aviso> Avisos { get; set; }
         public DbSet<AtendimentoLead> AtendimentoLeads { get; set; }
 
+        public DbSet<Enquete> Enquetes { get; set; }
+        public DbSet<OpcaoEnquete> OpcoesEnquete { get; set; }
+        public DbSet<VotoEnquete> VotosEnquete { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
