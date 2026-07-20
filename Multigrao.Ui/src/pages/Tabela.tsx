@@ -277,13 +277,13 @@ export default function Tabela() {
                             const qtd = qtdNoCarrinho(p.id);
                             const isAtacado = qtd >= 5;
                             return (
-                              <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+                              <div key={p.id} className="px-5 py-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors">
                                 {p.imagemUrl && (
-                                  <img src={imageUrl(p.imagemUrl)} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 ring-1 ring-neutral-200" />
+                                  <img src={imageUrl(p.imagemUrl)} alt="" className="h-20 w-20 rounded-xl object-cover shrink-0 ring-1 ring-neutral-200" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-neutral-800 leading-tight">{p.nome}</p>
-                                  <p className="text-[11px] text-neutral-400 italic mt-0.5">
+                                  <p className="text-base font-semibold text-neutral-800 leading-tight">{p.nome}</p>
+                                  <p className="text-xs text-neutral-400 italic mt-1">
                                     {p.embalagem && `${p.embalagem} `}
                                     {p.unidadeVenda && `· ${p.unidadeVenda}`}
                                   </p>
@@ -292,23 +292,23 @@ export default function Tabela() {
                                   {isAtacado ? (
                                     <>
                                       <p className="text-xs text-neutral-400 line-through">{formatPreco(p.precoVarejo)}</p>
-                                      <p className="text-sm font-bold text-emerald-600">{formatPreco(p.precoAtacado)}</p>
+                                      <p className="text-base font-bold text-emerald-600">{formatPreco(p.precoAtacado)}</p>
                                       <p className="text-[10px] text-emerald-500 font-medium italic">Atacado</p>
                                     </>
                                   ) : (
                                     <>
-                                      <p className="text-sm font-bold text-neutral-800">{formatPreco(p.precoVarejo)}</p>
+                                      <p className="text-base font-bold text-neutral-800">{formatPreco(p.precoVarejo)}</p>
                                       <p className="text-[11px] text-neutral-400 italic">{formatPreco(p.precoAtacado)} no atacado</p>
                                     </>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0 ml-2">
-                                  <button onClick={() => removeDoCarrinho(p.id)} className="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors text-neutral-500">
-                                    <Minus size={14} />
+                                  <button onClick={() => removeDoCarrinho(p.id)} className="p-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors text-neutral-500">
+                                    <Minus size={16} />
                                   </button>
-                                  <span className="w-7 text-center text-sm font-semibold tabular-nums text-neutral-800">{qtd}</span>
-                                  <button onClick={() => addAoCarrinho(p.id)} className="p-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 transition-colors text-white">
-                                    <Plus size={14} />
+                                  <span className="w-8 text-center text-base font-semibold tabular-nums text-neutral-800">{qtd}</span>
+                                  <button onClick={() => addAoCarrinho(p.id)} className="p-2 rounded-lg bg-amber-600 hover:bg-amber-500 transition-colors text-white">
+                                    <Plus size={16} />
                                   </button>
                                 </div>
                               </div>
