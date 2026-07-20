@@ -497,8 +497,19 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
 }) {
   const [form, setForm] = useState({ ...produto });
   const [erro, setErro] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const validarENumero = (v: any): v is number => typeof v === 'number' && !isNaN(v);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadService.uploadImagem(file);
+    if (url) setForm({ ...form, imagemUrl: url });
+    setUploading(false);
+  };
 
   const salvar = async () => {
     setErro('');
@@ -594,8 +605,12 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">URL da Imagem</label>
-            <input value={form.imagemUrl ?? ''} onChange={e => setForm({ ...form, imagemUrl: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+            <label className="text-sm font-medium text-gray-700">Imagem do Produto</label>
+            <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" onChange={handleFile} className="hidden" />
+            <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
+              {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
+            </div>
+            {form.imagemUrl && <img src={form.imagemUrl} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.ativo ?? true} onChange={e => setForm({ ...form, ativo: e.target.checked })} className="rounded" />
