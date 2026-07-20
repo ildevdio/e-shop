@@ -229,9 +229,9 @@ export default function Catalogo() {
                         {gruposFiltrados.map((grupo, gi) => (
                           <div key={gi}>
                             {grupo.marca && (
-                              <div className="flex items-center justify-center rounded-xl px-4 py-3 mb-3" style={{ backgroundColor: grupo.marca.cor || '#f3f4f6' }}>
+                              <div className="flex items-center justify-center rounded-xl px-4 py-5 mb-3" style={{ backgroundColor: grupo.marca.cor || '#f3f4f6' }}>
                                 {grupo.marca.imagemUrl ? (
-                                  <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-8 object-contain" />
+                                  <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-12 object-contain" />
                                 ) : (
                                   <span className="text-xs font-bold uppercase tracking-wider" style={{ color: grupo.marca.cor ? '#fff' : '#6b7280' }}>{grupo.marca.nome}</span>
                                 )}
