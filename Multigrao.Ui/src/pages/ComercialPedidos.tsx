@@ -610,7 +610,7 @@ export default function ComercialPedidos() {
               <button
                 onClick={async () => {
                   const e = editDetalhe!;
-                  await pedidoService.atualizarPedido(detalhe.id, {
+                  const ok = await pedidoService.atualizarPedido(detalhe.id, {
                     tipoEntrega: e.tipoEntrega,
                     cep: e.cep,
                     logradouro: e.logradouro,
@@ -624,8 +624,7 @@ export default function ComercialPedidos() {
                     valorTotal: e.valorTotal,
                     itens: e.itens,
                   });
-                  fecharDetalhe();
-                  await carregar();
+                  if (ok) { fecharDetalhe(); await carregar(); }
                 }}
                 className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-black text-white hover:bg-gray-800 transition-colors"
               >
@@ -636,7 +635,7 @@ export default function ComercialPedidos() {
               <button
                 onClick={async () => {
                   if (editDetalhe) {
-                    await pedidoService.atualizarPedido(detalhe.id, {
+                    const ok = await pedidoService.atualizarPedido(detalhe.id, {
                       tipoEntrega: editDetalhe.tipoEntrega,
                       cep: editDetalhe.cep,
                       logradouro: editDetalhe.logradouro,
@@ -650,8 +649,10 @@ export default function ComercialPedidos() {
                       valorTotal: editDetalhe.valorTotal,
                       itens: editDetalhe.itens,
                     });
+                    if (!ok) return;
                   }
-                  await pedidoService.confirmarPedido(detalhe.id);
+                  const confirmou = await pedidoService.confirmarPedido(detalhe.id);
+                  if (!confirmou) { alert('Erro ao confirmar pedido.'); return; }
                   fecharDetalhe();
                   await carregar();
                 }}
@@ -663,7 +664,8 @@ export default function ComercialPedidos() {
             {detalhe.tipoEntrega === 'Retirada' && detalhe.status === 'ProntoEntrega' && (
               <button
                 onClick={async () => {
-                  await pedidoService.confirmarRetirada(detalhe.id);
+                  const ok = await pedidoService.confirmarRetirada(detalhe.id);
+                  if (!ok) { alert('Erro ao confirmar retirada.'); return; }
                   fecharDetalhe();
                   await carregar();
                 }}
