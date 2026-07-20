@@ -23,17 +23,18 @@ var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-var corsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")
+var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS")
     ?? builder.Configuration["Cors:Origins"]
-    ?? "http://localhost:5173";
+    ?? "http://localhost:5173").Split(',', StringSplitOptions.TrimEntries);
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(corsOrigins.Split(',', StringSplitOptions.TrimEntries))
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -59,18 +60,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5050";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 var app = builder.Build();
 
 app.UseMiddleware<Multigrao.Api.Middlewares.ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
 
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
+using var scope = app.Services.CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+db.Database.Migrate();
 
 app.UseCors();
 
