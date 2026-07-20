@@ -33,7 +33,7 @@ export default function Catalogo() {
   const [aba, setAba] = useState<Tab>('visualizar');
   const [carrinho, setCarrinho] = useState<Map<number, number>>(new Map());
   const [modalFinalizar, setModalFinalizar] = useState(false);
-  const [solicitante, setSolicitante] = useState({ nome: '', telefone: '' });
+  const [solicitante, setSolicitante] = useState({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
   const [enviando, setEnviando] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
@@ -113,7 +113,7 @@ export default function Catalogo() {
   const limparCarrinho = () => setCarrinho(new Map());
 
   const finalizarPedido = async () => {
-    if (!solicitante.nome.trim() || carrinho.size === 0) return;
+    if (!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || carrinho.size === 0) return;
     setEnviando(true);
     const itens = [...carrinho.entries()].map(([produtoId, quantidade]) => {
       const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(p => p.id === produtoId);
@@ -128,6 +128,14 @@ export default function Catalogo() {
     await pedidoService.solicitarCatalogo({
       solicitanteNome: solicitante.nome.trim(),
       solicitanteTelefone: solicitante.telefone.trim(),
+      cpfCnpj: solicitante.cpfCnpj.trim(),
+      cep: solicitante.cep.trim(),
+      logradouro: solicitante.logradouro.trim(),
+      numero: solicitante.numero.trim(),
+      complemento: solicitante.complemento.trim(),
+      bairro: solicitante.bairro.trim(),
+      cidade: solicitante.cidade.trim(),
+      estado: solicitante.estado.trim(),
       valorTotal,
       tipoEntrega: 'Entrega',
       desconto: 0,
@@ -136,7 +144,7 @@ export default function Catalogo() {
     });
     setEnviando(false);
     setModalFinalizar(false);
-    setSolicitante({ nome: '', telefone: '' });
+    setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
     limparCarrinho();
   };
 
@@ -317,11 +325,11 @@ export default function Catalogo() {
       )}
 
       {modalFinalizar && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '' }); }}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }); }}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Finalizar Pedido</h2>
-              <button onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '' }); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+              <button onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
             </div>
             <div className="space-y-3 mb-4">
               <div className="bg-gray-50 rounded-xl p-3 max-h-40 overflow-y-auto space-y-1.5 text-sm">
@@ -340,16 +348,55 @@ export default function Catalogo() {
                   );
                 })}
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Seu nome *</label>
-                <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Como podemos te chamar?" />
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-gray-700">Nome completo *</label>
+                  <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Seu nome" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">CPF / CNPJ *</label>
+                  <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="000.000.000-00" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Telefone</label>
+                  <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="(81) 99999-9999" />
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Telefone / WhatsApp</label>
-                <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="(11) 99999-9999" />
+
+              <p className="text-sm font-medium text-gray-700">Endereço de entrega *</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="col-span-2">
+                  <label className="text-xs text-gray-500">Logradouro</label>
+                  <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Rua, Avenida..." />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Número</label>
+                  <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="123" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Complemento</label>
+                  <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Apto, Bloco..." />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Bairro</label>
+                  <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Bairro" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">CEP</label>
+                  <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="00000-000" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Cidade</label>
+                  <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Cidade" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Estado</label>
+                  <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="PE" maxLength={2} />
+                </div>
               </div>
             </div>
-            <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || enviando} className={`w-full py-2.5 rounded-xl font-medium text-sm transition-colors ${solicitante.nome.trim() && !enviando ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+            <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || enviando} className={`w-full py-2.5 rounded-xl font-medium text-sm transition-colors ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && !enviando ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
               {enviando ? 'Enviando...' : 'Solicitar Pedido'}
             </button>
             <p className="text-[11px] text-gray-400 text-center mt-3">Seu pedido será enviado para nossa equipe comercial analisar e confirmar.</p>

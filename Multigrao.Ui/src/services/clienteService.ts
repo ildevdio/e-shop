@@ -51,6 +51,15 @@ export interface CriarClienteDto {
 }
 
 export const clienteService = {
+  buscarPorCpfCnpj: async (cpfCnpj: string): Promise<Cliente | null> => {
+    try {
+      const response = await axios.get(`${API_URL}/busca`, { params: { cpfCnpj } });
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
   getClientes: async (): Promise<Cliente[]> => {
     try {
       const response = await axios.get(API_URL);

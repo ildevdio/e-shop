@@ -25,8 +25,19 @@ export interface ItemPedido {
 
 export interface Pedido {
   id: number;
-  clienteId: number;
-  cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
+  clienteId: number | null;
+  cliente?: { id: number; razaoSocialNome: string; cpfCnpj: string; bairro: string; logradouro: string; numero: string; telefone: string; };
+  solicitanteNome?: string;
+  solicitanteTelefone?: string;
+  cpfCnpj?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  enderecoConfere?: boolean;
   status: string;
   tipoEntrega: string;
   desconto: number;
@@ -52,6 +63,14 @@ export interface CriarPedidoDto {
 export interface SolicitacaoCatalogoDto {
   solicitanteNome: string;
   solicitanteTelefone: string;
+  cpfCnpj: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
   valorTotal: number;
   tipoEntrega: string;
   desconto: number;
@@ -126,6 +145,16 @@ export const pedidoService = {
       return true;
     } catch (error) {
       console.error('Erro ao concluir conferência', error);
+      return false;
+    }
+  },
+
+  confirmarPedido: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/confirmar-pedido`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao confirmar pedido', error);
       return false;
     }
   },

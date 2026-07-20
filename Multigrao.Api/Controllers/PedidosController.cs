@@ -62,12 +62,84 @@ namespace Multigrao.Api.Controllers
         {
             if (string.IsNullOrWhiteSpace(dto.SolicitanteNome))
                 return BadRequest(new { message = "Nome do solicitante é obrigatório." });
+            if (string.IsNullOrWhiteSpace(dto.CpfCnpj))
+                return BadRequest(new { message = "CPF/CNPJ é obrigatório." });
 
-            var pedido = await CriarPedido(null, dto.SolicitanteNome, dto.SolicitanteTelefone, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Desconto, dto.Acrescimo);
+            // Buscar cliente pelo CPF/CNPJ
+            var limpo = new string(dto.CpfCnpj.Where(char.IsDigit).ToArray());
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c => c.CpfCnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim() == limpo);
+
+            int? clienteId = cliente?.Id;
+            bool enderecoConfere = false;
+
+            if (cliente != null)
+            {
+                enderecoConfere =
+                    (cliente.Cep ?? "") == (dto.Cep ?? "") &&
+                    (cliente.Logradouro ?? "") == (dto.Logradouro ?? "") &&
+                    (cliente.Numero ?? "") == (dto.Numero ?? "") &&
+                    (cliente.Bairro ?? "") == (dto.Bairro ?? "") &&
+                    (cliente.Cidade ?? "") == (dto.Cidade ?? "") &&
+                    (cliente.Estado ?? "") == (dto.Estado ?? "");
+            }
+
+            var pedido = await CriarPedido(
+                clienteId,
+                dto.SolicitanteNome,
+                dto.SolicitanteTelefone,
+                dto.ValorTotal,
+                dto.Itens,
+                dto.TipoEntrega,
+                dto.Desconto,
+                dto.Acrescimo,
+                dto.CpfCnpj,
+                dto.Cep,
+                dto.Logradouro,
+                dto.Numero,
+                dto.Complemento,
+                dto.Bairro,
+                dto.Cidade,
+                dto.Estado,
+                enderecoConfere,
+                status: "AguardandoConfirmacao"
+            );
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
 
-        private async Task<Pedido> CriarPedido(int? clienteId, string? solicitanteNome, string? solicitanteTelefone, decimal valorTotal, List<CriarItemPedidoDto> itensDto, string tipoEntrega = "Entrega", decimal desconto = 0, decimal acrescimo = 0)
+        [HttpPut("{id}/confirmar-pedido")]
+        public async Task<IActionResult> ConfirmarPedido(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+            if (pedido.Status != "AguardandoConfirmacao")
+                return BadRequest("O pedido precisa estar como 'Aguardando Confirmação'.");
+
+            pedido.Status = "Pendente";
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        private async Task<Pedido> CriarPedido(
+            int? clienteId,
+            string? solicitanteNome,
+            string? solicitanteTelefone,
+            decimal valorTotal,
+            List<CriarItemPedidoDto> itensDto,
+            string tipoEntrega = "Entrega",
+            decimal desconto = 0,
+            decimal acrescimo = 0,
+            string? cpfCnpj = null,
+            string? cep = null,
+            string? logradouro = null,
+            string? numero = null,
+            string? complemento = null,
+            string? bairro = null,
+            string? cidade = null,
+            string? estado = null,
+            bool enderecoConfere = false,
+            string status = "Pendente"
+        )
         {
             var itens = new List<ItemPedido>();
             decimal pesoTotal = 0;
@@ -96,7 +168,16 @@ namespace Multigrao.Api.Controllers
                 ClienteId = clienteId,
                 SolicitanteNome = solicitanteNome,
                 SolicitanteTelefone = solicitanteTelefone,
-                Status = "Pendente",
+                CpfCnpj = cpfCnpj,
+                Cep = cep,
+                Logradouro = logradouro,
+                Numero = numero,
+                Complemento = complemento,
+                Bairro = bairro,
+                Cidade = cidade,
+                Estado = estado,
+                EnderecoConfere = enderecoConfere,
+                Status = status,
                 TipoEntrega = tipoEntrega,
                 Desconto = desconto,
                 Acrescimo = acrescimo,

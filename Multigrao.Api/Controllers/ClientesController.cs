@@ -29,6 +29,21 @@ namespace Multigrao.Api.Controllers
             return Ok(clientes);
         }
 
+        [HttpGet("busca")]
+        public async Task<IActionResult> GetClientePorCpfCnpj([FromQuery] string cpfCnpj)
+        {
+            if (string.IsNullOrWhiteSpace(cpfCnpj))
+                return BadRequest(new { message = "CPF/CNPJ é obrigatório." });
+
+            var limpo = new string(cpfCnpj.Where(char.IsDigit).ToArray());
+            var cliente = await _context.Clientes
+                .Include(c => c.Contatos)
+                .FirstOrDefaultAsync(c => c.CpfCnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim() == limpo);
+
+            if (cliente == null) return NotFound(new { message = "Cliente não encontrado." });
+            return Ok(cliente);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCliente(int id)
         {

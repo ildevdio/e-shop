@@ -17,6 +17,32 @@ namespace Multigrao.Api.Models
         [StringLength(30)]
         public string? SolicitanteTelefone { get; set; }
 
+        [StringLength(20)]
+        public string? CpfCnpj { get; set; }
+
+        [StringLength(10)]
+        public string? Cep { get; set; }
+
+        [StringLength(200)]
+        public string? Logradouro { get; set; }
+
+        [StringLength(20)]
+        public string? Numero { get; set; }
+
+        [StringLength(100)]
+        public string? Complemento { get; set; }
+
+        [StringLength(100)]
+        public string? Bairro { get; set; }
+
+        [StringLength(100)]
+        public string? Cidade { get; set; }
+
+        [StringLength(2)]
+        public string? Estado { get; set; }
+
+        public bool EnderecoConfere { get; set; }
+
         [Required]
         [StringLength(50)]
         public string Status { get; set; } = "Pendente";

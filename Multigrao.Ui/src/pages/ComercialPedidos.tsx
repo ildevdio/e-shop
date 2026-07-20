@@ -9,6 +9,7 @@ import { useUiStore } from '../store/uiStore';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 
 const STATUS_LABELS: Record<string, string> = {
+  AguardandoConfirmacao: 'Aguardando Confirmação',
   Pendente: 'Pendente',
   EmProducao: 'Em Produção',
   EmSeparacao: 'Em Separação',
@@ -426,8 +427,11 @@ export default function ComercialPedidos() {
                 <p className="text-gray-900 font-medium mt-0.5">{STATUS_LABELS[detalhe.status] ?? detalhe.status}</p>
               </div>
               <div className="col-span-2 bg-gray-50 rounded-xl p-3">
-                <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente</span>
-                <p className="text-gray-900 font-medium mt-0.5">{detalhe.cliente?.razaoSocialNome ?? '—'}</p>
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente / Solicitante</span>
+                <p className="text-gray-900 font-medium mt-0.5">{detalhe.cliente?.razaoSocialNome ?? detalhe.solicitanteNome ?? '—'}</p>
+                {detalhe.cpfCnpj && <p className="text-xs text-gray-500 mt-0.5">CPF/CNPJ: {detalhe.cpfCnpj}</p>}
+                {detalhe.solicitanteTelefone && <p className="text-xs text-gray-500 mt-0.5">Tel: {detalhe.solicitanteTelefone}</p>}
+                {detalhe.cliente && <p className="text-xs text-gray-500 mt-0.5">Cliente cadastrado: {detalhe.cliente.razaoSocialNome}</p>}
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
@@ -465,6 +469,20 @@ export default function ComercialPedidos() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Data</span>
                 <p className="text-gray-900 font-medium mt-0.5">{new Date(detalhe.dataCriacao).toLocaleDateString('pt-BR')}</p>
               </div>
+              {(detalhe.logradouro || detalhe.bairro) && (
+                <div className="col-span-2 bg-gray-50 rounded-xl p-3">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Endereço informado</span>
+                  <p className="text-gray-900 font-medium mt-0.5">
+                    {detalhe.logradouro && `${detalhe.logradouro}, ${detalhe.numero ?? 'S/N'}`}{detalhe.complemento && ` - ${detalhe.complemento}`}
+                  </p>
+                  <p className="text-xs text-gray-500">{detalhe.bairro && `${detalhe.bairro}, `}{detalhe.cidade && `${detalhe.cidade} - `}{detalhe.estado}{detalhe.cep && `, CEP ${detalhe.cep}`}</p>
+                  {detalhe.enderecoConfere !== undefined && (
+                    <p className={`text-xs mt-1 ${detalhe.enderecoConfere ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {detalhe.enderecoConfere ? '✓ Endereço confere com cadastro do cliente' : '⚠ Endereço diferente do cadastro do cliente'}
+                    </p>
+                  )}
+                </div>
+              )}
               {detalhe.itens && detalhe.itens.length > 0 && (
                 <div className="col-span-2 bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Itens ({detalhe.itens.length})</span>
@@ -483,6 +501,19 @@ export default function ComercialPedidos() {
               )}
             </div>
 
+            {detalhe.status === 'AguardandoConfirmacao' && (
+              <button
+                onClick={async () => {
+                  await pedidoService.confirmarPedido(detalhe.id);
+                  setDetalhe(null);
+                  setModalAberto(false);
+                  await carregar();
+                }}
+                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
+              >
+                Confirmar Pedido
+              </button>
+            )}
             {detalhe.tipoEntrega === 'Retirada' && detalhe.status === 'ProntoEntrega' && (
               <button
                 onClick={async () => {

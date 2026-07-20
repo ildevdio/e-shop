@@ -68,6 +68,14 @@ namespace Multigrao.Api.DTOs
     {
         public string SolicitanteNome { get; set; } = string.Empty;
         public string SolicitanteTelefone { get; set; } = string.Empty;
+        public string CpfCnpj { get; set; } = string.Empty;
+        public string Cep { get; set; } = string.Empty;
+        public string Logradouro { get; set; } = string.Empty;
+        public string Numero { get; set; } = string.Empty;
+        public string? Complemento { get; set; }
+        public string Bairro { get; set; } = string.Empty;
+        public string Cidade { get; set; } = string.Empty;
+        public string Estado { get; set; } = string.Empty;
         public decimal ValorTotal { get; set; }
         public string TipoEntrega { get; set; } = "Entrega";
         public decimal Desconto { get; set; }
