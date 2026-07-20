@@ -4,7 +4,6 @@ import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocompl
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService } from '../services/pedidoService';
-import { clienteService } from '../services/clienteService';
 
 interface ProdutoAgrupado {
   marca: Marca | null;
@@ -27,7 +26,6 @@ export default function Tabela() {
   const [solicitante, setSolicitante] = useState({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
   const [enviando, setEnviando] = useState(false);
   const [pedidoCriado, setPedidoCriado] = useState(false);
-  const [clienteEncontrado, setClienteEncontrado] = useState<{ nome: string; enderecoConfere: boolean } | null>(null);
 
   const carregar = async () => {
     setCarregando(true);
@@ -117,23 +115,6 @@ export default function Tabela() {
     }))
     .filter(c => c.grupos.length > 0);
 
-  const buscarCliente = async (cpfCnpj: string) => {
-    if (cpfCnpj.replace(/\D/g, '').length < 11) { setClienteEncontrado(null); return; }
-    const cliente = await clienteService.buscarPorCpfCnpj(cpfCnpj);
-    if (cliente) {
-      const enderecoConfere =
-        (cliente.cep ?? '') === (solicitante.cep ?? '') &&
-        (cliente.logradouro ?? '') === (solicitante.logradouro ?? '') &&
-        (cliente.numero ?? '') === (solicitante.numero ?? '') &&
-        (cliente.bairro ?? '') === (solicitante.bairro ?? '') &&
-        (cliente.cidade ?? '') === (solicitante.cidade ?? '') &&
-        (cliente.estado ?? '') === (solicitante.estado ?? '');
-      setClienteEncontrado({ nome: cliente.razaoSocialNome, enderecoConfere });
-    } else {
-      setClienteEncontrado(null);
-    }
-  };
-
   const finalizarPedido = async () => {
     if (!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || carrinho.size === 0) return;
     setEnviando(true);
@@ -163,7 +144,6 @@ export default function Tabela() {
     setModalFinalizar(false);
     setPedidoCriado(true);
     setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
-    setClienteEncontrado(null);
     limparCarrinho();
     setTimeout(() => setPedidoCriado(false), 8000);
   };
@@ -400,11 +380,11 @@ export default function Tabela() {
 
       {/* Modal finalizar */}
       {modalFinalizar && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4" onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }); setClienteEncontrado(null); }}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4" onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }); }}>
           <div className="bg-white rounded-2xl border border-neutral-200 w-full max-w-md p-6 shadow-xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-heading text-lg font-bold text-neutral-800">Finalizar Pedido</h2>
-              <button onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }); setClienteEncontrado(null); }} className="p-2 hover:bg-neutral-100 rounded-xl transition-colors"><X size={20} className="text-neutral-400" /></button>
+              <button onClick={() => { setModalFinalizar(false); setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }); }} className="p-2 hover:bg-neutral-100 rounded-xl transition-colors"><X size={20} className="text-neutral-400" /></button>
             </div>
             <div className="space-y-3 mb-4">
               <div className="bg-neutral-50 rounded-xl p-3 max-h-44 overflow-y-auto space-y-2 text-sm border border-neutral-100">
@@ -439,24 +419,13 @@ export default function Tabela() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">CPF / CNPJ *</label>
-                  <input value={solicitante.cpfCnpj} onChange={e => { setSolicitante({ ...solicitante, cpfCnpj: e.target.value }); buscarCliente(e.target.value); }} className="w-full bg-white border border-neutral-200 rounded-lg p-2.5 outline-none focus:border-amber-500 text-sm text-neutral-800 placeholder-neutral-400 mt-0.5" placeholder="000.000.000-00" />
+                  <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full bg-white border border-neutral-200 rounded-lg p-2.5 outline-none focus:border-amber-500 text-sm text-neutral-800 placeholder-neutral-400 mt-0.5" placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-neutral-700">Telefone</label>
                   <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full bg-white border border-neutral-200 rounded-lg p-2.5 outline-none focus:border-amber-500 text-sm text-neutral-800 placeholder-neutral-400 mt-0.5" placeholder="(81) 99999-9999" />
                 </div>
               </div>
-
-              {clienteEncontrado && (
-                <div className={`p-3 rounded-xl text-sm ${clienteEncontrado.enderecoConfere ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                  <p><strong>Cliente encontrado:</strong> {clienteEncontrado.nome}</p>
-                  <p className="mt-1">
-                    {clienteEncontrado.enderecoConfere
-                      ? '✓ Endereço confere com o cadastro.'
-                      : '⚠ Endereço informado é diferente do cadastro. Nosso time verificará.'}
-                  </p>
-                </div>
-              )}
 
               {/* Endereço */}
               <p className="text-sm font-medium text-neutral-700 mt-2">Endereço de entrega *</p>
