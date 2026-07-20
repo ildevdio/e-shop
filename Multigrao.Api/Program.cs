@@ -60,8 +60,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5050";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+if (builder.Environment.IsDevelopment())
+    builder.WebHost.UseUrls("http://0.0.0.0:5050");
 
 var app = builder.Build();
 
