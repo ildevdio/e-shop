@@ -107,6 +107,48 @@ namespace Multigrao.Api.Controllers
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> AtualizarPedido(int id, [FromBody] AtualizarPedidoDto dto)
+        {
+            var pedido = await _context.Pedidos
+                .Include(p => p.Itens)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            if (pedido == null) return NotFound();
+
+            if (dto.TipoEntrega != null) pedido.TipoEntrega = dto.TipoEntrega;
+            if (dto.Cep != null) pedido.Cep = dto.Cep;
+            if (dto.Logradouro != null) pedido.Logradouro = dto.Logradouro;
+            if (dto.Numero != null) pedido.Numero = dto.Numero;
+            if (dto.Complemento != null) pedido.Complemento = dto.Complemento;
+            if (dto.Bairro != null) pedido.Bairro = dto.Bairro;
+            if (dto.Cidade != null) pedido.Cidade = dto.Cidade;
+            if (dto.Estado != null) pedido.Estado = dto.Estado;
+            if (dto.Desconto.HasValue) pedido.Desconto = dto.Desconto.Value;
+            if (dto.Acrescimo.HasValue) pedido.Acrescimo = dto.Acrescimo.Value;
+            if (dto.ValorTotal.HasValue) pedido.ValorTotal = dto.ValorTotal.Value;
+
+            if (dto.Itens != null)
+            {
+                foreach (var itemDto in dto.Itens)
+                {
+                    var item = pedido.Itens.FirstOrDefault(i => i.Id == itemDto.Id);
+                    if (item != null)
+                    {
+                        if (itemDto.ProdutoId.HasValue) item.ProdutoId = itemDto.ProdutoId.Value;
+                        if (itemDto.Quantidade.HasValue) item.Quantidade = itemDto.Quantidade.Value;
+                        if (itemDto.PrecoUnitario.HasValue) item.PrecoUnitario = itemDto.PrecoUnitario.Value;
+                        if (itemDto.PesoUnitario.HasValue) item.PesoUnitario = itemDto.PesoUnitario.Value;
+                    }
+                }
+                pedido.PesoTotal = pedido.Itens.Sum(i => i.PesoUnitario * i.Quantidade);
+            }
+
+            pedido.ValorFinal = pedido.ValorTotal + pedido.Acrescimo - pedido.Desconto;
+
+            await _context.SaveChangesAsync();
+            return Ok(pedido);
+        }
+
         [HttpPut("{id}/confirmar-pedido")]
         public async Task<IActionResult> ConfirmarPedido(int id)
         {

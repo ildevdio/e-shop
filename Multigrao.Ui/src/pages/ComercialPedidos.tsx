@@ -38,9 +38,25 @@ export default function ComercialPedidos() {
 
   const [novoPedido, setNovoPedido] = useState({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
   const [itensPedido, setItensPedido] = useState<ItemForm[]>([]);
+  const [buscaProduto, setBuscaProduto] = useState<string[]>([]);
   const [davFile, setDavFile] = useState<File | null>(null);
   const davInputRef = useRef<HTMLInputElement>(null);
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
+  const [editDetalhe, setEditDetalhe] = useState<{
+    tipoEntrega: string;
+    cep: string;
+    logradouro: string;
+    numero: string;
+    complemento: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    desconto: number;
+    acrescimo: number;
+    valorTotal: number;
+    itens: { id: number; quantidade: number; precoUnitario: number }[];
+  } | null>(null);
+  const editando = detalhe != null && ['AguardandoConfirmacao', 'Pendente'].includes(detalhe.status);
 
   const carregar = async () => {
     setCarregando(true);
@@ -67,27 +83,56 @@ export default function ComercialPedidos() {
     setDavFile(file);
   };
 
+  const abrirDetalhe = (pedido: Pedido) => {
+    setDetalhe(pedido);
+    setEditDetalhe({
+      tipoEntrega: pedido.tipoEntrega,
+      cep: pedido.cep ?? '',
+      logradouro: pedido.logradouro ?? '',
+      numero: pedido.numero ?? '',
+      complemento: pedido.complemento ?? '',
+      bairro: pedido.bairro ?? '',
+      cidade: pedido.cidade ?? '',
+      estado: pedido.estado ?? '',
+      desconto: pedido.desconto,
+      acrescimo: pedido.acrescimo,
+      valorTotal: pedido.valorTotal,
+      itens: pedido.itens.map(i => ({ id: i.id, quantidade: i.quantidade, precoUnitario: i.precoUnitario })),
+    });
+    setModalAberto(true);
+  };
+
+  const fecharDetalhe = () => {
+    setDetalhe(null);
+    setEditDetalhe(null);
+    setModalAberto(false);
+  };
+
   const adicionarItem = () => {
     if (produtos.length === 0) return;
     const primeiro = produtos[0];
     setItensPedido([...itensPedido, { produtoId: primeiro.id, produto: primeiro, quantidade: 1, precoUnitario: 0 }]);
+    setBuscaProduto([...buscaProduto, primeiro.nome]);
   };
 
   const atualizarItem = (index: number, campo: keyof ItemForm, valor: number) => {
     const atualizados = [...itensPedido];
-    if (campo === 'produtoId') {
-      const produto = produtos.find(p => p.id === valor);
-      if (produto) {
-        atualizados[index] = { ...atualizados[index], produtoId: valor, produto, quantidade: 1, precoUnitario: 0 };
-      }
-    } else {
-      (atualizados[index] as any)[campo] = valor;
-    }
+    (atualizados[index] as any)[campo] = valor;
     setItensPedido(atualizados);
+  };
+
+  const selecionarProduto = (index: number, produto: Produto) => {
+    const atualizados = [...itensPedido];
+    atualizados[index] = { ...atualizados[index], produtoId: produto.id, produto, quantidade: 1, precoUnitario: 0 };
+    setItensPedido(atualizados);
+    const busca = [...buscaProduto];
+    busca[index] = produto.nome;
+    setBuscaProduto(busca);
   };
 
   const removerItem = (index: number) => {
     setItensPedido(itensPedido.filter((_, i) => i !== index));
+    setBuscaProduto(buscaProduto.filter((_, i) => i !== index));
   };
 
   const pesoTotalItens = itensPedido.reduce((acc, item) => acc + item.produto.pesoUnidade * item.quantidade, 0);
@@ -181,7 +226,7 @@ export default function ComercialPedidos() {
               </thead>
               <tbody>
                 {pedidosFiltrados.map(pedido => (
-                  <tr key={pedido.id} onDoubleClick={() => { setDetalhe(pedido); setModalAberto(true); }} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <tr key={pedido.id} onDoubleClick={() => abrirDetalhe(pedido)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                     <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
                     <td className="px-6 py-4">{pedido.cliente?.razaoSocialNome ?? '—'}</td>
                     <td className="px-6 py-4">R$ {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -199,7 +244,7 @@ export default function ComercialPedidos() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button onClick={() => { setDetalhe(pedido); setModalAberto(true); }} className="text-gray-700 hover:underline">Ver</button>
+                      <button onClick={() => abrirDetalhe(pedido)} className="text-gray-700 hover:underline">Ver</button>
                     </td>
                   </tr>
                 ))}
@@ -310,15 +355,23 @@ export default function ComercialPedidos() {
                     <div key={index} className="flex gap-2 items-end border border-gray-200 rounded-lg p-3">
                       <div className="flex-1">
                         <label className="text-[10px] text-gray-400 uppercase tracking-wider">Produto</label>
-                        <select
-                          value={item.produtoId}
-                          onChange={e => atualizarItem(index, 'produtoId', parseInt(e.target.value))}
-                          className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
-                        >
-                          {produtos.map(p => (
-                            <option key={p.id} value={p.id}>{p.nome} ({p.pesoUnidade} kg)</option>
-                          ))}
-                        </select>
+                        <SearchAutocomplete
+                          placeholder="Buscar produto..."
+                          valor={buscaProduto[index] ?? ''}
+                          onChange={v => {
+                            const busca = [...buscaProduto];
+                            busca[index] = v;
+                            setBuscaProduto(busca);
+                          }}
+                          sugestoes={produtos
+                            .filter(p => p.nome.toLowerCase().includes((buscaProduto[index] ?? '').toLowerCase()))
+                            .map(p => ({ rotulo: p.nome, subRotulo: `${p.pesoUnidade} kg` } satisfies Sugestao))}
+                          aoSelecionar={s => {
+                            const produto = produtos.find(p => p.nome === s.rotulo);
+                            if (produto) selecionarProduto(index, produto);
+                          }}
+                          className="mt-0.5"
+                        />
                       </div>
                       <div className="w-24">
                         <label className="text-[10px] text-gray-400 uppercase tracking-wider">Qtd</label>
@@ -409,11 +462,11 @@ export default function ComercialPedidos() {
       )}
 
       {detalhe && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setDetalhe(null); setModalAberto(false); }}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={fecharDetalhe}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes do Pedido</h2>
-              <button onClick={() => { setDetalhe(null); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={fecharDetalhe} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -435,31 +488,55 @@ export default function ComercialPedidos() {
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
-                <p className="text-gray-900 font-medium mt-0.5 capitalize">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${detalhe.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                    {detalhe.tipoEntrega}
-                  </span>
-                </p>
+                {editando ? (
+                  <select value={editDetalhe!.tipoEntrega} onChange={e => setEditDetalhe({ ...editDetalhe!, tipoEntrega: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                    <option value="Entrega">Entrega</option>
+                    <option value="Retirada">Retirada</option>
+                  </select>
+                ) : (
+                  <p className="text-gray-900 font-medium mt-0.5 capitalize">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${detalhe.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {detalhe.tipoEntrega}
+                    </span>
+                  </p>
+                )}
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Total</span>
-                <p className="text-gray-900 font-medium mt-0.5">R$ {detalhe.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                {editando ? (
+                  <input type="text" value={editDetalhe!.valorTotal.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, valorTotal: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                ) : (
+                  <p className="text-gray-900 font-medium mt-0.5">R$ {detalhe.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                )}
               </div>
-              {detalhe.desconto > 0 && (
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
+                {editando ? (
+                  <input type="text" value={editDetalhe!.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                ) : detalhe.desconto > 0 ? (
                   <p className="text-red-600 font-medium mt-0.5">- R$ {detalhe.desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              )}
-              {detalhe.acrescimo > 0 && (
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider">Acréscimo</span>
+                ) : (
+                  <p className="text-gray-500 font-medium mt-0.5">—</p>
+                )}
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Acréscimo</span>
+                {editando ? (
+                  <input type="text" value={editDetalhe!.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                ) : detalhe.acrescimo > 0 ? (
                   <p className="text-amber-600 font-medium mt-0.5">+ R$ {detalhe.acrescimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              )}
+                ) : (
+                  <p className="text-gray-500 font-medium mt-0.5">—</p>
+                )}
+              </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Final</span>
-                <p className="text-gray-900 font-bold mt-0.5">R$ {detalhe.valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-gray-900 font-bold mt-0.5">
+                  R$ {(editando
+                    ? (editDetalhe!.valorTotal + editDetalhe!.acrescimo - editDetalhe!.desconto)
+                    : detalhe.valorFinal
+                  ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Peso Total</span>
@@ -469,31 +546,59 @@ export default function ComercialPedidos() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Data</span>
                 <p className="text-gray-900 font-medium mt-0.5">{new Date(detalhe.dataCriacao).toLocaleDateString('pt-BR')}</p>
               </div>
-              {(detalhe.logradouro || detalhe.bairro) && (
-                <div className="col-span-2 bg-gray-50 rounded-xl p-3">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider">Endereço informado</span>
-                  <p className="text-gray-900 font-medium mt-0.5">
-                    {detalhe.logradouro && `${detalhe.logradouro}, ${detalhe.numero ?? 'S/N'}`}{detalhe.complemento && ` - ${detalhe.complemento}`}
-                  </p>
-                  <p className="text-xs text-gray-500">{detalhe.bairro && `${detalhe.bairro}, `}{detalhe.cidade && `${detalhe.cidade} - `}{detalhe.estado}{detalhe.cep && `, CEP ${detalhe.cep}`}</p>
-                  {detalhe.enderecoConfere !== undefined && (
-                    <p className={`text-xs mt-1 ${detalhe.enderecoConfere ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {detalhe.enderecoConfere ? '✓ Endereço confere com cadastro do cliente' : '⚠ Endereço diferente do cadastro do cliente'}
+              <div className="col-span-2 bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Endereço</span>
+                {editando ? (
+                  <div className="space-y-2 mt-1">
+                    <div className="flex gap-2">
+                      <input type="text" value={editDetalhe!.logradouro} onChange={e => setEditDetalhe({ ...editDetalhe!, logradouro: e.target.value })} placeholder="Logradouro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <input type="text" value={editDetalhe!.numero} onChange={e => setEditDetalhe({ ...editDetalhe!, numero: e.target.value })} placeholder="Nº" className="w-20 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    </div>
+                    <input type="text" value={editDetalhe!.complemento} onChange={e => setEditDetalhe({ ...editDetalhe!, complemento: e.target.value })} placeholder="Complemento" className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    <div className="flex gap-2">
+                      <input type="text" value={editDetalhe!.bairro} onChange={e => setEditDetalhe({ ...editDetalhe!, bairro: e.target.value })} placeholder="Bairro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <input type="text" value={editDetalhe!.cidade} onChange={e => setEditDetalhe({ ...editDetalhe!, cidade: e.target.value })} placeholder="Cidade" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    </div>
+                    <div className="flex gap-2">
+                      <input type="text" value={editDetalhe!.estado} onChange={e => setEditDetalhe({ ...editDetalhe!, estado: e.target.value })} placeholder="UF" maxLength={2} className="w-16 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <input type="text" value={editDetalhe!.cep} onChange={e => setEditDetalhe({ ...editDetalhe!, cep: e.target.value })} placeholder="CEP" className="w-32 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    </div>
+                  </div>
+                ) : (detalhe.logradouro || detalhe.bairro) ? (
+                  <div>
+                    <p className="text-gray-900 font-medium mt-0.5">
+                      {detalhe.logradouro && `${detalhe.logradouro}, ${detalhe.numero ?? 'S/N'}`}{detalhe.complemento && ` - ${detalhe.complemento}`}
                     </p>
-                  )}
-                </div>
-              )}
+                    <p className="text-xs text-gray-500">{detalhe.bairro && `${detalhe.bairro}, `}{detalhe.cidade && `${detalhe.cidade} - `}{detalhe.estado}{detalhe.cep && `, CEP ${detalhe.cep}`}</p>
+                    {detalhe.enderecoConfere !== undefined && (
+                      <p className={`text-xs mt-1 ${detalhe.enderecoConfere ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {detalhe.enderecoConfere ? '✓ Endereço confere com cadastro do cliente' : '⚠ Endereço diferente do cadastro do cliente'}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 mt-0.5 text-sm">Nenhum endereço informado</p>
+                )}
+              </div>
               {detalhe.itens && detalhe.itens.length > 0 && (
                 <div className="col-span-2 bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Itens ({detalhe.itens.length})</span>
                   <div className="mt-2 space-y-1">
-                    {detalhe.itens.map(item => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span>{item.produto?.nome ?? `Produto #${item.produtoId}`}</span>
-                        <span className="text-gray-500">
-                          {item.quantidade} x R$ {item.precoUnitario.toFixed(2)}
-                          {item.separado && ' ✓'}
-                        </span>
+                    {detalhe.itens.map((item, idx) => (
+                      <div key={item.id} className="flex justify-between items-center text-sm gap-2">
+                        <span className="min-w-0 flex-1">{item.produto?.nome ?? `Produto #${item.produtoId}`}</span>
+                        {editando ? (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <input type="number" min={0.1} step={0.1} value={editDetalhe!.itens[idx]?.quantidade ?? item.quantidade} onChange={e => { const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value) || 0 }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-center" />
+                            <span className="text-gray-400">x</span>
+                            <input type="text" value={(editDetalhe!.itens[idx]?.precoUnitario ?? item.precoUnitario).toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], precoUnitario: v }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-20 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-right" />
+                          </div>
+                        ) : (
+                          <span className="text-gray-500 shrink-0">
+                            {item.quantidade} x R$ {item.precoUnitario.toFixed(2)}
+                            {item.separado && ' ✓'}
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -501,15 +606,56 @@ export default function ComercialPedidos() {
               )}
             </div>
 
+            {editando && (
+              <button
+                onClick={async () => {
+                  const e = editDetalhe!;
+                  await pedidoService.atualizarPedido(detalhe.id, {
+                    tipoEntrega: e.tipoEntrega,
+                    cep: e.cep,
+                    logradouro: e.logradouro,
+                    numero: e.numero,
+                    complemento: e.complemento,
+                    bairro: e.bairro,
+                    cidade: e.cidade,
+                    estado: e.estado,
+                    desconto: e.desconto,
+                    acrescimo: e.acrescimo,
+                    valorTotal: e.valorTotal,
+                    itens: e.itens,
+                  });
+                  fecharDetalhe();
+                  await carregar();
+                }}
+                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-black text-white hover:bg-gray-800 transition-colors"
+              >
+                Salvar Alterações
+              </button>
+            )}
             {detalhe.status === 'AguardandoConfirmacao' && (
               <button
                 onClick={async () => {
+                  if (editDetalhe) {
+                    await pedidoService.atualizarPedido(detalhe.id, {
+                      tipoEntrega: editDetalhe.tipoEntrega,
+                      cep: editDetalhe.cep,
+                      logradouro: editDetalhe.logradouro,
+                      numero: editDetalhe.numero,
+                      complemento: editDetalhe.complemento,
+                      bairro: editDetalhe.bairro,
+                      cidade: editDetalhe.cidade,
+                      estado: editDetalhe.estado,
+                      desconto: editDetalhe.desconto,
+                      acrescimo: editDetalhe.acrescimo,
+                      valorTotal: editDetalhe.valorTotal,
+                      itens: editDetalhe.itens,
+                    });
+                  }
                   await pedidoService.confirmarPedido(detalhe.id);
-                  setDetalhe(null);
-                  setModalAberto(false);
+                  fecharDetalhe();
                   await carregar();
                 }}
-                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
+                className="w-full mt-2 py-2.5 rounded-xl font-medium text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
               >
                 Confirmar Pedido
               </button>
@@ -518,8 +664,7 @@ export default function ComercialPedidos() {
               <button
                 onClick={async () => {
                   await pedidoService.confirmarRetirada(detalhe.id);
-                  setDetalhe(null);
-                  setModalAberto(false);
+                  fecharDetalhe();
                   await carregar();
                 }}
                 className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-amber-600 text-white hover:bg-amber-500 transition-colors"

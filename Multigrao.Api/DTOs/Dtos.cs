@@ -91,6 +91,31 @@ namespace Multigrao.Api.DTOs
         public decimal PesoUnitario { get; set; }
     }
 
+    public class AtualizarPedidoDto
+    {
+        public string? TipoEntrega { get; set; }
+        public string? Cep { get; set; }
+        public string? Logradouro { get; set; }
+        public string? Numero { get; set; }
+        public string? Complemento { get; set; }
+        public string? Bairro { get; set; }
+        public string? Cidade { get; set; }
+        public string? Estado { get; set; }
+        public decimal? Desconto { get; set; }
+        public decimal? Acrescimo { get; set; }
+        public decimal? ValorTotal { get; set; }
+        public List<AtualizarItemPedidoDto>? Itens { get; set; }
+    }
+
+    public class AtualizarItemPedidoDto
+    {
+        public int Id { get; set; }
+        public int? ProdutoId { get; set; }
+        public decimal? Quantidade { get; set; }
+        public decimal? PrecoUnitario { get; set; }
+        public decimal? PesoUnitario { get; set; }
+    }
+
     public class SepararItemDto
     {
         public int UsuarioId { get; set; }

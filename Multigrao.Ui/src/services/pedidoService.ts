@@ -149,6 +149,29 @@ export const pedidoService = {
     }
   },
 
+  atualizarPedido: async (id: number, dto: {
+    tipoEntrega?: string;
+    cep?: string;
+    logradouro?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    cidade?: string;
+    estado?: string;
+    desconto?: number;
+    acrescimo?: number;
+    valorTotal?: number;
+    itens?: { id: number; quantidade?: number; precoUnitario?: number }[];
+  }): Promise<Pedido | null> => {
+    try {
+      const response = await axios.put(`${API_URL}/${id}`, dto);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar pedido', error);
+      return null;
+    }
+  },
+
   confirmarPedido: async (id: number): Promise<boolean> => {
     try {
       await axios.put(`${API_URL}/${id}/confirmar-pedido`);
