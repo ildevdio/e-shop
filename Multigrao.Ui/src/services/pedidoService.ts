@@ -15,6 +15,7 @@ export interface ItemPedido {
   produtoId: number;
   quantidade: number;
   precoUnitario: number;
+  pesoUnitario: number;
   separado: boolean;
   separadoPorUsuarioId: number | null;
   status: string;
@@ -27,6 +28,10 @@ export interface Pedido {
   clienteId: number;
   cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
   status: string;
+  tipoEntrega: string;
+  desconto: number;
+  acrescimo: number;
+  valorFinal: number;
   pesoTotal: number;
   valorTotal: number;
   dataCriacao: string;
@@ -38,7 +43,20 @@ export interface CriarPedidoDto {
   valorTotal: number;
   pesoTotal: number;
   observacao?: string;
-  itens: { produtoId: number; quantidade: number; precoUnitario: number }[];
+  tipoEntrega: string;
+  desconto: number;
+  acrescimo: number;
+  itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
+}
+
+export interface SolicitacaoCatalogoDto {
+  solicitanteNome: string;
+  solicitanteTelefone: string;
+  valorTotal: number;
+  tipoEntrega: string;
+  desconto: number;
+  acrescimo: number;
+  itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
 }
 
 export const pedidoService = {
@@ -72,6 +90,16 @@ export const pedidoService = {
     }
   },
 
+  solicitarCatalogo: async (dto: SolicitacaoCatalogoDto): Promise<Pedido | null> => {
+    try {
+      const response = await axios.post(`${API_URL}/solicitacao-catalogo`, dto);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao solicitar pedido do catálogo', error);
+      return null;
+    }
+  },
+
   iniciarSeparacao: async (id: number): Promise<boolean> => {
     try {
       await axios.put(`${API_URL}/${id}/separar`);
@@ -88,6 +116,26 @@ export const pedidoService = {
       return true;
     } catch (error) {
       console.error('Erro ao concluir separação', error);
+      return false;
+    }
+  },
+
+  concluirConferencia: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/concluir-conferencia`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao concluir conferência', error);
+      return false;
+    }
+  },
+
+  confirmarRetirada: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/confirmar-retirada`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao confirmar retirada', error);
       return false;
     }
   },

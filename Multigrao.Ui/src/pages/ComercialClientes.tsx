@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, X, Phone, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, X, Phone, Pencil, Trash2, Loader2 } from 'lucide-react';
+import SearchAutocomplete from '../components/SearchAutocomplete';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { clienteService, type Cliente, type CriarClienteDto } from '../services/clienteService';
+import { useUiStore } from '../store/uiStore';
 
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 const REGIMES = ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI'];
@@ -14,6 +16,7 @@ const camposVazios: CriarClienteDto = {
 };
 
 export default function ComercialClientes() {
+  const { setModalAberto } = useUiStore();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busca, setBusca] = useState('');
   const [modalTipo, setModalTipo] = useState<'criar' | 'editar' | 'detalhe' | null>(null);
@@ -34,6 +37,7 @@ export default function ComercialClientes() {
     setForm(camposVazios);
     setSelecionado(null);
     setModalTipo('criar');
+    setModalAberto(true);
   };
 
   const abrirEditar = (c: Cliente) => {
@@ -47,14 +51,16 @@ export default function ComercialClientes() {
     });
     setSelecionado(c);
     setModalTipo('editar');
+    setModalAberto(true);
   };
 
   const abrirDetalhe = (c: Cliente) => {
     setSelecionado(c);
     setModalTipo('detalhe');
+    setModalAberto(true);
   };
 
-  const fecharModal = () => { setModalTipo(null); setSelecionado(null); };
+  const fecharModal = () => { setModalTipo(null); setSelecionado(null); setModalAberto(false); };
 
   const salvar = async () => {
     if (!form.razaoSocialNome.trim() || !form.cpfCnpj.trim()) return;
@@ -318,11 +324,14 @@ export default function ComercialClientes() {
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         <div className="p-6 flex justify-between items-center border-b border-gray-100">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input type="text" placeholder="Buscar cliente..." value={busca} onChange={e => setBusca(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
-          </div>
+          <SearchAutocomplete
+            placeholder="Buscar cliente..."
+            valor={busca}
+            onChange={setBusca}
+            sugestoes={clientes.map(c => ({ rotulo: c.razaoSocialNome, subRotulo: c.cpfCnpj ?? c.cidade ?? '' }))}
+            aoSelecionar={(s) => setBusca(s.rotulo)}
+            className="flex-1 min-w-0"
+          />
           <button onClick={abrirCriar} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Novo Cliente
           </button>

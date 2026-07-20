@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { Bell, Target, TrendingUp, Plus, Calendar, Megaphone, X, Users, Vote } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useUiStore } from '../store/uiStore';
 import { avisoService, type Aviso as AvisoApi } from '../services/avisoService';
 import { enqueteService, type Enquete as EnqueteApi, type OpcaoEnquete } from '../services/enqueteService';
 import { atendimentoService } from '../services/atendimentoService';
@@ -28,6 +29,7 @@ interface EnqueteUI {
 export default function Empresa() {
   const nome = useAuthStore(state => state.nome);
   const usuarioId = useAuthStore(state => state.usuarioId);
+  const { setModalAberto } = useUiStore();
   const [avisos, setAvisos] = useState<AvisoUI[]>([]);
   const [enquetes, setEnquetes] = useState<EnqueteUI[]>([]);
   const [totalSetores, setTotalSetores] = useState(0);
@@ -135,6 +137,7 @@ export default function Empresa() {
 
     setNovoAviso({ titulo: '', conteudo: '', tipo: 'comunicado', setorDestino: '' });
     setShowNovoAviso(false);
+    setModalAberto(false);
   };
 
   const publicarEnquete = async () => {
@@ -151,6 +154,7 @@ export default function Empresa() {
 
     setNovaEnquete({ titulo: '', opcoes: ['', ''] });
     setShowNovaEnquete(false);
+    setModalAberto(false);
   };
 
   const votarEnquete = async (enqueteId: number, opcao: { id: number; texto: string; votos: number }) => {
@@ -188,13 +192,13 @@ export default function Empresa() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setShowNovaEnquete(true)}
+            onClick={() => { setShowNovaEnquete(true); setModalAberto(true); }}
             className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
           >
             <Vote size={16} /> Nova Enquete
           </button>
           <button
-            onClick={() => setShowNovoAviso(true)}
+            onClick={() => { setShowNovoAviso(true); setModalAberto(true); }}
             className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
           >
             <Plus size={18} /> Novo Aviso
@@ -332,7 +336,7 @@ export default function Empresa() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Novo Aviso</h2>
-              <button onClick={() => setShowNovoAviso(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+              <button onClick={() => { setShowNovoAviso(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
             </div>
             <div className="space-y-4">
               <div>
@@ -367,7 +371,7 @@ export default function Empresa() {
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowNovoAviso(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setShowNovoAviso(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={publicarAviso} disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoAviso.titulo.trim() && novoAviso.conteudo.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar</button>
             </div>
           </div>
@@ -379,7 +383,7 @@ export default function Empresa() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Nova Enquete</h2>
-              <button onClick={() => setShowNovaEnquete(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+              <button onClick={() => { setShowNovaEnquete(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
             </div>
             <div className="space-y-4">
               <div>
@@ -404,7 +408,7 @@ export default function Empresa() {
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowNovaEnquete(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setShowNovaEnquete(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={publicarEnquete} disabled={!novaEnquete.titulo.trim() || novaEnquete.opcoes.filter(o => o.trim()).length < 2} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novaEnquete.titulo.trim() && novaEnquete.opcoes.filter(o => o.trim()).length >= 2 ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar Enquete</button>
             </div>
           </div>

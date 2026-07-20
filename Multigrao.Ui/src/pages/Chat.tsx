@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { Send, Search, Hash, Users, MessageSquareText, Clock, Smile, Paperclip, Phone, Video, UserPlus, X } from 'lucide-react';
+import { Send, Search, Hash, Users, MessageSquareText, Clock, Smile, Paperclip, UserPlus, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { chatService, type CanalChat, type MensagemChat } from '../services/chatService';
+import { useUiStore } from '../store/uiStore';
+import { chatService, type MensagemChat } from '../services/chatService';
 import { atendimentoService } from '../services/atendimentoService';
 
 interface CanalUI {
@@ -29,6 +30,7 @@ interface MensagemUI {
 export default function Chat() {
   const nome = useAuthStore(state => state.nome);
   const usuarioId = useAuthStore(state => state.usuarioId);
+  const { setModalAberto } = useUiStore();
   const [canais, setCanais] = useState<CanalUI[]>([]);
   const [canalAtivo, setCanalAtivo] = useState<string>('');
   const [mensagem, setMensagem] = useState('');
@@ -175,7 +177,7 @@ export default function Chat() {
               <MessageSquareText size={20} className="text-black" /> Chat Interno
             </h2>
             <button
-              onClick={() => setShowNovoChat(true)}
+              onClick={() => { setShowNovoChat(true); setModalAberto(true); }}
               className="p-2 hover:bg-gray-200 rounded-xl transition-colors text-gray-500"
               title="Nova conversa"
             >
@@ -358,7 +360,7 @@ export default function Chat() {
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Nova Conversa</h2>
-              <button onClick={() => setShowNovoChat(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => { setShowNovoChat(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -380,6 +382,7 @@ export default function Chat() {
                   onClick={() => {
                     setCanalAtivo(`dir-${pessoa.id}`);
                     setShowNovoChat(false);
+                    setModalAberto(false);
                     setBuscaPessoa('');
                   }}
                   className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left"

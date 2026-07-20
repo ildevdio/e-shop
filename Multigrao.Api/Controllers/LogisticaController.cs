@@ -80,7 +80,7 @@ namespace Multigrao.Api.Controllers
         public async Task<IActionResult> GetPedidosProntos()
         {
             var pedidos = await _context.Pedidos
-                .Where(p => p.Status == "ProntoEntrega")
+                .Where(p => p.Status == "ProntoEntrega" && p.TipoEntrega == "Entrega")
                 .Include(p => p.Cliente)
                 .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)

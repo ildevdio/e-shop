@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { enqueteService, type Enquete } from '../services/enqueteService';
 import { useAuthStore } from '../store/authStore';
+import { useUiStore } from '../store/uiStore';
 
 export default function EmpresaEnquetes() {
   const usuarioId = useAuthStore(state => state.usuarioId);
+  const { setModalAberto } = useUiStore();
   const [enquetes, setEnquetes] = useState<Enquete[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [votouEm, setVotouEm] = useState<number[]>([]);
@@ -78,7 +80,7 @@ export default function EmpresaEnquetes() {
               className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all"
             />
           </div>
-          <button onClick={() => setShowNova(true)} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+          <button onClick={() => { setShowNova(true); setModalAberto(true); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Nova Enquete
           </button>
         </div>
@@ -156,7 +158,7 @@ export default function EmpresaEnquetes() {
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowNova(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setShowNova(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={async () => {
                 if (!novaEnquete.titulo.trim() || novaEnquete.opcoes.some(o => !o.trim()) || !usuarioId) return;
                 const ok = await enqueteService.criarEnquete({
@@ -167,6 +169,7 @@ export default function EmpresaEnquetes() {
                 if (ok) {
                   setNovaEnquete({ titulo: '', opcoes: ['', ''] });
                   setShowNova(false);
+                  setModalAberto(false);
                   await carregar();
                 }
               }} disabled={!novaEnquete.titulo.trim() || novaEnquete.opcoes.some(o => !o.trim())} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novaEnquete.titulo.trim() && novaEnquete.opcoes.every(o => o.trim()) ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Criar</button>

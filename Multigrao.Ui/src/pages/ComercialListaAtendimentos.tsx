@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, ArrowLeft, Eye, CheckCircle, Bot, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useUiStore } from '../store/uiStore';
 
 interface Atendimento {
   id: string;
@@ -29,6 +30,7 @@ interface Atendimento {
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
 export default function ComercialListaAtendimentos() {
+  const { setModalAberto } = useUiStore();
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([]);
   const [busca, setBusca] = useState('');
   const [detalhe, setDetalhe] = useState<Atendimento | null>(null);
@@ -102,7 +104,7 @@ export default function ComercialListaAtendimentos() {
                   </td>
                 </tr>
               ) : filtrados.map(a => (
-                <tr key={a.id} onDoubleClick={() => setDetalhe(a)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
+                <tr key={a.id} onDoubleClick={() => { setDetalhe(a); setModalAberto(true); }} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                   <td className="px-6 py-4 font-medium text-gray-900">{a.lead.nome}</td>
                   <td className="px-6 py-4">{a.lead.telefone}</td>
                   <td className="px-6 py-4">{a.lead.interesse || '—'}</td>
@@ -132,7 +134,7 @@ export default function ComercialListaAtendimentos() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => setDetalhe(a)}
+                      onClick={() => { setDetalhe(a); setModalAberto(true); }}
                       className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <Eye size={16} className="text-gray-500" />
@@ -150,7 +152,7 @@ export default function ComercialListaAtendimentos() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes do Atendimento</h2>
-              <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => { setDetalhe(null); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                 <span className="text-gray-500">✕</span>
               </button>
             </div>

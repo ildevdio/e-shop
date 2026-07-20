@@ -7,9 +7,11 @@ import {
 import { atendimentoService, type ChatSession, type Message, type Lead } from '../services/atendimentoService';
 import { contatoService, type Contato } from '../services/contatoService';
 import { useAuthStore } from '../store/authStore';
+import { useUiStore } from '../store/uiStore';
 
 export default function OmnichannelChat() {
   const nome = useAuthStore(state => state.nome);
+  const { setModalAberto } = useUiStore();
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -197,6 +199,7 @@ export default function OmnichannelChat() {
       messages: c.messages.filter(m => m.id !== msgId)
     } : c));
     setDeleteConfirmId(null);
+    setModalAberto(false);
     setContextMenu(null);
   };
 
@@ -311,6 +314,7 @@ export default function OmnichannelChat() {
     setContatoSearch('');
     setIsManualMode(false);
     setIsNewAtendimentoOpen(true);
+    setModalAberto(true);
     try {
       const data = await contatoService.getContatos();
       setContatos(data);
@@ -333,6 +337,7 @@ export default function OmnichannelChat() {
       setChats(prev => [newChat, ...prev]);
       setActiveChatId(newChat.id);
       setIsNewAtendimentoOpen(false);
+      setModalAberto(false);
     } catch {
       const fallbackChat: ChatSession = {
         id: Date.now().toString(),
@@ -350,6 +355,7 @@ export default function OmnichannelChat() {
       setChats(prev => [fallbackChat, ...prev]);
       setActiveChatId(fallbackChat.id);
       setIsNewAtendimentoOpen(false);
+      setModalAberto(false);
     }
   };
 
@@ -721,7 +727,7 @@ export default function OmnichannelChat() {
                             className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors">
                             <Pencil size={15} className="text-gray-400" /> Editar
                           </button>
-                          <button onClick={() => { setDeleteConfirmId(msg.id); setContextMenu(null); }}
+                          <button onClick={() => { setDeleteConfirmId(msg.id); setModalAberto(true); setContextMenu(null); }}
                             className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors">
                             <Trash2 size={15} /> Excluir
                           </button>
@@ -735,12 +741,12 @@ export default function OmnichannelChat() {
 
             {/* Delete Confirmation */}
             {deleteConfirmId && (
-              <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => setDeleteConfirmId(null)}>
+              <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center" onClick={() => { setDeleteConfirmId(null); setModalAberto(false); }}>
                 <div className="bg-white rounded-2xl p-6 shadow-xl w-80" onClick={e => e.stopPropagation()}>
                   <h3 className="font-bold text-gray-900 text-lg mb-2">Excluir mensagem?</h3>
                   <p className="text-sm text-gray-500 mb-5">Essa ação não pode ser desfeita.</p>
                   <div className="flex gap-3">
-                    <button onClick={() => setDeleteConfirmId(null)}
+                    <button onClick={() => { setDeleteConfirmId(null); setModalAberto(false); }}
                       className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                       Cancelar
                     </button>
@@ -926,7 +932,7 @@ export default function OmnichannelChat() {
 
       {/* MODAL — Novo Atendimento */}
       {isNewAtendimentoOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center" onClick={() => setIsNewAtendimentoOpen(false)}>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center" onClick={() => { setIsNewAtendimentoOpen(false); setModalAberto(false); }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[460px] max-h-[80vh] flex flex-col mx-4" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -934,7 +940,7 @@ export default function OmnichannelChat() {
                 <h2 className="text-lg font-serif font-bold text-gray-900">Novo Atendimento</h2>
                 <p className="text-[11px] text-gray-400 mt-0.5">Selecione um contato ou crie manualmente</p>
               </div>
-              <button onClick={() => setIsNewAtendimentoOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400">
+              <button onClick={() => { setIsNewAtendimentoOpen(false); setModalAberto(false); }} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400">
                 <X size={18} />
               </button>
             </div>

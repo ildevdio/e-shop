@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useUiStore } from '../store/uiStore';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -15,6 +16,7 @@ interface Usuario {
 
 export default function Configuracoes() {
   const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
+  const { setModalAberto } = useUiStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>('usuarios');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
@@ -63,6 +65,7 @@ export default function Configuracoes() {
 
       setSenhaMestreVerificada(true);
       setSenhaMestreModal(false);
+      setModalAberto(false);
       setSenhaMestreInput('');
     } catch {
       setSenhaMestreErro('Erro de comunicação com o servidor.');
@@ -106,12 +109,14 @@ export default function Configuracoes() {
     setUsuarioEditando(null);
     setFormNovoUsuario({ nome: '', usuarioLogin: '', senha: '', perfil: 'Comum', setores: [] });
     setIsModalOpen(true);
+    setModalAberto(true);
   };
 
   const abrirEdicao = (usuario: Usuario) => {
     setUsuarioEditando(usuario);
     setFormNovoUsuario({ nome: usuario.nome, usuarioLogin: usuario.usuarioLogin, senha: '', perfil: usuario.perfil, setores: [...usuario.setores] });
     setIsModalOpen(true);
+    setModalAberto(true);
   };
 
   const toggleSetorForm = (setor: string) => {
@@ -168,6 +173,7 @@ export default function Configuracoes() {
 
     setLoading(false);
     setIsModalOpen(false);
+    setModalAberto(false);
     setUsuarioEditando(null);
   };
 
@@ -186,7 +192,7 @@ export default function Configuracoes() {
           <h1 className="text-2xl font-serif font-bold text-gray-900 mb-2">Acesso Restrito</h1>
           <p className="text-gray-500 mb-6">Esta área requer autorização de administrador.</p>
           <button
-            onClick={() => setSenhaMestreModal(true)}
+            onClick={() => { setSenhaMestreModal(true); setModalAberto(true); }}
             className="bg-black text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 mx-auto"
           >
             <Lock size={16} /> Informar Senha Mestre
@@ -198,7 +204,7 @@ export default function Configuracoes() {
             <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-serif font-bold text-gray-900">Senha Mestre</h2>
-                <button onClick={() => { setSenhaMestreModal(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+                <button onClick={() => { setSenhaMestreModal(false); setModalAberto(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
               </div>
               <p className="text-sm text-gray-500 mb-4">Insira a senha mestre para acessar as configurações do sistema.</p>
               {senhaMestreErro && (
@@ -216,7 +222,7 @@ export default function Configuracoes() {
                 autoFocus
               />
               <div className="flex gap-3 justify-end mt-6">
-                <button onClick={() => { setSenhaMestreModal(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+                <button onClick={() => { setSenhaMestreModal(false); setModalAberto(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
                 <button onClick={validarSenhaMestre} disabled={!senhaMestreInput.trim() || senhaMestreLoading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${senhaMestreInput.trim() && !senhaMestreLoading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                   {senhaMestreLoading ? 'Validando...' : 'Validar'}
                 </button>
@@ -436,7 +442,7 @@ export default function Configuracoes() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-serif font-bold text-gray-900">{usuarioEditando ? 'Editar Usuário' : 'Novo Usuário'}</h2>
-              <button onClick={() => { setIsModalOpen(false); setUsuarioEditando(null); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+              <button onClick={() => { setIsModalOpen(false); setModalAberto(false); setUsuarioEditando(null); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
             </div>
             <div className="space-y-4">
               <div>
@@ -472,7 +478,7 @@ export default function Configuracoes() {
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-8">
-              <button onClick={() => { setIsModalOpen(false); setUsuarioEditando(null); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setIsModalOpen(false); setModalAberto(false); setUsuarioEditando(null); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={salvarUsuario} disabled={!formNovoUsuario.nome.trim() || !formNovoUsuario.usuarioLogin.trim() || loading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${formNovoUsuario.nome.trim() && formNovoUsuario.usuarioLogin.trim() && !loading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                 {loading ? 'Salvando...' : usuarioEditando ? 'Salvar Alterações' : 'Cadastrar Usuário'}
               </button>

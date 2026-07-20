@@ -58,6 +58,20 @@ namespace Multigrao.Api.DTOs
         public decimal ValorTotal { get; set; }
         public decimal PesoTotal { get; set; }
         public string? Observacao { get; set; }
+        public string TipoEntrega { get; set; } = "Entrega";
+        public decimal Desconto { get; set; }
+        public decimal Acrescimo { get; set; }
+        public List<CriarItemPedidoDto> Itens { get; set; } = new();
+    }
+
+    public class SolicitacaoCatalogoDto
+    {
+        public string SolicitanteNome { get; set; } = string.Empty;
+        public string SolicitanteTelefone { get; set; } = string.Empty;
+        public decimal ValorTotal { get; set; }
+        public string TipoEntrega { get; set; } = "Entrega";
+        public decimal Desconto { get; set; }
+        public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
     }
 
@@ -66,6 +80,7 @@ namespace Multigrao.Api.DTOs
         public int ProdutoId { get; set; }
         public decimal Quantidade { get; set; }
         public decimal PrecoUnitario { get; set; }
+        public decimal PesoUnitario { get; set; }
     }
 
     public class SepararItemDto

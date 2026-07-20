@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -18,9 +18,10 @@ interface SidebarProps {
   role: string | null;
   setores: string[];
   usuarioId: number | null;
+  className?: string;
 }
 
-export default function Sidebar({ role, setores, usuarioId }: SidebarProps) {
+export default function Sidebar({ role, setores, usuarioId, className }: SidebarProps) {
   const isAdmin = role === 'AdminMaster' || role === 'SuperAdmin';
   const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const hasSetor = (nome: string) => setores.some(s => normalize(s) === normalize(nome));
@@ -32,7 +33,10 @@ export default function Sidebar({ role, setores, usuarioId }: SidebarProps) {
     entregaService.temEntregasPendentes(usuarioId).then(setTemEntregasPendentes);
   }, [usuarioId]);
 
-  const generalNav: NavItem[] = [{ icon: Home, label: 'Início', path: '/' }];
+  const generalNav: NavItem[] = [
+    { icon: Home, label: 'Início', path: '/' },
+    { icon: BookOpen, label: 'Catálogo', path: '/catalogo' },
+  ];
 
   const sectorNav: NavItem[] = [];
   if (isAdmin || hasSetor('Comercial')) {
@@ -71,12 +75,12 @@ export default function Sidebar({ role, setores, usuarioId }: SidebarProps) {
   };
 
   return (
-    <aside className="relative flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground anim-slide-in-left">
+    <aside className={`relative flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground anim-slide-in-left transition-all duration-300 ${className ?? ''}`.trim()}>
       <GrainPattern opacity={0.05} color="#404040" className="inset-0 w-full h-full" animated />
 
       <div className="relative z-10 flex h-16 items-center border-b border-sidebar-border px-5">
         <div className="flex items-center gap-3">
-          <img src="/multigraos-logo.png" alt="Multigrãos" className="h-10 w-10 object-contain" />
+          <img src="/multigraos-logo.png?v=2" alt="Multigrãos" className="h-10 w-10 object-contain" />
           <div className="flex flex-col leading-tight">
             <span className="font-heading font-semibold tracking-wide text-sidebar-foreground">Multigrãos</span>
             <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">Amendoim & Especiarias</span>
@@ -91,6 +95,8 @@ export default function Sidebar({ role, setores, usuarioId }: SidebarProps) {
         )}
         <NavGroup label="Comunicação" items={comNav} isActive={isActive} className="mt-5" />
         <NavGroup label="Sistema" items={sysNav} isActive={isActive} className="mt-5" />
+
+
       </nav>
 
       <div className="relative z-10 border-t border-sidebar-border px-5 py-3">

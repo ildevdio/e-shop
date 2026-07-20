@@ -21,7 +21,11 @@ const SECTOR_LABELS: Record<string, string> = {
   '/configuracoes': 'Configurações',
 };
 
-export default function Topbar() {
+interface TopbarProps {
+  className?: string;
+}
+
+export default function Topbar({ className }: TopbarProps) {
   const { nome, role, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,7 +38,7 @@ export default function Topbar() {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-secondary/50 px-6 backdrop-blur">
+    <header className={`sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-secondary/50 px-6 backdrop-blur transition-all duration-300 ${className ?? ''}`.trim()}>
       <h1 className="text-sm font-heading font-semibold text-foreground">{sectorLabel}</h1>
 
       <div className="flex items-center gap-3 border-l border-border pl-4">

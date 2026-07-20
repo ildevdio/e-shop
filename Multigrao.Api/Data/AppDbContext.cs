@@ -15,6 +15,8 @@ namespace Multigrao.Api.Data
         public DbSet<Contato> Contatos { get; set; }
         
         public DbSet<Produto> Produtos { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<Marca> Marcas { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
         
@@ -66,13 +68,26 @@ namespace Multigrao.Api.Data
                 .HasForeignKey(m => m.UsuarioRemetenteId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Produto>()
+                .HasOne(p => p.Categoria)
+                .WithMany(c => c.Produtos)
+                .HasForeignKey(p => p.CategoriaId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Produto>()
+                .HasOne(p => p.Marca)
+                .WithMany(m => m.Produtos)
+                .HasForeignKey(p => p.MarcaId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Seed: Setores
             modelBuilder.Entity<Setor>().HasData(
                 new Setor { Id = 1, Nome = "Comercial" },
                 new Setor { Id = 2, Nome = "Separação" },
                 new Setor { Id = 3, Nome = "Logística" },
                 new Setor { Id = 4, Nome = "Conferência" },
-                new Setor { Id = 5, Nome = "Entregas" }
+                new Setor { Id = 5, Nome = "Entregas" },
+                new Setor { Id = 6, Nome = "Compras" }
             );
 
             // Seed: Usuários

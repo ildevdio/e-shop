@@ -3,6 +3,7 @@ import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2,
 import { logisticaService, type Veiculo } from '../services/logisticaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { useAuthStore } from '../store/authStore';
+import { useUiStore } from '../store/uiStore';
 
 export default function Logistica() {
   const [activeTab, setActiveTab] = useState<'roteirizacao' | 'veiculos'>('roteirizacao');
@@ -262,6 +263,7 @@ function RoteirizacaoTab() {
 }
 
 function VeiculosTab() {
+  const { setModalAberto } = useUiStore();
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [showNovo, setShowNovo] = useState(false);
@@ -285,6 +287,7 @@ function VeiculosTab() {
     });
     setNovoVeiculo({ modelo: '', placa: '', pesoMaximo: '' });
     setShowNovo(false);
+    setModalAberto(false);
     await carregar();
   };
 
@@ -301,7 +304,7 @@ function VeiculosTab() {
           <input type="text" placeholder="Buscar veículo..."
             className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
         </div>
-        <button onClick={() => setShowNovo(true)} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+        <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
           <Plus size={18} /> Novo Veículo
         </button>
       </div>
@@ -348,7 +351,7 @@ function VeiculosTab() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Peso Máximo (kg)</label><input type="text" value={novoVeiculo.pesoMaximo} onChange={e => setNovoVeiculo({ ...novoVeiculo, pesoMaximo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="800" /></div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowNovo(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Adicionar</button>
             </div>
           </div>

@@ -1,37 +1,56 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Plus, X, Upload, FileCheck, Trash2 } from 'lucide-react';
+import { Plus, X, Upload, FileCheck, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
+import { produtoService, type Produto } from '../services/produtoService';
+import { useUiStore } from '../store/uiStore';
+import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 
 const STATUS_LABELS: Record<string, string> = {
   Pendente: 'Pendente',
   EmProducao: 'Em Produção',
   EmSeparacao: 'Em Separação',
   ProntoEntrega: 'Pronto p/ Entrega',
+  ProntoRetirada: 'Pronto p/ Retirada',
   EmEntrega: 'Em Entrega',
   Entregue: 'Entregue',
   Devolvido: 'Devolvido',
 };
 
+interface ItemForm {
+  produtoId: number;
+  produto: Produto;
+  quantidade: number;
+  precoUnitario: number;
+}
+
 export default function ComercialPedidos() {
+  const { setModalAberto } = useUiStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState('');
 
-  const [novoPedido, setNovoPedido] = useState({ clienteId: '', valor: '' });
+  const [novoPedido, setNovoPedido] = useState({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
+  const [itensPedido, setItensPedido] = useState<ItemForm[]>([]);
   const [davFile, setDavFile] = useState<File | null>(null);
   const davInputRef = useRef<HTMLInputElement>(null);
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
 
   const carregar = async () => {
     setCarregando(true);
-    const [p, c] = await Promise.all([pedidoService.getPedidos(), clienteService.getClientes()]);
+    const [p, c, pr] = await Promise.all([
+      pedidoService.getPedidos(),
+      clienteService.getClientes(),
+      produtoService.getProdutos(),
+    ]);
     setPedidos(p);
     setClientes(c);
+    setProdutos(pr);
     setCarregando(false);
   };
 
@@ -47,22 +66,66 @@ export default function ComercialPedidos() {
     setDavFile(file);
   };
 
+  const adicionarItem = () => {
+    if (produtos.length === 0) return;
+    const primeiro = produtos[0];
+    setItensPedido([...itensPedido, { produtoId: primeiro.id, produto: primeiro, quantidade: 1, precoUnitario: 0 }]);
+  };
+
+  const atualizarItem = (index: number, campo: keyof ItemForm, valor: number) => {
+    const atualizados = [...itensPedido];
+    if (campo === 'produtoId') {
+      const produto = produtos.find(p => p.id === valor);
+      if (produto) {
+        atualizados[index] = { ...atualizados[index], produtoId: valor, produto, quantidade: 1, precoUnitario: 0 };
+      }
+    } else {
+      (atualizados[index] as any)[campo] = valor;
+    }
+    setItensPedido(atualizados);
+  };
+
+  const removerItem = (index: number) => {
+    setItensPedido(itensPedido.filter((_, i) => i !== index));
+  };
+
+  const pesoTotalItens = itensPedido.reduce((acc, item) => acc + item.produto.pesoUnidade * item.quantidade, 0);
+
   const criarPedido = async () => {
-    if (!novoPedido.clienteId || !novoPedido.valor.trim()) return;
+    if (!novoPedido.clienteId || !novoPedido.valor.trim() || itensPedido.length === 0) return;
     const clienteId = parseInt(novoPedido.clienteId);
     const valor = parseFloat(novoPedido.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-    await pedidoService.criarPedido({ clienteId, valorTotal: valor, pesoTotal: 0, itens: [] });
-    setNovoPedido({ clienteId: '', valor: '' });
+    const desconto = parseFloat(novoPedido.desconto.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const acrescimo = parseFloat(novoPedido.acrescimo.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    await pedidoService.criarPedido({
+      clienteId,
+      valorTotal: valor,
+      pesoTotal: pesoTotalItens,
+      tipoEntrega: novoPedido.tipoEntrega,
+      desconto,
+      acrescimo,
+      itens: itensPedido.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade, precoUnitario: i.precoUnitario, pesoUnitario: i.produto.pesoUnidade })),
+    });
+    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
+    setItensPedido([]);
     setDavFile(null);
     setIsModalOpen(false);
+    setModalAberto(false);
     await carregar();
   };
 
   const resetModal = () => {
-    setNovoPedido({ clienteId: '', valor: '' });
+    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
+    setItensPedido([]);
     setDavFile(null);
     setIsModalOpen(false);
+    setModalAberto(false);
   };
+
+  const sugestoes: Sugestao[] = pedidos.map(p => ({
+    rotulo: `#${p.id} - ${p.cliente?.razaoSocialNome ?? 'Sem cliente'}`,
+    subRotulo: p.status,
+  }));
 
   const pedidosFiltrados = pedidos.filter(p => {
     if (!filtro) return true;
@@ -88,18 +151,9 @@ export default function ComercialPedidos() {
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         <div className="p-6 flex justify-between items-center border-b border-gray-100">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar pedido..."
-              value={filtro}
-              onChange={e => setFiltro(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all"
-            />
-          </div>
+          <SearchAutocomplete placeholder="Buscar pedido..." valor={filtro} onChange={setFiltro} sugestoes={sugestoes} aoSelecionar={(s) => { setFiltro(s.rotulo); }} />
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => { setIsModalOpen(true); setModalAberto(true); }}
             className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
           >
             <Plus size={18} /> Novo Pedido
@@ -117,6 +171,8 @@ export default function ComercialPedidos() {
                   <th className="px-6 py-3 font-semibold">Cliente</th>
                   <th className="px-6 py-3 font-semibold">Valor</th>
                   <th className="px-6 py-3 font-semibold">Itens</th>
+                  <th className="px-6 py-3 font-semibold">Peso</th>
+                  <th className="px-6 py-3 font-semibold">Tipo</th>
                   <th className="px-6 py-3 font-semibold">Data</th>
                   <th className="px-6 py-3 font-semibold">Status</th>
                   <th className="px-6 py-3 font-semibold text-right">Ações</th>
@@ -124,11 +180,17 @@ export default function ComercialPedidos() {
               </thead>
               <tbody>
                 {pedidosFiltrados.map(pedido => (
-                  <tr key={pedido.id} onDoubleClick={() => setDetalhe(pedido)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <tr key={pedido.id} onDoubleClick={() => { setDetalhe(pedido); setModalAberto(true); }} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                     <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
                     <td className="px-6 py-4">{pedido.cliente?.razaoSocialNome ?? '—'}</td>
                     <td className="px-6 py-4">R$ {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>
+                    <td className="px-6 py-4">{pedido.pesoTotal.toFixed(2)} kg</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${pedido.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'}`}>
+                        {pedido.tipoEntrega === 'Retirada' ? 'Retirada' : 'Entrega'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-gray-400">{new Date(pedido.dataCriacao).toLocaleDateString('pt-BR')}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-black ring-1 ring-black/20">
@@ -136,12 +198,12 @@ export default function ComercialPedidos() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button onClick={() => setDetalhe(pedido)} className="text-gray-700 hover:underline">Ver</button>
+                      <button onClick={() => { setDetalhe(pedido); setModalAberto(true); }} className="text-gray-700 hover:underline">Ver</button>
                     </td>
                   </tr>
                 ))}
                 {pedidosFiltrados.length === 0 && (
-                  <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">Nenhum pedido encontrado</td></tr>
+                  <tr><td colSpan={8} className="text-center py-12 text-gray-400 text-sm">Nenhum pedido encontrado</td></tr>
                 )}
               </tbody>
             </table>
@@ -151,14 +213,14 @@ export default function ComercialPedidos() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Novo Pedido</h2>
               <button onClick={resetModal} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                 <X size={20} />
               </button>
             </div>
-            <p className="text-gray-500 mb-6 text-sm">Preencha os dados do pedido e anexe o DAV (PDF) gerado no ERP.</p>
+            <p className="text-gray-500 mb-6 text-sm">Preencha os dados do pedido e selecione os produtos.</p>
 
             <div className="space-y-4">
               <div>
@@ -174,16 +236,130 @@ export default function ComercialPedidos() {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$) *</label>
-                <input
-                  type="text"
-                  value={novoPedido.valor}
-                  onChange={e => setNovoPedido({ ...novoPedido, valor: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
-                  placeholder="0,00"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Entrega</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNovoPedido({ ...novoPedido, tipoEntrega: 'Entrega' })}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${novoPedido.tipoEntrega === 'Entrega' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'}`}
+                  >
+                    Entrega
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNovoPedido({ ...novoPedido, tipoEntrega: 'Retirada' })}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${novoPedido.tipoEntrega === 'Retirada' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'}`}
+                  >
+                    Retirada
+                  </button>
+                </div>
               </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$) *</label>
+                  <input
+                    type="text"
+                    value={novoPedido.valor}
+                    onChange={e => setNovoPedido({ ...novoPedido, valor: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                    placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Desconto (R$)</label>
+                  <input
+                    type="text"
+                    value={novoPedido.desconto}
+                    onChange={e => setNovoPedido({ ...novoPedido, desconto: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                    placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Acréscimo (R$)</label>
+                  <input
+                    type="text"
+                    value={novoPedido.acrescimo}
+                    onChange={e => setNovoPedido({ ...novoPedido, acrescimo: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Produtos *</label>
+                  <button
+                    type="button"
+                    onClick={adicionarItem}
+                    className="text-xs text-black font-medium hover:underline flex items-center gap-1"
+                  >
+                    <Plus size={14} /> Adicionar produto
+                  </button>
+                </div>
+                {itensPedido.length === 0 && (
+                  <p className="text-xs text-gray-400 py-2">Nenhum produto adicionado. Clique em "Adicionar produto".</p>
+                )}
+                <div className="space-y-2">
+                  {itensPedido.map((item, index) => (
+                    <div key={index} className="flex gap-2 items-end border border-gray-200 rounded-lg p-3">
+                      <div className="flex-1">
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wider">Produto</label>
+                        <select
+                          value={item.produtoId}
+                          onChange={e => atualizarItem(index, 'produtoId', parseInt(e.target.value))}
+                          className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
+                        >
+                          {produtos.map(p => (
+                            <option key={p.id} value={p.id}>{p.nome} ({p.pesoUnidade} kg)</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="w-24">
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wider">Qtd</label>
+                        <input
+                          type="number"
+                          min={0.1}
+                          step={0.1}
+                          value={item.quantidade}
+                          onChange={e => atualizarItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
+                          className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
+                        />
+                      </div>
+                      <div className="w-28">
+                        <label className="text-[10px] text-gray-400 uppercase tracking-wider">Preço unit.</label>
+                        <input
+                          type="text"
+                          value={item.precoUnitario === 0 ? '' : item.precoUnitario.toFixed(2)}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value.replace(',', '.')) || 0;
+                            atualizarItem(index, 'precoUnitario', val);
+                          }}
+                          className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
+                          placeholder="0,00"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removerItem(index)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {itensPedido.length > 0 && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Peso total estimado: <strong>{pesoTotalItens.toFixed(2)} kg</strong>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Arquivo DAV (PDF)</label>
                 <input ref={davInputRef} type="file" accept=".pdf" className="hidden" onChange={handleDavUpload} />
@@ -217,9 +393,9 @@ export default function ComercialPedidos() {
               </button>
               <button
                 onClick={criarPedido}
-                disabled={!novoPedido.clienteId || !novoPedido.valor.trim()}
+                disabled={!novoPedido.clienteId || !novoPedido.valor.trim() || itensPedido.length === 0}
                 className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${
-                  novoPedido.clienteId && novoPedido.valor.trim()
+                  novoPedido.clienteId && novoPedido.valor.trim() && itensPedido.length > 0
                     ? 'bg-black text-white hover:bg-gray-800'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
@@ -232,11 +408,11 @@ export default function ComercialPedidos() {
       )}
 
       {detalhe && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetalhe(null)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setDetalhe(null); setModalAberto(false); }}>
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes do Pedido</h2>
-              <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => { setDetalhe(null); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -254,8 +430,36 @@ export default function ComercialPedidos() {
                 <p className="text-gray-900 font-medium mt-0.5">{detalhe.cliente?.razaoSocialNome ?? '—'}</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
-                <span className="text-gray-400 text-xs uppercase tracking-wider">Valor</span>
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
+                <p className="text-gray-900 font-medium mt-0.5 capitalize">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${detalhe.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                    {detalhe.tipoEntrega}
+                  </span>
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Total</span>
                 <p className="text-gray-900 font-medium mt-0.5">R$ {detalhe.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+              {detalhe.desconto > 0 && (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
+                  <p className="text-red-600 font-medium mt-0.5">- R$ {detalhe.desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+              )}
+              {detalhe.acrescimo > 0 && (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Acréscimo</span>
+                  <p className="text-amber-600 font-medium mt-0.5">+ R$ {detalhe.acrescimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+              )}
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Final</span>
+                <p className="text-gray-900 font-bold mt-0.5">R$ {detalhe.valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Peso Total</span>
+                <p className="text-gray-900 font-medium mt-0.5">{detalhe.pesoTotal.toFixed(2)} kg</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Data</span>
@@ -268,13 +472,30 @@ export default function ComercialPedidos() {
                     {detalhe.itens.map(item => (
                       <div key={item.id} className="flex justify-between text-sm">
                         <span>{item.produto?.nome ?? `Produto #${item.produtoId}`}</span>
-                        <span className="text-gray-500">{item.quantidade} x R$ {item.precoUnitario.toFixed(2)}</span>
+                        <span className="text-gray-500">
+                          {item.quantidade} x R$ {item.precoUnitario.toFixed(2)}
+                          {item.separado && ' ✓'}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
+
+            {detalhe.tipoEntrega === 'Retirada' && detalhe.status === 'ProntoEntrega' && (
+              <button
+                onClick={async () => {
+                  await pedidoService.confirmarRetirada(detalhe.id);
+                  setDetalhe(null);
+                  setModalAberto(false);
+                  await carregar();
+                }}
+                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-amber-600 text-white hover:bg-amber-500 transition-colors"
+              >
+                Confirmar Retirada
+              </button>
+            )}
           </div>
         </div>
       )}

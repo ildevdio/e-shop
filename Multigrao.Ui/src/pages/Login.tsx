@@ -53,10 +53,14 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 relative overflow-hidden">
-      <GrainPattern opacity={0.10} color="#525252" className="inset-0 w-full h-full" animated />
-      <FloatingProducts className="z-0" />
+      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover z-0">
+        <source src="/multigraosvid.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-black/60 z-[1]" />
+      <GrainPattern opacity={0.10} color="#525252" className="inset-0 w-full h-full z-[2]" animated />
+      <FloatingProducts className="z-[2]" />
 
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+      <div className="absolute inset-0 z-[3] flex items-center justify-center pointer-events-none">
         <div className="w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[200px]" />
       </div>
 

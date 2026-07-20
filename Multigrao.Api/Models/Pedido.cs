@@ -8,12 +8,26 @@ namespace Multigrao.Api.Models
         [Key]
         public int Id { get; set; }
 
-        public int ClienteId { get; set; }
+        public int? ClienteId { get; set; }
         public Cliente? Cliente { get; set; }
+
+        [StringLength(200)]
+        public string? SolicitanteNome { get; set; }
+
+        [StringLength(30)]
+        public string? SolicitanteTelefone { get; set; }
 
         [Required]
         [StringLength(50)]
-        public string Status { get; set; } = "Pendente"; // Pendente, EmProducao, ProntoEntrega, EmSeparacao, EmEntrega, Entregue
+        public string Status { get; set; } = "Pendente";
+
+        [Required]
+        [StringLength(20)]
+        public string TipoEntrega { get; set; } = "Entrega";
+
+        public decimal Desconto { get; set; }
+        public decimal Acrescimo { get; set; }
+        public decimal ValorFinal { get; set; }
 
         public decimal PesoTotal { get; set; }
         public decimal ValorTotal { get; set; }

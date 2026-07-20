@@ -53,34 +53,91 @@ namespace Multigrao.Api.Controllers
             var cliente = await _context.Clientes.FindAsync(dto.ClienteId);
             if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
 
+            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Desconto, dto.Acrescimo);
+            return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
+        }
+
+        [HttpPost("solicitacao-catalogo")]
+        public async Task<IActionResult> SolicitacaoCatalogo([FromBody] SolicitacaoCatalogoDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.SolicitanteNome))
+                return BadRequest(new { message = "Nome do solicitante é obrigatório." });
+
+            var pedido = await CriarPedido(null, dto.SolicitanteNome, dto.SolicitanteTelefone, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Desconto, dto.Acrescimo);
+            return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
+        }
+
+        private async Task<Pedido> CriarPedido(int? clienteId, string? solicitanteNome, string? solicitanteTelefone, decimal valorTotal, List<CriarItemPedidoDto> itensDto, string tipoEntrega = "Entrega", decimal desconto = 0, decimal acrescimo = 0)
+        {
+            var itens = new List<ItemPedido>();
+            decimal pesoTotal = 0;
+
+            foreach (var item in itensDto)
+            {
+                var produto = await _context.Produtos.FindAsync(item.ProdutoId);
+                var pesoUnitario = item.PesoUnitario > 0 ? item.PesoUnitario : (produto?.PesoUnidade ?? 0);
+                var itemPedido = new ItemPedido
+                {
+                    ProdutoId = item.ProdutoId,
+                    Quantidade = item.Quantidade,
+                    PrecoUnitario = item.PrecoUnitario,
+                    PesoUnitario = pesoUnitario,
+                    Status = "Pendente"
+                };
+
+                pesoTotal += pesoUnitario * item.Quantidade;
+                itens.Add(itemPedido);
+            }
+
+            var valorFinal = valorTotal + acrescimo - desconto;
+
             var pedido = new Pedido
             {
-                ClienteId = dto.ClienteId,
+                ClienteId = clienteId,
+                SolicitanteNome = solicitanteNome,
+                SolicitanteTelefone = solicitanteTelefone,
                 Status = "Pendente",
-                ValorTotal = dto.ValorTotal,
-                PesoTotal = dto.PesoTotal,
-                DataCriacao = DateTime.UtcNow
+                TipoEntrega = tipoEntrega,
+                Desconto = desconto,
+                Acrescimo = acrescimo,
+                ValorFinal = valorFinal,
+                ValorTotal = valorTotal,
+                PesoTotal = pesoTotal,
+                DataCriacao = DateTime.UtcNow,
+                Itens = itens
             };
 
             _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
+            return pedido;
+        }
 
-            foreach (var item in dto.Itens)
-            {
-                var itemPedido = new ItemPedido
-                {
-                    PedidoId = pedido.Id,
-                    ProdutoId = item.ProdutoId,
-                    Quantidade = item.Quantidade,
-                    PrecoUnitario = item.PrecoUnitario,
-                    Status = "Pendente"
-                };
-                _context.ItensPedido.Add(itemPedido);
-            }
+        [HttpPut("{id}/concluir-conferencia")]
+        public async Task<IActionResult> ConcluirConferencia(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+            if (pedido.Status != "EmSeparacao")
+                return BadRequest("O pedido precisa estar em separação.");
 
+            pedido.Status = "ProntoEntrega";
             await _context.SaveChangesAsync();
+            return NoContent();
+        }
 
-            return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
+        [HttpPut("{id}/confirmar-retirada")]
+        public async Task<IActionResult> ConfirmarRetirada(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+            if (pedido.TipoEntrega != "Retirada")
+                return BadRequest("Este pedido não é do tipo Retirada.");
+            if (pedido.Status != "ProntoEntrega")
+                return BadRequest("O pedido precisa estar como Pronto p/ Retirada.");
+
+            pedido.Status = "Entregue";
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
         [HttpPut("{id}/separar")]

@@ -3,10 +3,12 @@ import { Search, ArrowLeft, Phone, X, Pencil, Trash2, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { contatoService, type Contato, type CriarContatoDto } from '../services/contatoService';
 import { clienteService, type Cliente } from '../services/clienteService';
+import { useUiStore } from '../store/uiStore';
 
 const camposVazios: CriarContatoDto = { nome: '', telefone: '', email: '', cargo: '', clienteId: null };
 
 export default function ComercialContatos() {
+  const { setModalAberto } = useUiStore();
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busca, setBusca] = useState('');
@@ -23,17 +25,18 @@ export default function ComercialContatos() {
     setClientes(cl);
   };
 
-  const abrirCriar = () => { setForm(camposVazios); setSelecionado(null); setModalTipo('criar'); };
+  const abrirCriar = () => { setForm(camposVazios); setSelecionado(null); setModalTipo('criar'); setModalAberto(true); };
 
   const abrirEditar = (c: Contato) => {
     setForm({ nome: c.nome, telefone: c.telefone, email: c.email, cargo: c.cargo, clienteId: c.clienteId });
     setSelecionado(c);
     setModalTipo('editar');
+    setModalAberto(true);
   };
 
-  const abrirDetalhe = (c: Contato) => { setSelecionado(c); setModalTipo('detalhe'); };
+  const abrirDetalhe = (c: Contato) => { setSelecionado(c); setModalTipo('detalhe'); setModalAberto(true); };
 
-  const fecharModal = () => { setModalTipo(null); setSelecionado(null); };
+  const fecharModal = () => { setModalTipo(null); setSelecionado(null); setModalAberto(false); };
 
   const salvar = async () => {
     if (!form.nome.trim() || !form.telefone.trim()) return;

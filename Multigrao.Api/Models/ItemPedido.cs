@@ -15,6 +15,7 @@ namespace Multigrao.Api.Models
 
         public decimal Quantidade { get; set; }
         public decimal PrecoUnitario { get; set; }
+        public decimal PesoUnitario { get; set; }
 
         public bool Separado { get; set; } = false;
 

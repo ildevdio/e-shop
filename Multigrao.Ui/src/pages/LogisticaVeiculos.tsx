@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Navigation, Plus, Search, CheckCircle2, Edit3, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { logisticaService, type Veiculo } from '../services/logisticaService';
+import { useUiStore } from '../store/uiStore';
 
 export default function LogisticaVeiculos() {
+  const { setModalAberto } = useUiStore();
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busca, setBusca] = useState('');
@@ -45,6 +47,7 @@ export default function LogisticaVeiculos() {
       if (created) setVeiculos(prev => [...prev, created]);
       setNovoVeiculo({ modelo: '', placa: '', capacidade: '' });
       setShowNovo(false);
+      setModalAberto(false);
     } finally {
       setIsSaving(false);
     }
@@ -74,7 +77,7 @@ export default function LogisticaVeiculos() {
             <input type="text" placeholder="Buscar veículo..." value={busca} onChange={e => setBusca(e.target.value)}
               className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
           </div>
-          <button onClick={() => setShowNovo(true)} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+          <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Novo Veículo
           </button>
         </div>
@@ -121,7 +124,7 @@ export default function LogisticaVeiculos() {
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Capacidade (kg)</label><input type="text" value={novoVeiculo.capacidade} onChange={e => setNovoVeiculo({ ...novoVeiculo, capacidade: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="600" /></div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowNovo(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim() || isSaving} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() && !isSaving ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>{isSaving ? 'Salvando...' : 'Adicionar'}</button>
             </div>
           </div>
