@@ -229,15 +229,12 @@ export default function Catalogo() {
                         {gruposFiltrados.map((grupo, gi) => (
                           <div key={gi}>
                             {grupo.marca && (
-                              <div className="flex items-center gap-3 mb-3" style={grupo.marca.cor ? { borderLeft: `4px solid ${grupo.marca.cor}`, paddingLeft: '12px' } : {}}>
+                              <div className="flex items-center justify-center rounded-xl px-4 py-3 mb-3" style={{ backgroundColor: grupo.marca.cor || '#f3f4f6' }}>
                                 {grupo.marca.imagemUrl ? (
                                   <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-8 object-contain" />
                                 ) : (
-                                  <div className="flex items-center justify-center h-8 w-8 rounded-full font-bold text-xs" style={{ backgroundColor: grupo.marca.cor || '#f3f4f6', color: grupo.marca.cor ? '#fff' : '#6b7280' }}>
-                                    {grupo.marca.nome.charAt(0)}
-                                  </div>
+                                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: grupo.marca.cor ? '#fff' : '#6b7280' }}>{grupo.marca.nome}</span>
                                 )}
-                                <span className="font-bold text-sm text-gray-700 uppercase tracking-wider" style={grupo.marca.cor ? { color: grupo.marca.cor } : {}}>{grupo.marca.nome}</span>
                               </div>
                             )}
                             {!grupo.marca && (
@@ -757,6 +754,7 @@ function MarcaForm({ marca, onClose, onSalvo }: {
             <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
+            <p className="text-[11px] text-gray-400 mt-1 italic">A logo deve conter o nome da marca. O nome da marca não será exibido como texto.</p>
             {(form.imagemUrl || marca.imagemUrl) && <img src={imageUrl(form.imagemUrl || marca.imagemUrl)} alt="Preview" className="h-12 mt-2 object-contain border rounded-lg" />}
           </div>
         </div>

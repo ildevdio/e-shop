@@ -257,16 +257,12 @@ export default function Tabela() {
                     {grupos.map((grupo, gi) => (
                       <div key={gi} className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
                         {grupo.marca && (
-                          <div className="flex items-center gap-3 px-5 py-3 bg-neutral-50 border-b border-neutral-100" style={grupo.marca.cor ? { borderLeft: `4px solid ${grupo.marca.cor}` } : {}}>
+                          <div className="flex items-center justify-center px-5 py-4 border-b border-neutral-100" style={{ backgroundColor: grupo.marca.cor || '#f5f5f5' }}>
                             {grupo.marca.imagemUrl ? (
-                              <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-8 object-contain" />
+                              <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-10 object-contain" />
                             ) : (
-                              <div className="flex items-center justify-center h-8 w-8 rounded-full font-bold text-xs" style={{ backgroundColor: grupo.marca.cor || '#e5e7eb', color: grupo.marca.cor ? '#fff' : '#525252' }}>
-                                {grupo.marca.nome.charAt(0)}
-                              </div>
+                              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: grupo.marca.cor ? '#fff' : '#6b7280' }}>{grupo.marca.nome}</span>
                             )}
-                            <span className="font-heading font-bold text-sm" style={grupo.marca.cor ? { color: grupo.marca.cor } : { color: '#1f2937' }}>{grupo.marca.nome}</span>
-                            <span className="text-xs text-neutral-400 italic ml-auto">{grupo.produtos.length} {grupo.produtos.length === 1 ? 'produto' : 'produtos'}</span>
                           </div>
                         )}
                         {!grupo.marca && (
