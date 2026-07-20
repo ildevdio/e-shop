@@ -23,7 +23,7 @@ namespace Multigrao.Api.Controllers
             if (ext != ".jpg" && ext != ".jpeg" && ext != ".png")
                 return BadRequest(new { message = "Apenas arquivos JPG e PNG são permitidos." });
 
-            var uploadsDir = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads");
+            var uploadsDir = GetUploadsDir();
             Directory.CreateDirectory(uploadsDir);
 
             var nomeArquivo = $"{Guid.NewGuid()}{ext}";
@@ -32,8 +32,36 @@ namespace Multigrao.Api.Controllers
             using var stream = new FileStream(caminho, FileMode.Create);
             await file.CopyToAsync(stream);
 
-            var url = $"/uploads/{nomeArquivo}";
+            var url = $"{Request.Scheme}://{Request.Host}/api/Upload/{nomeArquivo}";
             return Ok(new { url });
+        }
+
+        [HttpGet("{fileName}")]
+        public IActionResult GetImagem(string fileName)
+        {
+            var uploadsDir = GetUploadsDir();
+            var caminho = Path.Combine(uploadsDir, fileName);
+
+            if (!System.IO.File.Exists(caminho))
+                return NotFound();
+
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            var contentType = ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                _ => "application/octet-stream",
+            };
+
+            return PhysicalFile(caminho, contentType);
+        }
+
+        private string GetUploadsDir()
+        {
+            return Path.Combine(
+                _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"),
+                "uploads"
+            );
         }
     }
 }
