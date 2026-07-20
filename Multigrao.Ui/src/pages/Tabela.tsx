@@ -4,6 +4,7 @@ import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocompl
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService } from '../services/pedidoService';
+import { imageUrl } from '../utils/imageUrl';
 
 interface ProdutoAgrupado {
   marca: Marca | null;
@@ -258,7 +259,7 @@ export default function Tabela() {
                         {grupo.marca && (
                           <div className="flex items-center gap-3 px-5 py-3 bg-neutral-50 border-b border-neutral-100" style={grupo.marca.cor ? { borderLeft: `4px solid ${grupo.marca.cor}` } : {}}>
                             {grupo.marca.imagemUrl ? (
-                              <img src={grupo.marca.imagemUrl} alt={grupo.marca.nome} className="h-8 object-contain" />
+                              <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-8 object-contain" />
                             ) : (
                               <div className="flex items-center justify-center h-8 w-8 rounded-full font-bold text-xs" style={{ backgroundColor: grupo.marca.cor || '#e5e7eb', color: grupo.marca.cor ? '#fff' : '#525252' }}>
                                 {grupo.marca.nome.charAt(0)}
@@ -282,7 +283,7 @@ export default function Tabela() {
                             return (
                               <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
                                 {p.imagemUrl && (
-                                  <img src={p.imagemUrl} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 ring-1 ring-neutral-200" />
+                                  <img src={imageUrl(p.imagemUrl)} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0 ring-1 ring-neutral-200" />
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-neutral-800 leading-tight">{p.nome}</p>

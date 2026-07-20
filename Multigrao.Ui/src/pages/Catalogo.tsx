@@ -7,6 +7,7 @@ import { categoriaService } from '../services/categoriaService';
 import { marcaService } from '../services/marcaService';
 import { uploadService } from '../services/uploadService';
 import { pedidoService } from '../services/pedidoService';
+import { imageUrl } from '../utils/imageUrl';
 
 interface ProdutoAgrupado {
   marca: Marca | null;
@@ -230,7 +231,7 @@ export default function Catalogo() {
                             {grupo.marca && (
                               <div className="flex items-center gap-3 mb-3" style={grupo.marca.cor ? { borderLeft: `4px solid ${grupo.marca.cor}`, paddingLeft: '12px' } : {}}>
                                 {grupo.marca.imagemUrl ? (
-                                  <img src={grupo.marca.imagemUrl} alt={grupo.marca.nome} className="h-8 object-contain" />
+                                  <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-8 object-contain" />
                                 ) : (
                                   <div className="flex items-center justify-center h-8 w-8 rounded-full font-bold text-xs" style={{ backgroundColor: grupo.marca.cor || '#f3f4f6', color: grupo.marca.cor ? '#fff' : '#6b7280' }}>
                                     {grupo.marca.nome.charAt(0)}
@@ -265,7 +266,7 @@ export default function Catalogo() {
                                     <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                                       <td className="py-2.5 pr-4">
                                         <div className="flex items-center gap-2">
-                                          {p.imagemUrl && <img src={p.imagemUrl} alt="" className="h-8 w-8 rounded-lg object-cover" />}
+                                           {p.imagemUrl && <img src={imageUrl(p.imagemUrl)} alt="" className="h-8 w-8 rounded-lg object-cover" />}
                                           <span className="font-medium text-gray-900">{p.nome}</span>
                                         </div>
                                       </td>
@@ -470,7 +471,7 @@ function GerenciarCatalogo({
             {marcas.map(m => (
               <div key={m.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {m.imagemUrl ? <img src={m.imagemUrl} alt={m.nome} className="h-8 object-contain" /> : <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">{m.nome.charAt(0)}</div>}
+                  {m.imagemUrl ? <img src={imageUrl(m.imagemUrl)} alt={m.nome} className="h-8 object-contain" /> : <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">{m.nome.charAt(0)}</div>}
                   <span className="font-medium text-gray-900">{m.nome}</span>
                 </div>
                 <button onClick={() => setEditandoMarca(m)} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -610,7 +611,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
             <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
-            {form.imagemUrl && <img src={form.imagemUrl} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
+            {form.imagemUrl && <img src={imageUrl(form.imagemUrl)} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.ativo ?? true} onChange={e => setForm({ ...form, ativo: e.target.checked })} className="rounded" />
@@ -756,7 +757,7 @@ function MarcaForm({ marca, onClose, onSalvo }: {
             <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
-            {(form.imagemUrl || marca.imagemUrl) && <img src={form.imagemUrl || marca.imagemUrl || undefined} alt="Preview" className="h-12 mt-2 object-contain border rounded-lg" />}
+            {(form.imagemUrl || marca.imagemUrl) && <img src={imageUrl(form.imagemUrl || marca.imagemUrl)} alt="Preview" className="h-12 mt-2 object-contain border rounded-lg" />}
           </div>
         </div>
         <div className="flex gap-3 justify-end mt-6">
