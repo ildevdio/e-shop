@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag } from 'lucide-react';
-import SearchAutocomplete from '../components/SearchAutocomplete';
+import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { useAuthStore } from '../store/authStore';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
@@ -416,10 +416,22 @@ function GerenciarCatalogo({
   const [abaGerenciar, setAbaGerenciar] = useState<'produtos' | 'categorias' | 'marcas'>('produtos');
   const [editandoProduto, setEditandoProduto] = useState<Partial<Produto> | null>(null);
   const [editandoMarca, setEditandoMarca] = useState<Partial<Marca> | null>(null);
+  const [filtroProdutos, setFiltroProdutos] = useState('');
+
+  const produtosFiltrados = produtos.filter(p => {
+    if (!filtroProdutos) return true;
+    const t = filtroProdutos.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return p.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(t);
+  });
+
+  const sugestoesProdutos: Sugestao[] = produtos.map(p => ({
+    rotulo: p.nome,
+    subRotulo: p.categoria?.nome,
+  }));
 
   return (
     <div className="flex-1 flex flex-col">
-      <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1 mb-6 self-start">
+      <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1 mb-4 self-start">
         {(['produtos', 'categorias', 'marcas'] as const).map(tab => (
           <button
             key={tab}
@@ -434,25 +446,39 @@ function GerenciarCatalogo({
       <div className="flex-1 overflow-y-auto">
         {abaGerenciar === 'produtos' && (
           <div className="space-y-2">
-            <button onClick={() => setEditandoProduto({ nome: '', ativo: true })} className="flex items-center gap-2 text-sm font-medium text-black hover:underline mb-2">
-              <Plus size={16} /> Novo Produto
-            </button>
-            {produtos.map(p => (
-              <div key={p.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
-                <div>
-                  <span className={`font-medium ${p.ativo ? 'text-gray-900' : 'text-gray-400 line-through'}`}>{p.nome}</span>
-                  <span className="text-xs text-gray-400 ml-2">{p.categoria?.nome} / {p.marca?.nome ?? 'Diversos'}</span>
+            <div className="flex items-center gap-2 mb-3">
+              <SearchAutocomplete
+                placeholder="Buscar produto..."
+                valor={filtroProdutos}
+                onChange={setFiltroProdutos}
+                sugestoes={sugestoesProdutos}
+                aoSelecionar={s => setFiltroProdutos(s.rotulo)}
+                className="flex-1"
+              />
+              <button onClick={() => setEditandoProduto({ nome: '', ativo: true })} className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0">
+                <Plus size={16} /> Novo
+              </button>
+            </div>
+            {produtosFiltrados.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">Nenhum produto encontrado.</p>
+            ) : (
+              produtosFiltrados.map(p => (
+                <div key={p.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
+                  <div>
+                    <span className={`font-medium ${p.ativo ? 'text-gray-900' : 'text-gray-400 line-through'}`}>{p.nome}</span>
+                    <span className="text-xs text-gray-400 ml-2">{p.categoria?.nome} / {p.marca?.nome ?? 'Diversos'}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setEditandoProduto(p)} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                      <Pencil size={16} />
+                    </button>
+                    <button onClick={async () => { if (confirm(`Excluir "${p.nome}"?`)) { await produtoService.deletarProduto(p.id); onSalvo(); } }} className="p-2 text-red-400 hover:text-red-600 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setEditandoProduto(p)} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={async () => { if (confirm(`Excluir "${p.nome}"?`)) { await produtoService.deletarProduto(p.id); onSalvo(); } }} className="p-2 text-red-400 hover:text-red-600 transition-colors">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
 
