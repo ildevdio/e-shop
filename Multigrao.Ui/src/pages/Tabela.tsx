@@ -257,7 +257,7 @@ export default function Tabela() {
                     {grupos.map((grupo, gi) => (
                       <div key={gi} className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
                         {grupo.marca && (
-                          <div className="flex items-center justify-center px-5 py-6 border-b border-neutral-100" style={{ backgroundColor: grupo.marca.cor || '#f5f5f5' }}>
+                          <div className="flex items-center justify-center px-5 py-3 border-b border-neutral-100" style={{ backgroundColor: grupo.marca.cor || '#f5f5f5' }}>
                             {grupo.marca.imagemUrl ? (
                               <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-14 object-contain" />
                             ) : (
