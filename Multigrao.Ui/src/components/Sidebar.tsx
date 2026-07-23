@@ -39,6 +39,9 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   ];
 
   const sectorNav: NavItem[] = [];
+  if (isAdmin || hasSetor('Comercial')) {
+    sectorNav.push({ icon: MessageSquare, label: 'Atendimento', path: '/comercial' });
+  }
   if (isAdmin || hasSetor('Comercial') || hasSetor('Vendedor')) {
     sectorNav.push(
       { icon: Contact, label: 'Contatos', path: '/comercial/contatos' },
@@ -47,18 +50,15 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
     );
   }
   if (isAdmin || hasSetor('Comercial')) {
-    sectorNav.push(
-      { icon: MessageSquare, label: 'Atendimento', path: '/comercial' },
-      { icon: ClipboardList, label: 'Atendimentos', path: '/comercial/lista-atendimentos' },
-    );
+    sectorNav.push({ icon: ClipboardList, label: 'Atendimentos', path: '/comercial/lista-atendimentos' });
   }
   if (isAdmin || hasSetor('Separação')) sectorNav.push({ icon: Package, label: 'Separação', path: '/separacao' });
+  if (isAdmin || hasSetor('Conferência')) sectorNav.push({ icon: CheckSquare, label: 'Conferência', path: '/conferencia' });
   if (isAdmin || hasSetor('Logística')) {
     sectorNav.push(
       { icon: Map, label: 'Logística', path: '/logistica' },
     );
   }
-  if (isAdmin || hasSetor('Conferência')) sectorNav.push({ icon: CheckSquare, label: 'Conferência', path: '/conferencia' });
   if (isAdmin || hasSetor('Entregas') || temEntregasPendentes) {
     if (!sectorNav.some(i => i.path === '/entregas')) {
       sectorNav.push({ icon: Truck, label: 'Entregas', path: '/entregas' });

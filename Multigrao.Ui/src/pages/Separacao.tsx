@@ -53,7 +53,8 @@ export default function Separacao() {
   const carregar = async () => {
     setCarregando(true);
     const dados = await pedidoService.getPedidos();
-    setPedidos(dados.map(mapearPedido));
+    const relevantes = dados.filter(p => p.status === 'Pendente' || p.status === 'EmSeparacao' || p.status === 'EmConferencia');
+    setPedidos(relevantes.map(mapearPedido));
     setCarregando(false);
   };
 

@@ -217,15 +217,14 @@ export default function ComercialClientes() {
           <label className={labelClass}>E-mail</label>
           <input type="email" value={form.email} onChange={e => setCampo('email', e.target.value)} className={inputClass} placeholder="email@exemplo.com" />
         </div>
-        {vendedores.length > 0 && (
-          <div className="col-span-2">
-            <label className={labelClass}>Vendedor Responsável</label>
-            <select value={form.vendedorId ?? ''} onChange={e => setCampo('vendedorId', e.target.value ? Number(e.target.value) : '')} className={inputClass}>
-              <option value="">Nenhum</option>
-              {vendedores.map(v => <option key={v.id} value={v.id}>{v.nome}</option>)}
-            </select>
-          </div>
-        )}
+        <div className="col-span-2">
+          <label className={labelClass}>Vendedor Responsável</label>
+          <select value={form.vendedorId ?? ''} onChange={e => setCampo('vendedorId', e.target.value ? Number(e.target.value) : '')} className={inputClass}>
+            <option value="">Nenhum</option>
+            {vendedores.map(v => <option key={v.id} value={v.id}>{v.nome}</option>)}
+          </select>
+          {vendedores.length === 0 && <p className="text-xs text-gray-400 mt-1">Nenhum vendedor cadastrado no setor.</p>}
+        </div>
       </div>
       <hr className="border-gray-100" />
       <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Endereço</p>
