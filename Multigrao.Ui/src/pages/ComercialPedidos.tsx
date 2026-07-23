@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
@@ -188,7 +188,7 @@ export default function ComercialPedidos() {
   };
 
   const resetModal = () => {
-    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
+    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
     setDavFile(null);
     setIsModalOpen(false);
