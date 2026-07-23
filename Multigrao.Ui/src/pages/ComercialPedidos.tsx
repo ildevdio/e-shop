@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, Upload, FileCheck, Trash2 } from 'lucide-react';
+import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
@@ -13,12 +13,24 @@ const STATUS_LABELS: Record<string, string> = {
   Pendente: 'Pendente',
   EmProducao: 'Em Produção',
   EmSeparacao: 'Em Separação',
+  EmConferencia: 'Em Conferência',
   ProntoEntrega: 'Pronto p/ Entrega',
   ProntoRetirada: 'Pronto p/ Retirada',
   EmEntrega: 'Em Entrega',
   Entregue: 'Entregue',
   Devolvido: 'Devolvido',
 };
+
+const STATUS_GROUPS: Record<string, string[]> = {
+  'Ativos': ['AguardandoConfirmacao', 'Pendente', 'EmProducao', 'EmSeparacao', 'EmConferencia', 'ProntoEntrega', 'ProntoRetirada', 'EmEntrega'],
+  'Finalizados': ['Entregue'],
+  'Cancelados': ['Devolvido'],
+};
+
+const PENDENTES_STATUSES = ['AguardandoConfirmacao', 'Pendente', 'EmProducao', 'EmSeparacao', 'EmConferencia', 'ProntoEntrega', 'ProntoRetirada', 'EmEntrega'];
+
+type StatusGroup = 'Todos' | 'Ativos' | 'Finalizados' | 'Cancelados';
+type AbaPedidos = 'pendentes' | 'consulta';
 
 interface ItemForm {
   produtoId: number;
@@ -29,14 +41,26 @@ interface ItemForm {
 
 export default function ComercialPedidos() {
   const { setModalAberto } = useUiStore();
+  const [abaAtiva, setAbaAtiva] = useState<AbaPedidos>('pendentes');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [filtro, setFiltro] = useState('');
 
-  const [novoPedido, setNovoPedido] = useState({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
+  const [buscaConsulta, setBuscaConsulta] = useState('');
+  const [buscaPendentes, setBuscaPendentes] = useState('');
+  const [filtroStatusConsulta, setFiltroStatusConsulta] = useState<StatusGroup>('Todos');
+  const [filtroDataInicio, setFiltroDataInicio] = useState('');
+  const [filtroDataFim, setFiltroDataFim] = useState('');
+  const [filtroTipoConsulta, setFiltroTipoConsulta] = useState<'Todos' | 'Entrega' | 'Retirada'>('Todos');
+  const [resultadosConsulta, setResultadosConsulta] = useState<Pedido[]>([]);
+  const [totalConsulta, setTotalConsulta] = useState(0);
+  const [paginaConsulta, setPaginaConsulta] = useState(1);
+  const [buscandoConsulta, setBuscandoConsulta] = useState(false);
+  const [consultaRealizada, setConsultaRealizada] = useState(false);
+
+  const [novoPedido, setNovoPedido] = useState({ clienteId: '', valor: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
   const [itensPedido, setItensPedido] = useState<ItemForm[]>([]);
   const [buscaProduto, setBuscaProduto] = useState<string[]>([]);
   const [davFile, setDavFile] = useState<File | null>(null);
@@ -44,6 +68,7 @@ export default function ComercialPedidos() {
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
+    pagamento: string;
     cep: string;
     logradouro: string;
     numero: string;
@@ -87,6 +112,7 @@ export default function ComercialPedidos() {
     setDetalhe(pedido);
     setEditDetalhe({
       tipoEntrega: pedido.tipoEntrega,
+      pagamento: pedido.pagamento ?? '',
       cep: pedido.cep ?? '',
       logradouro: pedido.logradouro ?? '',
       numero: pedido.numero ?? '',
@@ -148,11 +174,12 @@ export default function ComercialPedidos() {
       valorTotal: valor,
       pesoTotal: pesoTotalItens,
       tipoEntrega: novoPedido.tipoEntrega,
+      pagamento: novoPedido.pagamento || undefined,
       desconto,
       acrescimo,
       itens: itensPedido.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade, precoUnitario: i.precoUnitario, pesoUnitario: i.produto.pesoUnidade })),
     });
-    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', desconto: '', acrescimo: '' });
+    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
     setDavFile(null);
     setIsModalOpen(false);
@@ -168,20 +195,56 @@ export default function ComercialPedidos() {
     setModalAberto(false);
   };
 
-  const sugestoes: Sugestao[] = pedidos.map(p => ({
-    rotulo: `#${p.id} - ${p.cliente?.razaoSocialNome ?? 'Sem cliente'}`,
-    subRotulo: p.status,
-  }));
-
-  const pedidosFiltrados = pedidos.filter(p => {
-    if (!filtro) return true;
-    const termo = filtro.toLowerCase();
-    return (
-      String(p.id).includes(termo) ||
-      p.cliente?.razaoSocialNome?.toLowerCase().includes(termo) ||
-      STATUS_LABELS[p.status]?.toLowerCase().includes(termo)
-    );
+  const pedidosPendentes = pedidos.filter(p => {
+    if (!PENDENTES_STATUSES.includes(p.status)) return false;
+    const termo = buscaPendentes.toLowerCase();
+    if (termo) {
+      return (
+        String(p.id).includes(termo) ||
+        p.cliente?.razaoSocialNome?.toLowerCase().includes(termo) ||
+        p.solicitanteNome?.toLowerCase().includes(termo) ||
+        p.cpfCnpj?.includes(termo) ||
+        p.logradouro?.toLowerCase().includes(termo) ||
+        p.bairro?.toLowerCase().includes(termo) ||
+        p.cidade?.toLowerCase().includes(termo)
+      );
+    }
+    return true;
   });
+
+  const buscarConsulta = async (pagina: number = 1) => {
+    setBuscandoConsulta(true);
+    setConsultaRealizada(true);
+    const statusParam = filtroStatusConsulta !== 'Todos'
+      ? STATUS_GROUPS[filtroStatusConsulta]?.join(',')
+      : undefined;
+    const resultado = await pedidoService.buscarPedidos({
+      busca: buscaConsulta || undefined,
+      status: statusParam,
+      tipoEntrega: filtroTipoConsulta !== 'Todos' ? filtroTipoConsulta : undefined,
+      dataInicio: filtroDataInicio || undefined,
+      dataFim: filtroDataFim || undefined,
+      pagina,
+      tamanhoPagina: 50,
+    });
+    setResultadosConsulta(resultado.dados);
+    setTotalConsulta(resultado.total);
+    setPaginaConsulta(resultado.pagina);
+    setBuscandoConsulta(false);
+  };
+
+  const temFiltroAtivoConsulta = buscaConsulta || filtroStatusConsulta !== 'Todos' || filtroTipoConsulta !== 'Todos' || filtroDataInicio || filtroDataFim;
+
+  const limparFiltros = () => {
+    setBuscaConsulta('');
+    setFiltroStatusConsulta('Todos');
+    setFiltroTipoConsulta('Todos');
+    setFiltroDataInicio('');
+    setFiltroDataFim('');
+    setResultadosConsulta([]);
+    setTotalConsulta(0);
+    setConsultaRealizada(false);
+  };
 
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -195,16 +258,161 @@ export default function ComercialPedidos() {
         </div>
       </div>
 
+      <div className="flex gap-2 mb-2">
+        <button onClick={() => setAbaAtiva('pendentes')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${abaAtiva === 'pendentes' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
+          <FileCheck size={18} /> Pendentes de Finalização
+          <span className="ml-1 text-xs opacity-50">
+            ({pedidosPendentes.length})
+          </span>
+        </button>
+        <button onClick={() => setAbaAtiva('consulta')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${abaAtiva === 'consulta' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
+          <Search size={18} /> Consulta
+        </button>
+      </div>
+
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        <div className="p-6 flex justify-between items-center border-b border-gray-100">
-          <SearchAutocomplete placeholder="Buscar pedido..." valor={filtro} onChange={setFiltro} sugestoes={sugestoes} aoSelecionar={(s) => { setFiltro(s.rotulo); }} />
-          <button
-            onClick={() => { setIsModalOpen(true); setModalAberto(true); }}
-            className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
-          >
-            <Plus size={18} /> Novo Pedido
-          </button>
+        {abaAtiva === 'pendentes' && (
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar por #ID, cliente, CPF/CNPJ..."
+                value={buscaPendentes}
+                onChange={e => setBuscaPendentes(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+              />
+            </div>
+            <button
+              onClick={() => { setIsModalOpen(true); setModalAberto(true); }}
+              className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
+            >
+              <Plus size={18} /> Novo Pedido
+            </button>
+          </div>
         </div>
+        )}
+
+        {abaAtiva === 'consulta' && (
+        <div className="p-6 border-b border-gray-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-gray-500" />
+              <span className="text-sm font-semibold text-gray-700">Filtros de Consulta</span>
+              {temFiltroAtivoConsulta && (
+                <span className="ml-1 w-2 h-2 rounded-full bg-black" />
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {temFiltroAtivoConsulta && (
+                <button onClick={limparFiltros} className="text-xs text-gray-500 hover:text-black flex items-center gap-1 transition-colors">
+                  <RotateCcw size={12} /> Limpar filtros
+                </button>
+              )}
+              <button
+                onClick={() => buscarConsulta()}
+                disabled={buscandoConsulta}
+                className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20 disabled:opacity-50"
+              >
+                <Search size={18} /> {buscandoConsulta ? 'Buscando...' : 'Buscar'}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Search className="text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Buscar por #ID, cliente, CPF/CNPJ, endereço..."
+              value={buscaConsulta}
+              onChange={e => setBuscaConsulta(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') buscarConsulta(); }}
+              className="flex-1 px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block">Status</label>
+              <div className="flex flex-wrap gap-1.5">
+                {(['Todos', 'Ativos', 'Finalizados', 'Cancelados'] as StatusGroup[]).map(grupo => (
+                  <button
+                    key={grupo}
+                    onClick={() => setFiltroStatusConsulta(grupo)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      filtroStatusConsulta === grupo
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {grupo}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="min-w-[140px]">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block">Tipo</label>
+              <div className="flex gap-1.5">
+                {(['Todos', 'Entrega', 'Retirada'] as const).map(tipo => (
+                  <button
+                    key={tipo}
+                    onClick={() => setFiltroTipoConsulta(tipo)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      filtroTipoConsulta === tipo
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {tipo}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Período</label>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="date"
+                  value={filtroDataInicio}
+                  onChange={e => setFiltroDataInicio(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black"
+                />
+              </div>
+              <span className="text-gray-400 text-xs">até</span>
+              <div className="relative">
+                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="date"
+                  value={filtroDataFim}
+                  onChange={e => setFiltroDataFim(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {abaAtiva === 'pendentes' && !carregando && (
+          <div className="px-6 py-3 border-b border-gray-100 flex flex-wrap gap-2">
+            {PENDENTES_STATUSES.map(status => {
+              const count = pedidos.filter(p => p.status === status).length;
+              if (count === 0) return null;
+              return (
+                <span key={status} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-gray-50 text-gray-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                  {STATUS_LABELS[status]}: {count}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
         <div className="flex-1 overflow-x-auto">
           {carregando ? (
@@ -225,7 +433,7 @@ export default function ComercialPedidos() {
                 </tr>
               </thead>
               <tbody>
-                {pedidosFiltrados.map(pedido => (
+                {(abaAtiva === 'pendentes' ? pedidosPendentes : resultadosConsulta).map(pedido => (
                   <tr key={pedido.id} onDoubleClick={() => abrirDetalhe(pedido)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                     <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
                     <td className="px-6 py-4">{pedido.cliente?.razaoSocialNome ?? '—'}</td>
@@ -248,12 +456,49 @@ export default function ComercialPedidos() {
                     </td>
                   </tr>
                 ))}
-                {pedidosFiltrados.length === 0 && (
-                  <tr><td colSpan={8} className="text-center py-12 text-gray-400 text-sm">Nenhum pedido encontrado</td></tr>
+                {((abaAtiva === 'pendentes' && pedidosPendentes.length === 0) || (abaAtiva === 'consulta' && consultaRealizada && resultadosConsulta.length === 0)) && (
+                  <tr><td colSpan={9} className="text-center py-16 text-gray-400 text-sm">
+                    {abaAtiva === 'consulta' && !consultaRealizada ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+                          <Search size={20} className="text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-500">Nenhuma busca realizada</p>
+                          <p className="text-xs mt-1">Use os filtros acima e clique em <strong>Buscar</strong> para pesquisar pedidos</p>
+                        </div>
+                      </div>
+                    ) : 'Nenhum pedido encontrado com os filtros selecionados'}
+                  </td></tr>
                 )}
               </tbody>
             </table>
           )}
+
+          {abaAtiva === 'consulta' && consultaRealizada && totalConsulta > 50 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+                <span className="text-sm text-gray-500">
+                  {totalConsulta} resultado{totalConsulta !== 1 ? 's' : ''} encontrado{totalConsulta !== 1 ? 's' : ''}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => buscarConsulta(paginaConsulta - 1)}
+                    disabled={paginaConsulta <= 1}
+                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-sm text-gray-500">Página {paginaConsulta}</span>
+                  <button
+                    onClick={() => buscarConsulta(paginaConsulta + 1)}
+                    disabled={resultadosConsulta.length < 50}
+                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
@@ -301,6 +546,24 @@ export default function ComercialPedidos() {
                     Retirada
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
+                <select
+                  value={novoPedido.pagamento}
+                  onChange={e => setNovoPedido({ ...novoPedido, pagamento: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="PIX">PIX</option>
+                  <option value="Boleto">Boleto</option>
+                  <option value="Cartão de Crédito">Cartão de Crédito</option>
+                  <option value="Cartão de Débito">Cartão de Débito</option>
+                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="Crédito Loja">Crédito Loja</option>
+                  <option value="Fiado">Fiado</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -502,6 +765,25 @@ export default function ComercialPedidos() {
                 )}
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Pagamento</span>
+                {editando ? (
+                  <select value={editDetalhe!.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe!, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                    <option value="">Selecione...</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Boleto">Boleto</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Crédito Loja">Crédito Loja</option>
+                    <option value="Fiado">Fiado</option>
+                  </select>
+                ) : (
+                  <p className="text-gray-900 font-medium mt-0.5">
+                    {detalhe.pagamento || '—'}
+                  </p>
+                )}
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Total</span>
                 {editando ? (
                   <input type="text" value={editDetalhe!.valorTotal.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, valorTotal: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
@@ -612,6 +894,7 @@ export default function ComercialPedidos() {
                   const e = editDetalhe!;
                   const ok = await pedidoService.atualizarPedido(detalhe.id, {
                     tipoEntrega: e.tipoEntrega,
+                    pagamento: e.pagamento,
                     cep: e.cep,
                     logradouro: e.logradouro,
                     numero: e.numero,
@@ -637,6 +920,7 @@ export default function ComercialPedidos() {
                   if (editDetalhe) {
                     const ok = await pedidoService.atualizarPedido(detalhe.id, {
                       tipoEntrega: editDetalhe.tipoEntrega,
+                      pagamento: editDetalhe.pagamento,
                       cep: editDetalhe.cep,
                       logradouro: editDetalhe.logradouro,
                       numero: editDetalhe.numero,
@@ -661,7 +945,7 @@ export default function ComercialPedidos() {
                 Confirmar Pedido
               </button>
             )}
-            {detalhe.tipoEntrega === 'Retirada' && detalhe.status === 'ProntoEntrega' && (
+            {detalhe.tipoEntrega === 'Retirada' && detalhe.status === 'ProntoRetirada' && (
               <button
                 onClick={async () => {
                   const ok = await pedidoService.confirmarRetirada(detalhe.id);
@@ -674,20 +958,18 @@ export default function ComercialPedidos() {
                 Confirmar Retirada
               </button>
             )}
-            {['AguardandoConfirmacao', 'Pendente'].includes(detalhe.status) && (
-              <button
-                onClick={async () => {
-                  if (!window.confirm('Tem certeza que deseja excluir este pedido?')) return;
-                  const ok = await pedidoService.excluirPedido(detalhe.id);
-                  if (!ok) { alert('Erro ao excluir pedido.'); return; }
-                  fecharDetalhe();
-                  await carregar();
-                }}
-                className="w-full mt-2 py-2.5 rounded-xl font-medium text-sm bg-red-600 text-white hover:bg-red-500 transition-colors"
-              >
-                Excluir Pedido
-              </button>
-            )}
+            <button
+              onClick={async () => {
+                if (!window.confirm('Tem certeza que deseja excluir este pedido?')) return;
+                const ok = await pedidoService.excluirPedido(detalhe.id);
+                if (!ok) { alert('Erro ao excluir pedido.'); return; }
+                fecharDetalhe();
+                await carregar();
+              }}
+              className="w-full mt-2 py-2.5 rounded-xl font-medium text-sm bg-red-600 text-white hover:bg-red-500 transition-colors"
+            >
+              Excluir Pedido
+            </button>
           </div>
         </div>
       )}

@@ -1,50 +1,24 @@
 import axios from 'axios';
+import { type Pedido } from './pedidoService';
 
-const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Conferencia';
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Pedidos';
 
-export interface EntregaConferencia {
-  id: number;
-  rotaId: number;
-  pedidoId: number;
-  ordem: number;
-  status: string;
-  observacao: string | null;
-  pedido?: {
-    id: number;
-    valorTotal: number;
-    cliente?: { id: number; razaoSocialNome: string };
-    itens?: { id: number; quantidade: number; produto?: { nome: string }; separado: boolean }[];
-  };
-  rota?: {
-    id: number;
-    motorista?: { id: number; nome: string };
-  };
-}
+export type { Pedido };
 
 export const conferenciaService = {
-  getEntregasPendentes: async (): Promise<EntregaConferencia[]> => {
+  getPedidosEmConferencia: async (): Promise<Pedido[]> => {
     try {
-      const response = await axios.get(`${API_URL}/pendentes`);
+      const response = await axios.get(`${API_URL}/em-conferencia`);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error('Erro ao buscar entregas para conferência', error);
+      console.error('Erro ao buscar pedidos para conferência', error);
       return [];
     }
   },
 
-  iniciarConferencia: async (entregaId: number): Promise<boolean> => {
+  concluirConferencia: async (pedidoId: number): Promise<boolean> => {
     try {
-      await axios.put(`${API_URL}/${entregaId}/iniciar`);
-      return true;
-    } catch (error) {
-      console.error('Erro ao iniciar conferência', error);
-      return false;
-    }
-  },
-
-  concluirConferencia: async (entregaId: number): Promise<boolean> => {
-    try {
-      await axios.put(`${API_URL}/${entregaId}/concluir`);
+      await axios.put(`${API_URL}/${pedidoId}/concluir-conferencia`);
       return true;
     } catch (error) {
       console.error('Erro ao concluir conferência', error);

@@ -40,6 +40,7 @@ export interface Pedido {
   enderecoConfere?: boolean;
   status: string;
   tipoEntrega: string;
+  pagamento?: string;
   desconto: number;
   acrescimo: number;
   valorFinal: number;
@@ -55,6 +56,7 @@ export interface CriarPedidoDto {
   pesoTotal: number;
   observacao?: string;
   tipoEntrega: string;
+  pagamento?: string;
   desconto: number;
   acrescimo: number;
   itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
@@ -73,6 +75,7 @@ export interface SolicitacaoCatalogoDto {
   estado: string;
   valorTotal: number;
   tipoEntrega: string;
+  pagamento?: string;
   desconto: number;
   acrescimo: number;
   itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
@@ -151,6 +154,7 @@ export const pedidoService = {
 
   atualizarPedido: async (id: number, dto: {
     tipoEntrega?: string;
+    pagamento?: string;
     cep?: string;
     logradouro?: string;
     numero?: string;
@@ -199,6 +203,24 @@ export const pedidoService = {
     } catch (error) {
       console.error('Erro ao excluir pedido', error);
       return false;
+    }
+  },
+
+  buscarPedidos: async (params: {
+    busca?: string;
+    status?: string;
+    tipoEntrega?: string;
+    dataInicio?: string;
+    dataFim?: string;
+    pagina?: number;
+    tamanhoPagina?: number;
+  }): Promise<{ total: number; pagina: number; tamanhoPagina: number; dados: Pedido[] }> => {
+    try {
+      const response = await axios.get(`${API_URL}/buscar`, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar pedidos', error);
+      return { total: 0, pagina: 1, tamanhoPagina: 50, dados: [] };
     }
   },
 

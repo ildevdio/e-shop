@@ -42,7 +42,8 @@ namespace Multigrao.Api.Controllers
             var conversa = new Conversa
             {
                 Titulo = dto.Nome,
-                DataCriacao = DateTime.UtcNow
+                DataCriacao = DateTime.UtcNow,
+                Tipo = TipoConversa.Atendimento
             };
             _context.Conversas.Add(conversa);
             await _context.SaveChangesAsync();
@@ -107,7 +108,7 @@ namespace Multigrao.Api.Controllers
                 {
                     id = m.Id.ToString(),
                     text = m.Texto,
-                    sender = m.UsuarioRemetenteId == null ? (m.UrlAnexo == "bot" ? "bot" : "user") : "agent",
+                    sender = m.UrlAnexo == "bot" ? "bot" : m.UrlAnexo == "user" ? "user" : "agent",
                     timestamp = m.DataEnvio
                 }) : null
             });
@@ -204,12 +205,9 @@ namespace Multigrao.Api.Controllers
             var atendimento = await _context.AtendimentoLeads.FindAsync(id);
             if (atendimento == null) return NotFound();
 
-            if (string.IsNullOrEmpty(atendimento.Bairro) || string.IsNullOrEmpty(atendimento.Quantidade))
-                return BadRequest("Campos obrigatórios não preenchidos.");
-
             atendimento.VendaFechada = true;
             await _context.SaveChangesAsync();
-            return Ok(new { success = true, message = "Atendimento finalizado e pedido gerado." });
+            return Ok(new { success = true, message = "Atendimento finalizado." });
         }
     }
 }

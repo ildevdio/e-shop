@@ -43,6 +43,8 @@ namespace Multigrao.Api.Controllers
         {
             var query = _context.Mensagens
                 .Include(m => m.UsuarioRemetente)
+                .Include(m => m.Conversa)
+                .Where(m => m.Conversa != null && m.Conversa.Tipo == TipoConversa.ChatInterno)
                 .AsQueryable();
 
             if (conversaId.HasValue)

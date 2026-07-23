@@ -16,7 +16,7 @@ interface ItemPedidoLocal {
 interface PedidoLocal {
   id: number;
   cliente: string;
-  status: 'Pendente' | 'EmSeparacao' | 'ProntoEntrega';
+  status: 'Pendente' | 'EmSeparacao' | 'EmConferencia';
   itens: ItemPedidoLocal[];
   assumidoPor?: string;
 }
@@ -25,7 +25,7 @@ function mapearPedido(p: Pedido): PedidoLocal {
   return {
     id: p.id,
     cliente: p.cliente?.razaoSocialNome ?? 'Cliente #' + p.clienteId,
-    status: p.status === 'EmSeparacao' ? 'EmSeparacao' : p.status === 'ProntoEntrega' ? 'ProntoEntrega' : 'Pendente',
+    status: p.status === 'EmSeparacao' ? 'EmSeparacao' : p.status === 'EmConferencia' ? 'EmConferencia' : 'Pendente',
     itens: (p.itens ?? []).map((it, idx) => ({
       id: it.id,
       nome: it.produto?.nome ?? `Item #${it.produtoId}`,
@@ -67,6 +67,7 @@ export default function Separacao() {
 
   const pendentes = filtrados.filter(p => p.status === 'Pendente');
   const emSeparacao = filtrados.filter(p => p.status === 'EmSeparacao');
+  const emConferencia = filtrados.filter(p => p.status === 'EmConferencia');
 
   const assumirPedido = async (pedido: PedidoLocal) => {
     const ok = await pedidoService.iniciarSeparacao(pedido.id);
@@ -143,7 +144,7 @@ export default function Separacao() {
 
           {carregando ? (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Carregando pedidos...</div>
-          ) : pendentes.length === 0 && emSeparacao.length === 0 ? (
+          ) : pendentes.length === 0 && emSeparacao.length === 0 && emConferencia.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -210,6 +211,28 @@ export default function Separacao() {
                       </div>
                     );
                   })}
+                </>
+              )}
+
+              {emConferencia.length > 0 && (
+                <>
+                  <div className="pt-4 pb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Em conferência</span>
+                  </div>
+                  {emConferencia.map(p => (
+                    <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-gray-100/50 flex items-center gap-5 opacity-60">
+                      <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-gray-500">#{p.id}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-gray-700">{p.cliente}</div>
+                        <div className="text-sm text-gray-400 mt-1">
+                          {p.itens.length} itens · Aguardando conferência
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full font-medium">Conferência</span>
+                    </div>
+                  ))}
                 </>
               )}
             </div>
@@ -330,7 +353,7 @@ export default function Separacao() {
                 <QrCode size={64} className="text-gray-400" />
               </div>
               <span className="text-sm font-mono font-bold text-gray-700 tracking-widest">QR-{pedidoAtivo.id}</span>
-              <p className="text-xs text-gray-400 mt-2">Pronto para conferência</p>
+              <p className="text-xs text-gray-400 mt-2">Encaminhado para conferência</p>
             </div>
 
             <div className="flex gap-3 justify-center">

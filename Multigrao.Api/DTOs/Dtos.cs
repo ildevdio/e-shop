@@ -59,6 +59,7 @@ namespace Multigrao.Api.DTOs
         public decimal PesoTotal { get; set; }
         public string? Observacao { get; set; }
         public string TipoEntrega { get; set; } = "Entrega";
+        public string? Pagamento { get; set; }
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
@@ -78,6 +79,7 @@ namespace Multigrao.Api.DTOs
         public string Estado { get; set; } = string.Empty;
         public decimal ValorTotal { get; set; }
         public string TipoEntrega { get; set; } = "Entrega";
+        public string? Pagamento { get; set; }
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
@@ -94,6 +96,7 @@ namespace Multigrao.Api.DTOs
     public class AtualizarPedidoDto
     {
         public string? TipoEntrega { get; set; }
+        public string? Pagamento { get; set; }
         public string? Cep { get; set; }
         public string? Logradouro { get; set; }
         public string? Numero { get; set; }

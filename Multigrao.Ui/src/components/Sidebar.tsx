@@ -51,8 +51,7 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   if (isAdmin || hasSetor('Separação')) sectorNav.push({ icon: Package, label: 'Separação', path: '/separacao' });
   if (isAdmin || hasSetor('Logística')) {
     sectorNav.push(
-      { icon: Map, label: 'Roteirização', path: '/logistica/roteirizacao' },
-      { icon: Truck, label: 'Veículos', path: '/logistica/veiculos' },
+      { icon: Map, label: 'Logística', path: '/logistica' },
     );
   }
   if (isAdmin || hasSetor('Conferência')) sectorNav.push({ icon: CheckSquare, label: 'Conferência', path: '/conferencia' });

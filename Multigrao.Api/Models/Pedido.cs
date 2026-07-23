@@ -51,6 +51,9 @@ namespace Multigrao.Api.Models
         [StringLength(20)]
         public string TipoEntrega { get; set; } = "Entrega";
 
+        [StringLength(50)]
+        public string? Pagamento { get; set; }
+
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public decimal ValorFinal { get; set; }
@@ -60,5 +63,6 @@ namespace Multigrao.Api.Models
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
         public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
+        public ICollection<Entrega> Entregas { get; set; } = new List<Entrega>();
     }
 }

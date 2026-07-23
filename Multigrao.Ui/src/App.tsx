@@ -18,8 +18,6 @@ import Catalogo from './pages/Catalogo';
 import Tabela from './pages/Tabela';
 import Separacao from './pages/Separacao';
 import Logistica from './pages/Logistica';
-import LogisticaRoteirizacao from './pages/LogisticaRoteirizacao';
-import LogisticaVeiculos from './pages/LogisticaVeiculos';
 import Entregas from './pages/Entregas';
 import Conferencia from './pages/Conferencia';
 import { useAuthStore } from './store/authStore';
@@ -56,8 +54,6 @@ function App() {
           <Route path="separacao" element={<Separacao />} />
 
           <Route path="logistica" element={<Logistica />} />
-          <Route path="logistica/roteirizacao" element={<LogisticaRoteirizacao />} />
-          <Route path="logistica/veiculos" element={<LogisticaVeiculos />} />
 
           <Route path="conferencia" element={<Conferencia />} />
           <Route path="entregas" element={<Entregas />} />

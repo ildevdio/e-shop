@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
-import { logisticaService, type Veiculo } from '../services/logisticaService';
-import { pedidoService, type Pedido } from '../services/pedidoService';
-import { useAuthStore } from '../store/authStore';
+import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown, User } from 'lucide-react';
+import { logisticaService, type Veiculo, type Motorista, type PedidoPronto } from '../services/logisticaService';
 import { useUiStore } from '../store/uiStore';
 
 export default function Logistica() {
@@ -37,24 +35,26 @@ export default function Logistica() {
 }
 
 function RoteirizacaoTab() {
-  const usuarioId = useAuthStore(state => state.usuarioId);
-  const [pedidos, setPedidos] = useState<(Pedido & { selecionado: boolean; ordem: number })[]>([]);
+  const [pedidos, setPedidos] = useState<(PedidoPronto & { selecionado: boolean; ordem: number })[]>([]);
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
+  const [motoristas, setMotoristas] = useState<Motorista[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const [veiculoSelecionado, setVeiculoSelecionado] = useState<number | null>(null);
+  const [motoristaSelecionado, setMotoristaSelecionado] = useState<number | null>(null);
   const [etapa, setEtapa] = useState<'selecionar' | 'rota'>('selecionar');
   const [rotaOtimizada, setRotaOtimizada] = useState(false);
 
   const carregar = async () => {
     setCarregando(true);
-    const [p, v] = await Promise.all([pedidoService.getPedidos(), logisticaService.getVeiculos()]);
-    setPedidos(p.filter(pedido => pedido.status === 'ProntoEntrega').map(pedido => ({
-      ...pedido,
-      selecionado: false,
-      ordem: 0,
-    })));
-    setVeiculos(v);
+    const [veiculosData, motoristasData, pedidosData] = await Promise.all([
+      logisticaService.getVeiculos(),
+      logisticaService.getMotoristas(),
+      logisticaService.getPedidosProntos(),
+    ]);
+    setVeiculos(veiculosData);
+    setMotoristas(motoristasData);
+    setPedidos(pedidosData.map(p => ({ ...p, selecionado: false, ordem: 0 })));
     setCarregando(false);
   };
 
@@ -91,6 +91,7 @@ function RoteirizacaoTab() {
   };
 
   const selecionados = pedidos.filter(p => p.selecionado).sort((a, b) => a.ordem - b.ordem);
+  const totalPeso = selecionados.reduce((acc, p) => acc + (p.pesoTotal ?? 0), 0);
 
   const otimizarRota = () => {
     const ordenados = [...selecionados].sort((a, b) =>
@@ -105,17 +106,19 @@ function RoteirizacaoTab() {
     setRotaOtimizada(true);
   };
 
-  const gerarRota = async () => {
-    if (!veiculoSelecionado || !usuarioId) return;
-    const ok = await logisticaService.gerarRota({
+  const finalizarRota = async () => {
+    if (!veiculoSelecionado || !motoristaSelecionado || selecionados.length === 0) return;
+    const result = await logisticaService.gerarRota({
       veiculoId: veiculoSelecionado,
-      motoristaId: usuarioId,
+      motoristaId: motoristaSelecionado,
       pedidosIds: selecionados.map(p => p.id),
     });
-    if (ok) {
+    if (result) {
+      alert(`Rota #${result.rotaId} gerada com sucesso!`);
       setEtapa('selecionar');
-      setVeiculoSelecionado(null);
       setRotaOtimizada(false);
+      setVeiculoSelecionado(null);
+      setMotoristaSelecionado(null);
       await carregar();
     }
   };
@@ -159,10 +162,13 @@ function RoteirizacaoTab() {
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900">Pedido #{pedido.id}</div>
-                  <div className="text-sm text-gray-500">{pedido.cliente?.razaoSocialNome ?? 'Cliente'} - {pedido.cliente?.bairro ?? '—'}</div>
+                  <div className="text-sm text-gray-500">{pedido.cliente?.razaoSocialNome ?? 'Cliente'} — {pedido.cliente?.bairro ?? ''}</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">R$ {pedido.valorTotal.toLocaleString('pt-BR')}</div>
+                <div className="text-right shrink-0">
+                  <div className="font-bold text-gray-900">R$ {(pedido.valorTotal ?? 0).toLocaleString('pt-BR')}</div>
+                  {pedido.pesoTotal > 0 && (
+                    <div className="text-xs text-gray-400 mt-0.5">{pedido.pesoTotal} kg</div>
+                  )}
                 </div>
               </div>
             ))}
@@ -192,7 +198,7 @@ function RoteirizacaoTab() {
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">Pedido #{pedido.id}</div>
-                    <div className="text-sm text-gray-500">{pedido.cliente?.razaoSocialNome ?? 'Cliente'} - {pedido.cliente?.bairro ?? '—'}</div>
+                    <div className="text-sm text-gray-500">{pedido.cliente?.razaoSocialNome ?? 'Cliente'} — {pedido.cliente?.bairro ?? ''}</div>
                   </div>
                   <div className="flex flex-col gap-1">
                     <button onClick={() => moverPedido(pedido.id, 'up')} className="p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-600"><ArrowUp size={14} /></button>
@@ -201,38 +207,70 @@ function RoteirizacaoTab() {
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t border-gray-100 bg-white">
+            <div className="p-4 border-t border-gray-100 bg-white space-y-2">
               <div className="flex justify-between text-sm text-gray-600 font-medium">
-                <span>Total:</span>
-                <span className="font-bold text-gray-900">R$ {selecionados.reduce((acc, p) => acc + p.valorTotal, 0).toLocaleString('pt-BR')}</span>
+                <span>Valor Total:</span>
+                <span className="font-bold text-gray-900">R$ {selecionados.reduce((acc, p) => acc + (p.valorTotal ?? 0), 0).toLocaleString('pt-BR')}</span>
               </div>
+              {totalPeso > 0 && (
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Peso Total:</span>
+                  <span className="font-semibold text-gray-700">{totalPeso} kg</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="w-full md:w-1/2 flex flex-col h-full rounded-2xl bg-gray-50/50 border border-gray-100 overflow-hidden">
             <div className="p-5 border-b border-gray-100 bg-white">
-              <h2 className="font-semibold text-gray-800">Veículo</h2>
+              <h2 className="font-semibold text-gray-800">Veículo e Motorista</h2>
             </div>
-            <div className="p-5 flex-1 flex flex-col gap-4">
-              {veiculos.map(veiculo => (
-                <div key={veiculo.id} onClick={() => setVeiculoSelecionado(veiculo.id)} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
-                  veiculoSelecionado === veiculo.id ? 'bg-gray-100/80 border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'
-                }`}>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${veiculoSelecionado === veiculo.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
-                    <Truck size={24} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">{veiculo.modelo}</div>
-                    <div className="text-sm text-gray-500">{veiculo.placa} - {veiculo.pesoMaximo}kg</div>
-                  </div>
-                  {veiculoSelecionado === veiculo.id && <CheckCircle2 size={20} className="text-black" />}
+            <div className="p-5 flex-1 flex flex-col gap-4 overflow-y-auto">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 block">Veículo</span>
+                <div className="space-y-2">
+                  {veiculos.map(veiculo => (
+                    <div key={veiculo.id} onClick={() => setVeiculoSelecionado(veiculo.id)} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${
+                      veiculoSelecionado === veiculo.id ? 'bg-gray-100/80 border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${veiculoSelecionado === veiculo.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <Truck size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 text-sm">{veiculo.modelo}</div>
+                        <div className="text-xs text-gray-500">{veiculo.placa} — {veiculo.pesoMaximo}kg max</div>
+                      </div>
+                      {veiculoSelecionado === veiculo.id && <CheckCircle2 size={18} className="text-black" />}
+                    </div>
+                  ))}
+                  {veiculos.length === 0 && <p className="text-xs text-gray-400">Nenhum veículo cadastrado</p>}
                 </div>
-              ))}
+              </div>
+
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 block">Motorista</span>
+                <div className="space-y-2">
+                  {motoristas.map(motorista => (
+                    <div key={motorista.id} onClick={() => setMotoristaSelecionado(motorista.id)} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${
+                      motoristaSelecionado === motorista.id ? 'bg-gray-100/80 border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${motoristaSelecionado === motorista.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <User size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 text-sm">{motorista.nome}</div>
+                      </div>
+                      {motoristaSelecionado === motorista.id && <CheckCircle2 size={18} className="text-black" />}
+                    </div>
+                  ))}
+                  {motoristas.length === 0 && <p className="text-xs text-gray-400">Nenhum motorista no setor de Entregas</p>}
+                </div>
+              </div>
 
               <div className="flex-1" />
 
-              <button onClick={otimizarRota} disabled={!veiculoSelecionado} className={`w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
-                veiculoSelecionado ? 'bg-black text-white hover:bg-gray-800 shadow-sm' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              <button onClick={otimizarRota} disabled={!veiculoSelecionado || !motoristaSelecionado} className={`w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
+                veiculoSelecionado && motoristaSelecionado ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}>
                 <Navigation size={18} /> OTIMIZAR ROTA
               </button>
@@ -245,13 +283,9 @@ function RoteirizacaoTab() {
                 </div>
               )}
 
-              <button
-                onClick={gerarRota}
-                disabled={!rotaOtimizada || !veiculoSelecionado}
-                className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
-                  rotaOtimizada && veiculoSelecionado ? 'bg-black text-white hover:bg-gray-800 shadow-sm shadow-black/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
+              <button onClick={finalizarRota} disabled={!rotaOtimizada || !veiculoSelecionado || !motoristaSelecionado} className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
+                rotaOtimizada && veiculoSelecionado && motoristaSelecionado ? 'bg-black text-white hover:bg-gray-800 shadow-sm shadow-black/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}>
                 <CheckCircle2 size={18} /> FINALIZAR E GERAR ENTREGA
               </button>
             </div>
@@ -266,8 +300,10 @@ function VeiculosTab() {
   const { setModalAberto } = useUiStore();
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [busca, setBusca] = useState('');
   const [showNovo, setShowNovo] = useState(false);
   const [novoVeiculo, setNovoVeiculo] = useState({ modelo: '', placa: '', pesoMaximo: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   const carregar = async () => {
     setCarregando(true);
@@ -278,22 +314,32 @@ function VeiculosTab() {
 
   useEffect(() => { carregar(); }, []);
 
+  const veiculosFiltrados = veiculos.filter(v =>
+    v.modelo.toLowerCase().includes(busca.toLowerCase()) ||
+    v.placa.toLowerCase().includes(busca.toLowerCase())
+  );
+
   const adicionarVeiculo = async () => {
     if (!novoVeiculo.modelo.trim()) return;
-    await logisticaService.criarVeiculo({
-      modelo: novoVeiculo.modelo,
-      placa: novoVeiculo.placa,
-      pesoMaximo: parseFloat(novoVeiculo.pesoMaximo) || 0,
-    });
-    setNovoVeiculo({ modelo: '', placa: '', pesoMaximo: '' });
-    setShowNovo(false);
-    setModalAberto(false);
-    await carregar();
+    try {
+      setIsSaving(true);
+      const created = await logisticaService.criarVeiculo({
+        modelo: novoVeiculo.modelo,
+        placa: novoVeiculo.placa,
+        pesoMaximo: parseFloat(novoVeiculo.pesoMaximo) || 0,
+      });
+      if (created) setVeiculos(prev => [...prev, created]);
+      setNovoVeiculo({ modelo: '', placa: '', pesoMaximo: '' });
+      setShowNovo(false);
+      setModalAberto(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const remover = async (id: number) => {
-    await logisticaService.excluirVeiculo(id);
-    await carregar();
+    const ok = await logisticaService.excluirVeiculo(id);
+    if (ok) setVeiculos(prev => prev.filter(v => v.id !== id));
   };
 
   return (
@@ -301,7 +347,7 @@ function VeiculosTab() {
       <div className="flex justify-between items-center mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Buscar veículo..."
+          <input type="text" placeholder="Buscar veículo..." value={busca} onChange={e => setBusca(e.target.value)}
             className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
         </div>
         <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
@@ -323,18 +369,18 @@ function VeiculosTab() {
               </tr>
             </thead>
             <tbody>
-              {veiculos.map(veiculo => (
+              {veiculosFiltrados.map(veiculo => (
                 <tr key={veiculo.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{veiculo.modelo}</td>
                   <td className="px-6 py-4 font-mono text-xs">{veiculo.placa}</td>
-                  <td className="px-6 py-4">{veiculo.pesoMaximo}kg</td>
+                  <td className="px-6 py-4">{veiculo.pesoMaximo ? `${veiculo.pesoMaximo}kg` : '—'}</td>
                   <td className="px-6 py-4 text-right">
                     <button onClick={() => remover(veiculo.id)} className="text-gray-600 hover:underline flex items-center gap-1 inline-flex"><Trash2 size={14} /> Remover</button>
                   </td>
                 </tr>
               ))}
-              {veiculos.length === 0 && (
-                <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-sm">Nenhum veículo cadastrado</td></tr>
+              {veiculosFiltrados.length === 0 && (
+                <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-sm">{busca ? 'Nenhum veículo encontrado' : 'Nenhum veículo cadastrado'}</td></tr>
               )}
             </tbody>
           </table>
@@ -352,7 +398,7 @@ function VeiculosTab() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Adicionar</button>
+              <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim() || isSaving} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() && !isSaving ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>{isSaving ? 'Salvando...' : 'Adicionar'}</button>
             </div>
           </div>
         </div>

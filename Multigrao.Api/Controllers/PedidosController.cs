@@ -32,6 +32,85 @@ namespace Multigrao.Api.Controllers
             return Ok(pedidos);
         }
 
+        [HttpGet("buscar")]
+        public async Task<IActionResult> BuscarPedidos(
+            [FromQuery] string? busca,
+            [FromQuery] string? status,
+            [FromQuery] string? tipoEntrega,
+            [FromQuery] string? dataInicio,
+            [FromQuery] string? dataFim,
+            [FromQuery] int pagina = 1,
+            [FromQuery] int tamanhoPagina = 50)
+        {
+            var query = _context.Pedidos.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                var termo = busca.ToLower();
+                query = query.Where(p =>
+                    p.Id.ToString().Contains(termo) ||
+                    (p.Cliente != null && p.Cliente.RazaoSocialNome.ToLower().Contains(termo)) ||
+                    (p.SolicitanteNome != null && p.SolicitanteNome.ToLower().Contains(termo)) ||
+                    (p.CpfCnpj != null && p.CpfCnpj.Contains(termo)) ||
+                    (p.Logradouro != null && p.Logradouro.ToLower().Contains(termo)) ||
+                    (p.Bairro != null && p.Bairro.ToLower().Contains(termo)) ||
+                    (p.Cidade != null && p.Cidade.ToLower().Contains(termo)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                var statuses = status.Split(',', StringSplitOptions.TrimEntries);
+                query = query.Where(p => statuses.Contains(p.Status));
+            }
+
+            if (!string.IsNullOrWhiteSpace(tipoEntrega) && tipoEntrega != "Todos")
+            {
+                query = query.Where(p => p.TipoEntrega == tipoEntrega);
+            }
+
+            if (DateTime.TryParse(dataInicio, out var di))
+            {
+                query = query.Where(p => p.DataCriacao >= di);
+            }
+
+            if (DateTime.TryParse(dataFim, out var df))
+            {
+                df = df.AddDays(1).AddTicks(-1);
+                query = query.Where(p => p.DataCriacao <= df);
+            }
+
+            var total = await query.CountAsync();
+
+            var pedidos = await query
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.SeparadoPorUsuario)
+                .OrderByDescending(p => p.DataCriacao)
+                .Skip((pagina - 1) * tamanhoPagina)
+                .Take(tamanhoPagina)
+                .ToListAsync();
+
+            return Ok(new { total, pagina, tamanhoPagina, dados = pedidos });
+        }
+
+        [HttpGet("em-conferencia")]
+        public async Task<IActionResult> GetPedidosEmConferencia()
+        {
+            var pedidos = await _context.Pedidos
+                .Where(p => p.Status == "EmConferencia" || p.Status == "ProntoRetirada")
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.SeparadoPorUsuario)
+                .OrderByDescending(p => p.DataCriacao)
+                .ToListAsync();
+
+            return Ok(pedidos);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPedido(int id)
         {
@@ -68,7 +147,7 @@ namespace Multigrao.Api.Controllers
             var cliente = await _context.Clientes.FindAsync(dto.ClienteId);
             if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
 
-            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Desconto, dto.Acrescimo);
+            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo);
             await Notificar("Novo Pedido", $"Pedido #{pedido.Id} criado no valor de R$ {pedido.ValorTotal:F2}.", "pedido", "Comercial");
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
@@ -107,6 +186,7 @@ namespace Multigrao.Api.Controllers
                 dto.ValorTotal,
                 dto.Itens,
                 dto.TipoEntrega,
+                dto.Pagamento,
                 dto.Desconto,
                 dto.Acrescimo,
                 dto.CpfCnpj,
@@ -133,6 +213,7 @@ namespace Multigrao.Api.Controllers
             if (pedido == null) return NotFound();
 
             if (dto.TipoEntrega != null) pedido.TipoEntrega = dto.TipoEntrega;
+            if (dto.Pagamento != null) pedido.Pagamento = dto.Pagamento;
             if (dto.Cep != null) pedido.Cep = dto.Cep;
             if (dto.Logradouro != null) pedido.Logradouro = dto.Logradouro;
             if (dto.Numero != null) pedido.Numero = dto.Numero;
@@ -187,6 +268,7 @@ namespace Multigrao.Api.Controllers
             decimal valorTotal,
             List<CriarItemPedidoDto> itensDto,
             string tipoEntrega = "Entrega",
+            string? pagamento = null,
             decimal desconto = 0,
             decimal acrescimo = 0,
             string? cpfCnpj = null,
@@ -239,6 +321,7 @@ namespace Multigrao.Api.Controllers
                 EnderecoConfere = enderecoConfere,
                 Status = status,
                 TipoEntrega = tipoEntrega,
+                Pagamento = pagamento,
                 Desconto = desconto,
                 Acrescimo = acrescimo,
                 ValorFinal = valorFinal,
@@ -258,12 +341,22 @@ namespace Multigrao.Api.Controllers
         {
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
-            if (pedido.Status != "EmSeparacao")
-                return BadRequest("O pedido precisa estar em separação.");
+            if (pedido.Status != "EmConferencia")
+                return BadRequest("O pedido precisa estar em conferência.");
 
-            pedido.Status = "ProntoEntrega";
-            await _context.SaveChangesAsync();
-            await Notificar("Conferência Concluída", $"Pedido #{id} passou pela conferência e está pronto para entrega.", "pedido", "Entregas");
+            if (pedido.TipoEntrega == "Retirada")
+            {
+                pedido.Status = "ProntoRetirada";
+                await _context.SaveChangesAsync();
+                await Notificar("Conferência Concluída", $"Pedido #{id} conferido — pronto para retirada.", "pedido", "Comercial");
+            }
+            else
+            {
+                pedido.Status = "ProntoEntrega";
+                await _context.SaveChangesAsync();
+                await Notificar("Conferência Concluída", $"Pedido #{id} conferido — pronto para roteirização.", "pedido", "Logística");
+            }
+
             return NoContent();
         }
 
@@ -274,7 +367,7 @@ namespace Multigrao.Api.Controllers
             if (pedido == null) return NotFound();
             if (pedido.TipoEntrega != "Retirada")
                 return BadRequest("Este pedido não é do tipo Retirada.");
-            if (pedido.Status != "ProntoEntrega")
+            if (pedido.Status != "ProntoRetirada")
                 return BadRequest("O pedido precisa estar como Pronto p/ Retirada.");
 
             pedido.Status = "Entregue";
@@ -313,9 +406,9 @@ namespace Multigrao.Api.Controllers
             if (!todosSeparados)
                 return BadRequest("Nem todos os itens foram separados.");
 
-            pedido.Status = "ProntoEntrega";
+            pedido.Status = "EmConferencia";
             await _context.SaveChangesAsync();
-            await Notificar("Separação Concluída", $"Pedido #{id} foi separado e está pronto para entrega/retirada.", "pedido", "Conferência");
+            await Notificar("Separação Concluída", $"Pedido #{id} foi separado e está aguardando conferência.", "pedido", "Conferência");
             return NoContent();
         }
 
@@ -324,8 +417,12 @@ namespace Multigrao.Api.Controllers
         {
             var pedido = await _context.Pedidos
                 .Include(p => p.Itens)
+                .Include(p => p.Entregas)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (pedido == null) return NotFound();
+
+            if (pedido.Entregas.Any())
+                _context.Entregas.RemoveRange(pedido.Entregas);
 
             _context.ItensPedido.RemoveRange(pedido.Itens);
             _context.Pedidos.Remove(pedido);

@@ -72,19 +72,15 @@ export default function OmnichannelChat() {
       setIsLoading(true);
       const data = await atendimentoService.getAtendimentos();
       setChats(data);
-      if (data.length > 0) setActiveChatId(data[0].id);
+      const abertos = data.filter(c => !c.lead.vendaFechada);
+      if (abertos.length > 0) setActiveChatId(abertos[0].id);
+      else if (data.length > 0) setActiveChatId(data[0].id);
     } catch {
       setChats([]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const activeChat = chats.find(c => c.id === activeChatId) || chats[0] || null;
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeChat?.messages]);
 
   const filteredChats = chats.filter(chat => {
     const matchName = chat.lead.nome.toLowerCase().includes(chatSearchTerm.toLowerCase()) ||
@@ -95,6 +91,12 @@ export default function OmnichannelChat() {
     else if (chatFilter === 'comercial') matchFilter = chat.lead.origem.toLowerCase().includes('bot') || chat.lead.origem.toLowerCase().includes('whatsapp');
     return matchName && matchFilter;
   });
+
+  const activeChat = filteredChats.find(c => c.id === activeChatId) || filteredChats[0] || null;
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [activeChat?.messages]);
 
   const updateChats = (updater: (prev: ChatSession[]) => ChatSession[]) => {
     setChats(prev => {
@@ -410,13 +412,16 @@ export default function OmnichannelChat() {
            !!activeChat.lead.embalagem && !!activeChat.lead.tipoCliente && !!activeChat.lead.pagamento;
   };
 
-  const handleFinalizarAtendimento = () => {
-    if (!activeChat) return;
-    if (!isChecklistComplete()) {
-      alert("Preencha todas as especificações obrigatórias antes de finalizar.");
-      return;
+  const handleFinalizarAtendimento = async () => {
+    if (!activeChatId || !activeChat) return;
+    try {
+      await atendimentoService.finalizarAtendimento(activeChatId);
+      updateActiveLead({ vendaFechada: true });
+      setChatFilter('todos');
+      alert('Atendimento finalizado com sucesso!');
+    } catch {
+      alert('Erro ao finalizar atendimento.');
     }
-    simulateVendaFechada();
   };
 
   const handleGenerateSummary = async () => {
@@ -920,9 +925,9 @@ export default function OmnichannelChat() {
                 className="w-full bg-gray-100 text-gray-700 border border-gray-200 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors disabled:opacity-50">
                 {activeChat.lead.vendaFechada ? 'Venda Registrada' : 'Confirmar Pedido'}
               </button>
-              <button onClick={handleFinalizarAtendimento} disabled={!isLeadValid}
+              <button onClick={handleFinalizarAtendimento} disabled={activeChat.lead.vendaFechada}
                 className="w-full bg-black text-white py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-800 transition-all disabled:opacity-50">
-                Finalizar Atendimento
+                {activeChat.lead.vendaFechada ? 'Atendimento Finalizado' : 'Finalizar Atendimento'}
               </button>
             </div>
           </div>

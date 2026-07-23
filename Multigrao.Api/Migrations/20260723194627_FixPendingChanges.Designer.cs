@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Multigrao.Api.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Multigrao.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723194627_FixPendingChanges")]
+    partial class FixPendingChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -427,9 +430,6 @@ namespace Multigrao.Api.Migrations
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Tipo")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -739,10 +739,6 @@ namespace Multigrao.Api.Migrations
                     b.Property<string>("Numero")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
-
-                    b.Property<string>("Pagamento")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<decimal>("PesoTotal")
                         .HasColumnType("numeric");
@@ -1255,7 +1251,7 @@ namespace Multigrao.Api.Migrations
             modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
                 {
                     b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
-                        .WithMany("Entregas")
+                        .WithMany()
                         .HasForeignKey("PedidoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1448,8 +1444,6 @@ namespace Multigrao.Api.Migrations
 
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
                 {
-                    b.Navigation("Entregas");
-
                     b.Navigation("Itens");
                 });
 

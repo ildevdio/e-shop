@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { PackageCheck, QrCode, Camera, CheckCircle2, ArrowLeft, Search, Package } from 'lucide-react';
-import { conferenciaService, type EntregaConferencia } from '../services/conferenciaService';
+import { PackageCheck, QrCode, Camera, CheckCircle2, ArrowLeft, Search, Package, Hand } from 'lucide-react';
+import { conferenciaService, type Pedido } from '../services/conferenciaService';
+import { pedidoService } from '../services/pedidoService';
 
 interface ItemConferencia {
   id: number;
@@ -11,25 +12,24 @@ interface ItemConferencia {
 
 export default function Conferencia() {
   const [telaAtiva, setTelaAtiva] = useState<'lista' | 'conferencia' | 'leitura-qr' | 'resultado'>('lista');
-  const [pedidoSelecionado, setPedidoSelecionado] = useState<EntregaConferencia | null>(null);
+  const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
   const [itensConferencia, setItensConferencia] = useState<ItemConferencia[]>([]);
-  const [entregas, setEntregas] = useState<EntregaConferencia[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const carregar = async () => {
     setCarregando(true);
-    const dados = await conferenciaService.getEntregasPendentes();
-    setEntregas(dados);
+    const dados = await conferenciaService.getPedidosEmConferencia();
+    setPedidos(dados);
     setCarregando(false);
   };
 
   useEffect(() => { carregar(); }, []);
 
-  const iniciarConferencia = async (entrega: EntregaConferencia) => {
-    await conferenciaService.iniciarConferencia(entrega.id);
-    setPedidoSelecionado(entrega);
+  const iniciarConferencia = (pedido: Pedido) => {
+    setPedidoSelecionado(pedido);
     setItensConferencia(
-      (entrega.pedido?.itens ?? []).map(it => ({
+      (pedido.itens ?? []).map(it => ({
         id: it.id,
         nome: it.produto?.nome ?? `Item #${it.id}`,
         quantidade: it.quantidade,
@@ -37,7 +37,6 @@ export default function Conferencia() {
       }))
     );
     setTelaAtiva('conferencia');
-    await carregar();
   };
 
   const toggleItemConferencia = (itemId: number) => {
@@ -55,13 +54,16 @@ export default function Conferencia() {
     await carregar();
   };
 
+  const confirmarRetirada = async (pedidoId: number) => {
+    const ok = await pedidoService.confirmarRetirada(pedidoId);
+    if (!ok) { alert('Erro ao confirmar retirada.'); return; }
+    await carregar();
+  };
+
   const voltarParaLista = () => {
     setTelaAtiva('lista');
     setPedidoSelecionado(null);
   };
-
-  const aguardando = entregas.filter(e => e.status === 'PendenteConferencia');
-  const emConferencia = entregas.filter(e => e.status === 'EmConferencia');
 
   if (telaAtiva === 'lista') {
     return (
@@ -71,7 +73,7 @@ export default function Conferencia() {
             <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
               <PackageCheck size={28} /> Conferência
             </h1>
-            <p className="text-gray-500 mt-1">Bipagem e verificação de notas antes da expedição.</p>
+            <p className="text-gray-500 mt-1">Verificação de itens antes da expedição.</p>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -83,23 +85,14 @@ export default function Conferencia() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100/50 flex items-center gap-4">
             <div className="p-3 bg-gray-100 text-gray-700 rounded-xl">
               <Package size={24} />
             </div>
             <div>
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.12em]">Aguardando</p>
-              <h3 className="text-2xl font-serif font-bold text-gray-900">{aguardando.length}</h3>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100/50 flex items-center gap-4">
-            <div className="p-3 bg-gray-50 text-gray-700 rounded-xl">
-              <QrCode size={24} />
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.12em]">Em Conferência</p>
-              <h3 className="text-2xl font-serif font-bold text-gray-900">{emConferencia.length}</h3>
+              <h3 className="text-2xl font-serif font-bold text-gray-900">{pedidos.length}</h3>
             </div>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100/50 flex items-center gap-4">
@@ -126,42 +119,53 @@ export default function Conferencia() {
                   <tr>
                     <th className="px-6 py-3 font-semibold">Pedido</th>
                     <th className="px-6 py-3 font-semibold">Cliente</th>
+                    <th className="px-6 py-3 font-semibold">Tipo</th>
                     <th className="px-6 py-3 font-semibold">Itens</th>
-                    <th className="px-6 py-3 font-semibold">Status</th>
                     <th className="px-6 py-3 font-semibold text-right">Ação</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {entregas.map(entrega => (
-                    <tr key={entrega.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">#{entrega.pedido?.id ?? entrega.pedidoId}</td>
-                      <td className="px-6 py-4">{entrega.pedido?.cliente?.razaoSocialNome ?? '—'}</td>
-                      <td className="px-6 py-4">{entrega.pedido?.itens?.length ?? 0} itens</td>
+                  {pedidos.map(pedido => (
+                    <tr key={pedido.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
+                      <td className="px-6 py-4">{pedido.cliente?.razaoSocialNome ?? '—'}</td>
                       <td className="px-6 py-4">
-                        <StatusBadge status={entrega.status} />
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          pedido.tipoEntrega === 'Retirada' ? 'bg-gray-100 text-gray-700' : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {pedido.tipoEntrega}
+                        </span>
                       </td>
+                      <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          pedido.status === 'ProntoRetirada' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {pedido.status === 'ProntoRetirada' ? 'Pronto p/ Retirada' : 'Em Conferência'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>
                       <td className="px-6 py-4 text-right">
-                        {entrega.status === 'PendenteConferencia' && (
+                        {pedido.status === 'ProntoRetirada' && pedido.tipoEntrega === 'Retirada' ? (
                           <button
-                            onClick={() => iniciarConferencia(entrega)}
+                            onClick={() => confirmarRetirada(pedido.id)}
                             className="bg-black text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
                           >
-                            <QrCode size={14} /> Iniciar Conferência
+                            <Hand size={14} /> Confirmar Retirada
                           </button>
-                        )}
-                        {entrega.status === 'EmConferencia' && (
+                        ) : (
                           <button
-                            onClick={() => iniciarConferencia(entrega)}
-                            className="bg-gray-500 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
+                            onClick={() => iniciarConferencia(pedido)}
+                            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
                           >
-                            <PackageCheck size={14} /> Continuar
+                            <QrCode size={14} /> {pedido.status === 'EmConferencia' ? 'Continuar' : 'Iniciar Conferência'}
                           </button>
                         )}
                       </td>
                     </tr>
                   ))}
-                  {entregas.length === 0 && (
-                    <tr><td colSpan={5} className="text-center py-12 text-gray-400 text-sm">Nenhuma entrega para conferir</td></tr>
+                  {pedidos.length === 0 && (
+                    <tr><td colSpan={5} className="text-center py-12 text-gray-400 text-sm">Nenhum pedido para conferir</td></tr>
                   )}
                 </tbody>
               </table>
@@ -185,9 +189,9 @@ export default function Conferencia() {
           </button>
           <div className="flex-1">
             <h1 className="text-2xl font-serif font-bold text-gray-900">
-              Conferência Pedido #{pedidoSelecionado.pedido?.id ?? pedidoSelecionado.pedidoId}
+              Conferência Pedido #{pedidoSelecionado.id}
             </h1>
-            <p className="text-gray-500 mt-1">{pedidoSelecionado.pedido?.cliente?.razaoSocialNome ?? '—'} - {itensConferencia.length} itens</p>
+            <p className="text-gray-500 mt-1">{pedidoSelecionado.cliente?.razaoSocialNome ?? '—'} - {itensConferencia.length} itens</p>
           </div>
           <button
             onClick={() => setTelaAtiva('leitura-qr')}
@@ -255,7 +259,7 @@ export default function Conferencia() {
           }`}
         >
           {itensConferidos >= totalItens
-            ? 'FINALIZAR CONFERÊNCIA E LIBERAR PARA EXPEDIÇÃO'
+            ? 'FINALIZAR CONFERÊNCIA'
             : `Conferir todos os itens (${itensConferidos}/${totalItens})`
           }
         </button>
@@ -275,7 +279,7 @@ export default function Conferencia() {
           <Camera size={48} className="text-gray-500 mb-6" />
           <h2 className="text-2xl font-bold mb-2 tracking-wide">Bipar Nota Fiscal</h2>
           <p className="text-gray-400 mb-10 max-w-[280px] leading-relaxed">
-            Aponte a câmera para o QR Code da nota do Pedido #{pedidoSelecionado?.pedido?.id ?? pedidoSelecionado?.pedidoId}
+            Aponte a câmera para o QR Code da nota do Pedido #{pedidoSelecionado?.id}
           </p>
           <div className="w-64 h-64 border-2 border-black/50 border-dashed rounded-3xl relative mb-12 flex items-center justify-center bg-black/5 shadow-[0_0_50px_rgba(150,150,150,0.1)]">
             <QrCode size={64} className="text-black/20" />
@@ -298,13 +302,13 @@ export default function Conferencia() {
           </button>
           <h1 className="text-lg font-bold tracking-wide">Nota Fiscal Conferida</h1>
         </div>
-        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col items-center justify-center text-center">
+        <div className="flex-1 p-6 overflow-y-auto flex flex-col items-center justify-center text-center">
           <div className="w-20 h-20 bg-gradient-to-br from-gray-900 to-gray-700 text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/50">
             <CheckCircle2 size={40} />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Nota Fiscal Bipada com Sucesso!</h2>
           <p className="text-gray-400 mb-8 max-w-sm">
-            Pedido #{pedidoSelecionado?.pedido?.id ?? pedidoSelecionado?.pedidoId} foi verificado e está apto para expedição.
+            Pedido #{pedidoSelecionado?.id} foi verificado e está apto para expedição.
           </p>
           <button onClick={() => setTelaAtiva('conferencia')} className="w-full max-w-[320px] bg-gradient-to-r from-gray-900 to-gray-700 text-white font-bold text-lg py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-black/30 tracking-wide">
             VOLTAR À CONFERÊNCIA
@@ -315,24 +319,4 @@ export default function Conferencia() {
   }
 
   return null;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    'PendenteConferencia': 'bg-gray-100 text-gray-700 ring-gray-500/20',
-    'EmConferencia': 'bg-gray-50 text-gray-700 ring-gray-500/20',
-    'Conferido': 'bg-gray-100 text-gray-800 ring-black/20',
-  };
-
-  const labels: Record<string, string> = {
-    'PendenteConferencia': 'Aguardando',
-    'EmConferencia': 'Em Conferência',
-    'Conferido': 'Conferido',
-  };
-
-  return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ${styles[status] || 'bg-gray-50 text-gray-700 ring-gray-500/20'}`}>
-      {labels[status] || status}
-    </span>
-  );
 }
