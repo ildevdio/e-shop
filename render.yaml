@@ -12,7 +12,7 @@ services:
       - key: JWT_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://multigranno.vercel.app
+        value: https://multigraos.vercel.app
       - key: MASTER_PASSWORD
         sync: false
 

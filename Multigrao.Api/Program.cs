@@ -23,9 +23,19 @@ var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS")
+var configuredOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS")
     ?? builder.Configuration["Cors:Origins"]
     ?? "http://localhost:5173").Split(',', StringSplitOptions.TrimEntries);
+
+var hardcodedOrigins = new[] { "https://multigraos.vercel.app" };
+
+var corsOrigins = configuredOrigins
+    .Concat(hardcodedOrigins)
+    .Where(o => !string.IsNullOrWhiteSpace(o))
+    .Distinct()
+    .ToArray();
+
+Console.WriteLine($"[CORS] Allowed origins: {string.Join(", ", corsOrigins)}");
 
 builder.Services.AddCors(options =>
 {
