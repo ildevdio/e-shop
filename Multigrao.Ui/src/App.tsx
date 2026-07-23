@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import LayoutPublico from './components/LayoutPublico';
+import WakeUpBanner from './components/WakeUpBanner';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Configuracoes from './pages/Configuracoes';
@@ -32,6 +33,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
+      <WakeUpBanner />
       <Routes>
         <Route path="/login" element={<Login />} />
         
