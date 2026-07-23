@@ -60,9 +60,10 @@ namespace Multigrao.Api.Controllers
             if (string.IsNullOrEmpty(masterPassword) || request.Senha != masterPassword)
                 return Unauthorized(new { message = "Senha mestre inválida." });
 
-            var usuario = new Usuario
+            var adminUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.UsuarioLogin == "admin");
+            var usuario = adminUser ?? new Usuario
             {
-                Id = 0,
+                Id = 1,
                 Nome = "Administrador",
                 UsuarioLogin = "admin",
                 Role = "Admin",

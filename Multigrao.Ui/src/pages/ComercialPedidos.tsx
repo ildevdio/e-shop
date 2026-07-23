@@ -674,6 +674,20 @@ export default function ComercialPedidos() {
                 Confirmar Retirada
               </button>
             )}
+            {['AguardandoConfirmacao', 'Pendente'].includes(detalhe.status) && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm('Tem certeza que deseja excluir este pedido?')) return;
+                  const ok = await pedidoService.excluirPedido(detalhe.id);
+                  if (!ok) { alert('Erro ao excluir pedido.'); return; }
+                  fecharDetalhe();
+                  await carregar();
+                }}
+                className="w-full mt-2 py-2.5 rounded-xl font-medium text-sm bg-red-600 text-white hover:bg-red-500 transition-colors"
+              >
+                Excluir Pedido
+              </button>
+            )}
           </div>
         </div>
       )}

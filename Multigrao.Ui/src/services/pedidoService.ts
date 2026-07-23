@@ -192,6 +192,16 @@ export const pedidoService = {
     }
   },
 
+  excluirPedido: async (id: number): Promise<boolean> => {
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao excluir pedido', error);
+      return false;
+    }
+  },
+
   separarItem: async (pedidoId: number, itemId: number, usuarioId: number): Promise<{ separado: boolean } | null> => {
     try {
       const response = await axios.put(`${API_URL}/${pedidoId}/itens/${itemId}/separar`, { usuarioId });

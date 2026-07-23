@@ -83,8 +83,9 @@ export default function Separacao() {
   };
 
   const toggleItem = async (itemId: number) => {
-    if (!usuarioId || !pedidoAtivo) return;
-    await pedidoService.separarItem(pedidoAtivo.id, itemId, usuarioId);
+    if (usuarioId == null || !pedidoAtivo) return;
+    const resultado = await pedidoService.separarItem(pedidoAtivo.id, itemId, usuarioId);
+    if (!resultado) { alert('Erro ao separar item.'); return; }
     const atualizado = await pedidoService.getPedido(pedidoAtivo.id);
     if (atualizado) {
       const mapped = mapearPedido(atualizado);

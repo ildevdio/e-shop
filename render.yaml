@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: multigrao-api
+    runtime: docker
+    dockerfilePath: Multigrao.Api/Dockerfile
+    dockerContext: Multigrao.Api
+    envVars:
+      - key: DB_CONNECTION_STRING
+        sync: false
+      - key: JWT_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MASTER_PASSWORD
+        sync: false
+    healthCheckPath: /

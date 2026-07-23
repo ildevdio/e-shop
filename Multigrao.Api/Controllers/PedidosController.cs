@@ -297,6 +297,20 @@ namespace Multigrao.Api.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePedido(int id)
+        {
+            var pedido = await _context.Pedidos
+                .Include(p => p.Itens)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            if (pedido == null) return NotFound();
+
+            _context.ItensPedido.RemoveRange(pedido.Itens);
+            _context.Pedidos.Remove(pedido);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         [HttpPut("{id}/itens/{itemId}/separar")]
         public async Task<IActionResult> SepararItem(int id, int itemId, [FromBody] SepararItemDto dto)
         {
