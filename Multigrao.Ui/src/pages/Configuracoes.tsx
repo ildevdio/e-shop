@@ -34,11 +34,15 @@ export default function Configuracoes() {
   const [senhaMestreErro, setSenhaMestreErro] = useState('');
   const [senhaMestreLoading, setSenhaMestreLoading] = useState(false);
 
-  const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas'];
+  const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas', 'Compras'];
   const perfis = ['AdminMaster', 'SuperAdmin', 'Comum'];
 
+  const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const setoresAuth = useAuthStore((state) => state.setores);
+  const temCompras = setoresAuth.some(s => normalize(s) === 'compras');
+
   const isAdmin = role === 'AdminMaster';
-  const acessoPermitido = isAdmin || senhaMestreVerificada;
+  const acessoPermitido = isAdmin || senhaMestreVerificada || temCompras;
 
   useEffect(() => {
     if (acessoPermitido) {
@@ -132,7 +136,7 @@ export default function Configuracoes() {
     setLoading(true);
 
     const setoresIds = formNovoUsuario.setores.map(s => {
-      const mapa: Record<string, number> = { 'Comercial': 1, 'Separação': 2, 'Logística': 3, 'Conferência': 4, 'Entregas': 5 };
+      const mapa: Record<string, number> = { 'Comercial': 1, 'Separação': 2, 'Logística': 3, 'Conferência': 4, 'Entregas': 5, 'Compras': 6 };
       return mapa[s] || 0;
     }).filter(id => id > 0);
 
@@ -356,8 +360,9 @@ export default function Configuracoes() {
                     { modulo: 'Logística', admin: true, super: true, comum: 'Setor' },
                     { modulo: 'Conferência', admin: true, super: true, comum: 'Setor' },
                     { modulo: 'Entregas', admin: true, super: true, comum: 'Setor' },
-                    { modulo: 'Configurações', admin: true, super: true, comum: false },
-                    { modulo: 'Gerenciar Usuários', admin: true, super: false, comum: false },
+                    { modulo: 'Gerenciar Catálogo', admin: true, super: true, comum: 'Setor (Compras)' },
+                    { modulo: 'Configurações', admin: true, super: true, comum: 'Setor (Compras)' },
+                    { modulo: 'Gerenciar Usuários', admin: true, super: false, comum: 'Setor (Compras)' },
                   ].map((item, i) => (
                     <tr key={i} className="border-b border-gray-100">
                       <td className="py-3 font-medium text-gray-900">{item.modulo}</td>

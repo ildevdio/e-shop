@@ -67,7 +67,10 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
     { icon: Bell, label: 'Mural da Empresa', path: '/empresa' },
   ];
 
-  const sysNav: NavItem[] = [{ icon: Settings, label: 'Configurações', path: '/configuracoes' }];
+  const sysNav: NavItem[] = [];
+  if (isAdmin || hasSetor('Compras')) {
+    sysNav.push({ icon: Settings, label: 'Configurações', path: '/configuracoes' });
+  }
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
