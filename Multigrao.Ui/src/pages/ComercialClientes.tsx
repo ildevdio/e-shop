@@ -12,7 +12,7 @@ const REGIMES = ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI'];
 const camposVazios: CriarClienteDto = {
   razaoSocialNome: '', nomeFantasia: '', cpfCnpj: '', tipoPessoa: 'PJ', inscricaoEstadual: '', inscricaoMunicipal: '',
   cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '',
-  telefone: '', email: '', regimeTributario: '',
+  telefone: '', email: '', regimeTributario: '', vendedorId: null,
 };
 
 export default function ComercialClientes() {
@@ -25,8 +25,9 @@ export default function ComercialClientes() {
   const [salvando, setSalvando] = useState(false);
   const [buscandoCNPJ, setBuscandoCNPJ] = useState(false);
   const [buscandoCEP, setBuscandoCEP] = useState(false);
+  const [vendedores, setVendedores] = useState<{ id: number; nome: string }[]>([]);
 
-  useEffect(() => { carregarClientes(); }, []);
+  useEffect(() => { carregarClientes(); clienteService.getVendedores().then(setVendedores); }, []);
 
   const carregarClientes = async () => {
     const data = await clienteService.getClientes();
@@ -48,6 +49,7 @@ export default function ComercialClientes() {
       cep: c.cep, logradouro: c.logradouro, numero: c.numero, complemento: c.complemento,
       bairro: c.bairro, cidade: c.cidade, estado: c.estado,
       telefone: c.telefone, email: c.email, regimeTributario: c.regimeTributario,
+      vendedorId: c.vendedorId ?? null,
     });
     setSelecionado(c);
     setModalTipo('editar');
@@ -92,7 +94,7 @@ export default function ComercialClientes() {
     c.email.toLowerCase().includes(busca.toLowerCase())
   );
 
-  const setCampo = (campo: keyof CriarClienteDto, valor: string) => setForm(f => ({ ...f, [campo]: valor }));
+  const setCampo = (campo: keyof CriarClienteDto, valor: string | number | null) => setForm(f => ({ ...f, [campo]: valor }));
 
   const buscarCNPJ = async () => {
     const cnpj = form.cpfCnpj.replace(/\D/g, '');
@@ -215,6 +217,15 @@ export default function ComercialClientes() {
           <label className={labelClass}>E-mail</label>
           <input type="email" value={form.email} onChange={e => setCampo('email', e.target.value)} className={inputClass} placeholder="email@exemplo.com" />
         </div>
+        {vendedores.length > 0 && (
+          <div className="col-span-2">
+            <label className={labelClass}>Vendedor Responsável</label>
+            <select value={form.vendedorId ?? ''} onChange={e => setCampo('vendedorId', e.target.value ? Number(e.target.value) : '')} className={inputClass}>
+              <option value="">Nenhum</option>
+              {vendedores.map(v => <option key={v.id} value={v.id}>{v.nome}</option>)}
+            </select>
+          </div>
+        )}
       </div>
       <hr className="border-gray-100" />
       <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Endereço</p>
@@ -281,6 +292,7 @@ export default function ComercialClientes() {
           {selecionado.tipoPessoa === 'PJ' && campo('Regime Tributário', selecionado.regimeTributario)}
           {campo('Telefone', selecionado.telefone)}
           {campo('E-mail', selecionado.email)}
+          {selecionado.vendedor && campo('Vendedor', selecionado.vendedor.nome)}
         </div>
         <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mt-4">Endereço</p>
         <div className="grid grid-cols-2 gap-3">
@@ -345,19 +357,27 @@ export default function ComercialClientes() {
                 <th className="px-6 py-3 font-semibold">CNPJ/CPF</th>
                 <th className="px-6 py-3 font-semibold">Cidade</th>
                 <th className="px-6 py-3 font-semibold">Telefone</th>
+                <th className="px-6 py-3 font-semibold">Vendedor</th>
                 <th className="px-6 py-3 font-semibold">Contatos</th>
                 <th className="px-6 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">Nenhum cliente encontrado.</td></tr>
+                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">Nenhum cliente encontrado.</td></tr>
               ) : filtrados.map(c => (
                 <tr key={c.id} onDoubleClick={() => abrirDetalhe(c)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                   <td className="px-6 py-4 font-medium text-gray-900">{c.razaoSocialNome}</td>
                   <td className="px-6 py-4">{c.cpfCnpj}</td>
                   <td className="px-6 py-4">{c.cidade || '—'}</td>
                   <td className="px-6 py-4">{c.telefone || '—'}</td>
+                  <td className="px-6 py-4">
+                    {c.vendedor ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700 ring-1 ring-violet-200">
+                        {c.vendedor.nome}
+                      </span>
+                    ) : <span className="text-gray-400">—</span>}
+                  </td>
                   <td className="px-6 py-4">
                     {c.contatos && c.contatos.length > 0 ? (
                       <div className="flex flex-wrap gap-1">

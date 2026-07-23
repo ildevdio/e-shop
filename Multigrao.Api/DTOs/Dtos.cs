@@ -143,6 +143,7 @@ namespace Multigrao.Api.DTOs
         public string? Telefone { get; set; }
         public string? Email { get; set; }
         public string? RegimeTributario { get; set; }
+        public int? VendedorId { get; set; }
     }
 
     // Contatos

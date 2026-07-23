@@ -26,7 +26,7 @@ export interface ItemPedido {
 export interface Pedido {
   id: number;
   clienteId: number | null;
-  cliente?: { id: number; razaoSocialNome: string; cpfCnpj: string; bairro: string; logradouro: string; numero: string; telefone: string; };
+  cliente?: { id: number; razaoSocialNome: string; cpfCnpj: string; bairro: string; logradouro: string; numero: string; telefone: string; vendedorId?: number | null; vendedor?: { id: number; nome: string } | null; };
   solicitanteNome?: string;
   solicitanteTelefone?: string;
   cpfCnpj?: string;

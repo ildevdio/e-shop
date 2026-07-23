@@ -39,12 +39,16 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   ];
 
   const sectorNav: NavItem[] = [];
-  if (isAdmin || hasSetor('Comercial')) {
+  if (isAdmin || hasSetor('Comercial') || hasSetor('Vendedor')) {
     sectorNav.push(
-      { icon: MessageSquare, label: 'Atendimento', path: '/comercial' },
       { icon: Contact, label: 'Contatos', path: '/comercial/contatos' },
       { icon: Users, label: 'Clientes', path: '/comercial/clientes' },
       { icon: ClipboardList, label: 'Pedidos', path: '/comercial/pedidos' },
+    );
+  }
+  if (isAdmin || hasSetor('Comercial')) {
+    sectorNav.push(
+      { icon: MessageSquare, label: 'Atendimento', path: '/comercial' },
       { icon: ClipboardList, label: 'Atendimentos', path: '/comercial/lista-atendimentos' },
     );
   }

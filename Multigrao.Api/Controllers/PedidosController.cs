@@ -22,6 +22,7 @@ namespace Multigrao.Api.Controllers
         {
             var pedidos = await _context.Pedidos
                 .Include(p => p.Cliente)
+                    .ThenInclude(c => c!.Vendedor)
                 .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)
                 .Include(p => p.Itens)
@@ -83,6 +84,7 @@ namespace Multigrao.Api.Controllers
 
             var pedidos = await query
                 .Include(p => p.Cliente)
+                    .ThenInclude(c => c!.Vendedor)
                 .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)
                 .Include(p => p.Itens)

@@ -6,6 +6,7 @@ import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { useUiStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -41,6 +42,9 @@ interface ItemForm {
 
 export default function ComercialPedidos() {
   const { setModalAberto } = useUiStore();
+  const { setores } = useAuthStore();
+  const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const isVendedor = setores.some(s => normalize(s) === 'vendedor');
   const [abaAtiva, setAbaAtiva] = useState<AbaPedidos>('pendentes');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -81,7 +85,7 @@ export default function ComercialPedidos() {
     valorTotal: number;
     itens: { id: number; quantidade: number; precoUnitario: number }[];
   } | null>(null);
-  const editando = detalhe != null && ['AguardandoConfirmacao', 'Pendente'].includes(detalhe.status);
+  const editando = detalhe != null && !isVendedor && ['AguardandoConfirmacao', 'Pendente'].includes(detalhe.status);
 
   const carregar = async () => {
     setCarregando(true);
@@ -436,7 +440,16 @@ export default function ComercialPedidos() {
                 {(abaAtiva === 'pendentes' ? pedidosPendentes : resultadosConsulta).map(pedido => (
                   <tr key={pedido.id} onDoubleClick={() => abrirDetalhe(pedido)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                     <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
-                    <td className="px-6 py-4">{pedido.cliente?.razaoSocialNome ?? '—'}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span>{pedido.cliente?.razaoSocialNome ?? '—'}</span>
+                        {pedido.cliente?.vendedor && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 ring-1 ring-violet-200">
+                            {pedido.cliente.vendedor.nome}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4">R$ {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>
                     <td className="px-6 py-4">{pedido.pesoTotal.toFixed(2)} kg</td>
@@ -745,6 +758,11 @@ export default function ComercialPedidos() {
               <div className="col-span-2 bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente / Solicitante</span>
                 <p className="text-gray-900 font-medium mt-0.5">{detalhe.cliente?.razaoSocialNome ?? detalhe.solicitanteNome ?? '—'}</p>
+                {detalhe.cliente?.vendedor && (
+                  <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 ring-1 ring-violet-200">
+                    Vendedor: {detalhe.cliente.vendedor.nome}
+                  </span>
+                )}
                 {detalhe.cpfCnpj && <p className="text-xs text-gray-500 mt-0.5">CPF/CNPJ: {detalhe.cpfCnpj}</p>}
                 {detalhe.solicitanteTelefone && <p className="text-xs text-gray-500 mt-0.5">Tel: {detalhe.solicitanteTelefone}</p>}
                 {detalhe.cliente && <p className="text-xs text-gray-500 mt-0.5">Cliente cadastrado: {detalhe.cliente.razaoSocialNome}</p>}

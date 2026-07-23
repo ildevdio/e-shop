@@ -87,6 +87,12 @@ namespace Multigrao.Api.Data
                 .HasForeignKey(e => e.PedidoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Cliente>()
+                .HasOne(c => c.Vendedor)
+                .WithMany(u => u.ClientesVendedor)
+                .HasForeignKey(c => c.VendedorId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Seed: Setores
             modelBuilder.Entity<Setor>().HasData(
                 new Setor { Id = 1, Nome = "Comercial" },
@@ -94,7 +100,8 @@ namespace Multigrao.Api.Data
                 new Setor { Id = 3, Nome = "Logística" },
                 new Setor { Id = 4, Nome = "Conferência" },
                 new Setor { Id = 5, Nome = "Entregas" },
-                new Setor { Id = 6, Nome = "Compras" }
+                new Setor { Id = 6, Nome = "Compras" },
+                new Setor { Id = 7, Nome = "Vendedor" }
             );
 
             // Seed: Usuários

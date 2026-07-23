@@ -41,6 +41,20 @@ namespace Multigrao.Api.Controllers
             return Ok(usuarios);
         }
 
+        [HttpGet("vendedores")]
+        public async Task<IActionResult> GetVendedores()
+        {
+            var vendedores = await _context.Usuarios
+                .Include(u => u.UsuarioSetores)
+                    .ThenInclude(us => us.Setor)
+                .Where(u => u.Ativo && u.UsuarioSetores.Any(us => us.Setor!.Nome == "Vendedor"))
+                .OrderBy(u => u.Nome)
+                .Select(u => new { u.Id, u.Nome })
+                .ToListAsync();
+
+            return Ok(vendedores);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CriarUsuario([FromBody] CriarUsuarioDto dto)
         {

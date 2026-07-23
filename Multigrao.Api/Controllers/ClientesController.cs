@@ -23,6 +23,7 @@ namespace Multigrao.Api.Controllers
             var clientes = await _context.Clientes
                 .Include(c => c.Contatos)
                 .Include(c => c.Pedidos)
+                .Include(c => c.Vendedor)
                 .OrderBy(c => c.RazaoSocialNome)
                 .ToListAsync();
 
@@ -50,6 +51,7 @@ namespace Multigrao.Api.Controllers
             var cliente = await _context.Clientes
                 .Include(c => c.Contatos)
                 .Include(c => c.Pedidos)
+                .Include(c => c.Vendedor)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (cliente == null) return NotFound();
@@ -76,7 +78,8 @@ namespace Multigrao.Api.Controllers
                 Estado = dto.Estado ?? string.Empty,
                 Telefone = dto.Telefone ?? string.Empty,
                 Email = dto.Email ?? string.Empty,
-                RegimeTributario = dto.RegimeTributario ?? string.Empty
+                RegimeTributario = dto.RegimeTributario ?? string.Empty,
+                VendedorId = dto.VendedorId
             };
 
             _context.Clientes.Add(cliente);
@@ -107,6 +110,7 @@ namespace Multigrao.Api.Controllers
             cliente.Telefone = dto.Telefone ?? cliente.Telefone;
             cliente.Email = dto.Email ?? cliente.Email;
             cliente.RegimeTributario = dto.RegimeTributario ?? cliente.RegimeTributario;
+            cliente.VendedorId = dto.VendedorId;
 
             await _context.SaveChangesAsync();
             return Ok(cliente);

@@ -60,6 +60,9 @@ namespace Multigrao.Api.Models
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
 
+        public int? VendedorId { get; set; }
+        public Usuario? Vendedor { get; set; }
+
         public ICollection<Contato> Contatos { get; set; } = new List<Contato>();
         public ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
     }

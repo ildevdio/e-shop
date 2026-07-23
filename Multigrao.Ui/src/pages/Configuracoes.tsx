@@ -34,7 +34,7 @@ export default function Configuracoes() {
   const [senhaMestreErro, setSenhaMestreErro] = useState('');
   const [senhaMestreLoading, setSenhaMestreLoading] = useState(false);
 
-  const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas', 'Compras'];
+  const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas', 'Compras', 'Vendedor'];
   const perfis = ['AdminMaster', 'SuperAdmin', 'Comum'];
 
   const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -136,7 +136,7 @@ export default function Configuracoes() {
     setLoading(true);
 
     const setoresIds = formNovoUsuario.setores.map(s => {
-      const mapa: Record<string, number> = { 'Comercial': 1, 'Separação': 2, 'Logística': 3, 'Conferência': 4, 'Entregas': 5, 'Compras': 6 };
+      const mapa: Record<string, number> = { 'Comercial': 1, 'Separação': 2, 'Logística': 3, 'Conferência': 4, 'Entregas': 5, 'Compras': 6, 'Vendedor': 7 };
       return mapa[s] || 0;
     }).filter(id => id > 0);
 

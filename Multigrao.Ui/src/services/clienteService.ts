@@ -28,6 +28,8 @@ export interface Cliente {
   telefone: string;
   email: string;
   regimeTributario: string;
+  vendedorId?: number | null;
+  vendedor?: { id: number; nome: string } | null;
   contatos?: ContatoResumo[];
 }
 
@@ -48,9 +50,20 @@ export interface CriarClienteDto {
   telefone?: string;
   email?: string;
   regimeTributario?: string;
+  vendedorId?: number | null;
 }
 
 export const clienteService = {
+  getVendedores: async (): Promise<{ id: number; nome: string }[]> => {
+    try {
+      const url = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Usuarios/vendedores';
+      const response = await axios.get(url);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch {
+      return [];
+    }
+  },
+
   buscarPorCpfCnpj: async (cpfCnpj: string): Promise<Cliente | null> => {
     try {
       const response = await axios.get(`${API_URL}/busca`, { params: { cpfCnpj } });

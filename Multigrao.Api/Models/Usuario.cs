@@ -25,5 +25,6 @@ namespace Multigrao.Api.Models
         public bool Ativo { get; set; } = true;
 
         public ICollection<UsuarioSetor> UsuarioSetores { get; set; } = new List<UsuarioSetor>();
+        public ICollection<Cliente> ClientesVendedor { get; set; } = new List<Cliente>();
     }
 }
