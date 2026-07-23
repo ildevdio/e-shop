@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Check, ShoppingCart, Info, AlertTriangle, Trash2 } from 'lucide-react';
+import { Bell, Check, ShoppingCart, Info, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { notificacaoService, type Notificacao } from '../services/notificacaoService';
