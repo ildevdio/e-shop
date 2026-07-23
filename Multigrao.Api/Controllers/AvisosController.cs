@@ -61,6 +61,17 @@ namespace Multigrao.Api.Controllers
             _context.Avisos.Add(aviso);
             await _context.SaveChangesAsync();
 
+            _context.Notificacoes.Add(new Notificacao
+            {
+                Titulo = "Novo Aviso",
+                Mensagem = dto.Titulo,
+                Tipo = "aviso",
+                SetorAlvo = null,
+                Link = "/empresa/avisos",
+                CriadaEm = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+
             return Ok(new
             {
                 id = aviso.Id,

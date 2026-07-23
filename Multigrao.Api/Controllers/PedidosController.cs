@@ -47,6 +47,21 @@ namespace Multigrao.Api.Controllers
             return Ok(pedido);
         }
 
+        private async Task Notificar(string titulo, string mensagem, string tipo, string? setorAlvo = null, int? usuarioDestinoId = null, string? link = null)
+        {
+            _context.Notificacoes.Add(new Notificacao
+            {
+                Titulo = titulo,
+                Mensagem = mensagem,
+                Tipo = tipo,
+                SetorAlvo = setorAlvo,
+                UsuarioDestinoId = usuarioDestinoId,
+                Link = link,
+                CriadaEm = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreatePedido([FromBody] CriarPedidoDto dto)
         {
@@ -54,6 +69,7 @@ namespace Multigrao.Api.Controllers
             if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
 
             var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Desconto, dto.Acrescimo);
+            await Notificar("Novo Pedido", $"Pedido #{pedido.Id} criado no valor de R$ {pedido.ValorTotal:F2}.", "pedido", "Comercial");
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
 
@@ -104,6 +120,7 @@ namespace Multigrao.Api.Controllers
                 enderecoConfere,
                 status: "AguardandoConfirmacao"
             );
+            await Notificar("Solicitação de Catálogo", $"{dto.SolicitanteNome} solicitou pedido via catálogo (R$ {pedido.ValorTotal:F2}).", "pedido", "Compras");
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
 
@@ -159,6 +176,7 @@ namespace Multigrao.Api.Controllers
 
             pedido.Status = "Pendente";
             await _context.SaveChangesAsync();
+            await Notificar("Pedido Confirmado", $"Pedido #{id} foi confirmado e está pendente.", "pedido", "Separação");
             return NoContent();
         }
 
@@ -245,6 +263,7 @@ namespace Multigrao.Api.Controllers
 
             pedido.Status = "ProntoEntrega";
             await _context.SaveChangesAsync();
+            await Notificar("Conferência Concluída", $"Pedido #{id} passou pela conferência e está pronto para entrega.", "pedido", "Entregas");
             return NoContent();
         }
 
@@ -260,6 +279,7 @@ namespace Multigrao.Api.Controllers
 
             pedido.Status = "Entregue";
             await _context.SaveChangesAsync();
+            await Notificar("Retirada Confirmada", $"Pedido #{id} foi retirado pelo cliente.", "sistema", "Comercial");
             return NoContent();
         }
 
@@ -274,6 +294,7 @@ namespace Multigrao.Api.Controllers
 
             pedido.Status = "EmSeparacao";
             await _context.SaveChangesAsync();
+            await Notificar("Separação Iniciada", $"Pedido #{id} entrou em separação.", "pedido", "Logística");
             return NoContent();
         }
 
@@ -294,6 +315,7 @@ namespace Multigrao.Api.Controllers
 
             pedido.Status = "ProntoEntrega";
             await _context.SaveChangesAsync();
+            await Notificar("Separação Concluída", $"Pedido #{id} foi separado e está pronto para entrega/retirada.", "pedido", "Conferência");
             return NoContent();
         }
 

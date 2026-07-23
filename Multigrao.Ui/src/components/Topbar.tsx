@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate, useLocation } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 const SECTOR_LABELS: Record<string, string> = {
   '/': 'Dashboard',
@@ -42,6 +43,7 @@ export default function Topbar({ className }: TopbarProps) {
       <h1 className="text-sm font-heading font-semibold text-foreground">{sectorLabel}</h1>
 
       <div className="flex items-center gap-3 border-l border-border pl-4">
+        <NotificationBell />
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
           {initials}
         </div>
