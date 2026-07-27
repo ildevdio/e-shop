@@ -773,8 +773,6 @@ function MarcaForm({ marca, onClose, onSalvo }: {
     onClose();
   };
 
-  const hasImagem = previewUrl || (marca.id && marca.imagemContentType);
-
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>

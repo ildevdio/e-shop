@@ -21,7 +21,7 @@ export const marcaService = {
     }
   },
 
-  criarMarca: async (dto: Omit<Marca, 'id' | 'imagemContentType'>): Promise<Marca | null> => {
+  criarMarca: async (dto: Omit<Marca, 'id' | 'imagemContentType' | 'imagemUrl'>): Promise<Marca | null> => {
     try {
       const response = await axios.post(API_URL, dto);
       return response.data;
@@ -31,7 +31,7 @@ export const marcaService = {
     }
   },
 
-  atualizarMarca: async (id: number, dto: Omit<Marca, 'id' | 'imagemContentType'>): Promise<boolean> => {
+  atualizarMarca: async (id: number, dto: Omit<Marca, 'id' | 'imagemContentType' | 'imagemUrl'>): Promise<boolean> => {
     try {
       await axios.put(`${API_URL}/${id}`, dto);
       return true;
