@@ -9,6 +9,13 @@ import { uploadService } from '../services/uploadService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl } from '../utils/imageUrl';
 
+function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
+  if (!marca) return undefined;
+  if (marca.imagemContentType && marca.id) return marcaService.getImagemUrl(marca.id);
+  if (marca.imagemUrl) return imageUrl(marca.imagemUrl);
+  return undefined;
+}
+
 interface ProdutoAgrupado {
   marca: Marca | null;
   produtos: Produto[];
@@ -230,9 +237,9 @@ export default function Catalogo() {
                           <div key={gi}>
                             {grupo.marca && (
                               <div className="flex items-center justify-center rounded-xl px-4 py-2 mb-3" style={{ backgroundColor: grupo.marca.cor || '#f3f4f6' }}>
-                                {grupo.marca.imagemUrl ? (
-                                  <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-12 object-contain" />
-                                ) : (
+                    {grupo.marca.imagemUrl || grupo.marca.imagemContentType ? (
+                      <img src={marcaImagemUrl(grupo.marca)} alt={grupo.marca.nome} className="h-12 object-contain" />
+                    ) : (
                                   <span className="text-xs font-bold uppercase tracking-wider" style={{ color: grupo.marca.cor ? '#fff' : '#6b7280' }}>{grupo.marca.nome}</span>
                                 )}
                               </div>
@@ -494,7 +501,7 @@ function GerenciarCatalogo({
             {marcas.map(m => (
               <div key={m.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {m.imagemUrl ? <img src={imageUrl(m.imagemUrl)} alt={m.nome} className="h-8 object-contain" /> : <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">{m.nome.charAt(0)}</div>}
+                  {m.imagemUrl || m.imagemContentType ? <img src={marcaImagemUrl(m)} alt={m.nome} className="h-8 object-contain" /> : <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">{m.nome.charAt(0)}</div>}
                   <span className="font-medium text-gray-900">{m.nome}</span>
                 </div>
                 <button onClick={() => setEditandoMarca(m)} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -733,27 +740,40 @@ function MarcaForm({ marca, onClose, onSalvo }: {
 }) {
   const [form, setForm] = useState({ ...marca });
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const pendingFileRef = useRef<File | null>(null);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
-    const url = await uploadService.uploadImagem(file);
-    if (url) setForm({ ...form, imagemUrl: url });
-    setUploading(false);
+    pendingFileRef.current = file;
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
   };
 
   const salvando = async () => {
-    const dto = { nome: form.nome ?? '', imagemUrl: form.imagemUrl ?? null, cor: form.cor || null };
-    if (form.id) {
-      await marcaService.atualizarMarca(form.id, dto);
+    const dto = { nome: form.nome ?? '', cor: form.cor || null };
+    let marcaId = form.id;
+
+    if (marcaId) {
+      await marcaService.atualizarMarca(marcaId, dto);
     } else {
-      await marcaService.criarMarca(dto);
+      const criada = await marcaService.criarMarca(dto);
+      if (criada) marcaId = criada.id;
     }
+
+    if (marcaId && pendingFileRef.current) {
+      setUploading(true);
+      await marcaService.uploadImagem(marcaId, pendingFileRef.current);
+      setUploading(false);
+    }
+
     onSalvo();
     onClose();
   };
+
+  const hasImagem = previewUrl || (marca.id && marca.imagemContentType);
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -781,13 +801,14 @@ function MarcaForm({ marca, onClose, onSalvo }: {
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
             <p className="text-[11px] text-gray-400 mt-1 italic">A logo deve conter o nome da marca. O nome da marca não será exibido como texto.</p>
-            {(form.imagemUrl || marca.imagemUrl) && <img src={imageUrl(form.imagemUrl || marca.imagemUrl)} alt="Preview" className="h-12 mt-2 object-contain border rounded-lg" />}
+            {previewUrl && <img src={previewUrl} alt="Preview" className="h-12 mt-2 object-contain border rounded-lg" />}
+            {!previewUrl && marca.id && marca.imagemContentType && <img src={marcaService.getImagemUrl(marca.id)} alt="Preview" className="h-12 mt-2 object-contain border rounded-lg" />}
           </div>
         </div>
         <div className="flex gap-3 justify-end mt-6">
           <button onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-          <button onClick={salvando} disabled={!form.nome?.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
-            {form.id ? 'Salvar' : 'Criar'}
+          <button onClick={salvando} disabled={!form.nome?.trim() || uploading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && !uploading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+            {uploading ? 'Salvando...' : form.id ? 'Salvar' : 'Criar'}
           </button>
         </div>
       </div>

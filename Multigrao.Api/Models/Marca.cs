@@ -14,6 +14,11 @@ namespace Multigrao.Api.Models
         [StringLength(500)]
         public string? ImagemUrl { get; set; }
 
+        public byte[]? ImagemBytes { get; set; }
+
+        [StringLength(30)]
+        public string? ImagemContentType { get; set; }
+
         [StringLength(7)]
         public string? Cor { get; set; }
 

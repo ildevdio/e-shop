@@ -5,6 +5,14 @@ import { produtoService, type Produto, type Categoria, type Marca } from '../ser
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl } from '../utils/imageUrl';
+import { marcaService } from '../services/marcaService';
+
+function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
+  if (!marca) return undefined;
+  if (marca.imagemContentType && marca.id) return marcaService.getImagemUrl(marca.id);
+  if (marca.imagemUrl) return imageUrl(marca.imagemUrl);
+  return undefined;
+}
 
 interface ProdutoAgrupado {
   marca: Marca | null;
@@ -264,8 +272,8 @@ export default function Tabela() {
                       <div key={gi} className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
                         {grupo.marca && (
                           <div className="flex items-center gap-4 px-6 py-4 border-b border-neutral-100" style={{ backgroundColor: grupo.marca.cor || '#f5f5f5' }}>
-                            {grupo.marca.imagemUrl && (
-                              <img src={imageUrl(grupo.marca.imagemUrl)} alt={grupo.marca.nome} className="h-14 object-contain shrink-0" />
+                            {(grupo.marca.imagemUrl || grupo.marca.imagemContentType) && (
+                              <img src={marcaImagemUrl(grupo.marca)} alt={grupo.marca.nome} className="h-14 object-contain shrink-0" />
                             )}
                             <span className="text-xl font-bold uppercase tracking-wider" style={{ color: grupo.marca.cor ? '#fff' : '#374151' }}>{grupo.marca.nome}</span>
                           </div>

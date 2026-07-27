@@ -6,6 +6,7 @@ export interface Marca {
   id: number;
   nome: string;
   imagemUrl: string | null;
+  imagemContentType: string | null;
   cor: string | null;
 }
 
@@ -20,7 +21,7 @@ export const marcaService = {
     }
   },
 
-  criarMarca: async (dto: Omit<Marca, 'id'>): Promise<Marca | null> => {
+  criarMarca: async (dto: Omit<Marca, 'id' | 'imagemContentType'>): Promise<Marca | null> => {
     try {
       const response = await axios.post(API_URL, dto);
       return response.data;
@@ -30,7 +31,7 @@ export const marcaService = {
     }
   },
 
-  atualizarMarca: async (id: number, dto: Omit<Marca, 'id'>): Promise<boolean> => {
+  atualizarMarca: async (id: number, dto: Omit<Marca, 'id' | 'imagemContentType'>): Promise<boolean> => {
     try {
       await axios.put(`${API_URL}/${id}`, dto);
       return true;
@@ -48,5 +49,23 @@ export const marcaService = {
       console.error('Erro ao deletar marca', error);
       return false;
     }
+  },
+
+  uploadImagem: async (marcaId: number, file: File): Promise<boolean> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await axios.post(`${API_URL}/${marcaId}/imagem`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return true;
+    } catch (error) {
+      console.error('Erro ao upload da imagem', error);
+      return false;
+    }
+  },
+
+  getImagemUrl: (marcaId: number): string => {
+    return `${API_URL}/${marcaId}/imagem`;
   },
 };

@@ -35,7 +35,7 @@ type AbaPedidos = 'pendentes' | 'consulta';
 
 interface ItemForm {
   produtoId: number;
-  produto: Produto;
+  produto?: Produto;
   quantidade: number;
   precoUnitario: number;
 }
@@ -64,11 +64,12 @@ export default function ComercialPedidos() {
   const [buscandoConsulta, setBuscandoConsulta] = useState(false);
   const [consultaRealizada, setConsultaRealizada] = useState(false);
 
-  const [novoPedido, setNovoPedido] = useState({ clienteId: '', valor: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
+  const [novoPedido, setNovoPedido] = useState({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
   const [itensPedido, setItensPedido] = useState<ItemForm[]>([]);
   const [buscaProduto, setBuscaProduto] = useState<string[]>([]);
   const [davFile, setDavFile] = useState<File | null>(null);
   const davInputRef = useRef<HTMLInputElement>(null);
+  const [pedidoPendenteDialog, setPedidoPendenteDialog] = useState<Pedido[] | null>(null);
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
@@ -85,7 +86,7 @@ export default function ComercialPedidos() {
     valorTotal: number;
     itens: { id: number; quantidade: number; precoUnitario: number }[];
   } | null>(null);
-  const editando = detalhe != null && !isVendedor && ['AguardandoConfirmacao', 'Pendente'].includes(detalhe.status);
+  const editando = detalhe != null && !isVendedor && !['Entregue', 'Devolvido'].includes(detalhe.status);
 
   const carregar = async () => {
     setCarregando(true);
@@ -139,10 +140,8 @@ export default function ComercialPedidos() {
   };
 
   const adicionarItem = () => {
-    if (produtos.length === 0) return;
-    const primeiro = produtos[0];
-    setItensPedido([...itensPedido, { produtoId: primeiro.id, produto: primeiro, quantidade: 1, precoUnitario: 0 }]);
-    setBuscaProduto([...buscaProduto, primeiro.nome]);
+    setItensPedido([...itensPedido, { produtoId: 0, quantidade: 1, precoUnitario: 0 }]);
+    setBuscaProduto([...buscaProduto, '']);
   };
 
   const atualizarItem = (index: number, campo: keyof ItemForm, valor: number) => {
@@ -153,7 +152,7 @@ export default function ComercialPedidos() {
 
   const selecionarProduto = (index: number, produto: Produto) => {
     const atualizados = [...itensPedido];
-    atualizados[index] = { ...atualizados[index], produtoId: produto.id, produto, quantidade: 1, precoUnitario: 0 };
+    atualizados[index] = { ...atualizados[index], produtoId: produto.id, produto, quantidade: 1, precoUnitario: produto.precoVarejo };
     setItensPedido(atualizados);
     const busca = [...buscaProduto];
     busca[index] = produto.nome;
@@ -165,25 +164,57 @@ export default function ComercialPedidos() {
     setBuscaProduto(buscaProduto.filter((_, i) => i !== index));
   };
 
-  const pesoTotalItens = itensPedido.reduce((acc, item) => acc + item.produto.pesoUnidade * item.quantidade, 0);
+  const pesoTotalItens = itensPedido.reduce((acc, item) => acc + (item.produto?.pesoUnidade ?? 0) * item.quantidade, 0);
+  const valorTotalCalc = itensPedido.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0);
+
+  const selecionarCliente = (clienteId: string) => {
+    if (!clienteId) {
+      setNovoPedido({ ...novoPedido, clienteId: '' });
+      return;
+    }
+    const pendentes = pedidos.filter(p =>
+      p.clienteId === parseInt(clienteId) &&
+      PENDENTES_STATUSES.includes(p.status)
+    );
+    if (pendentes.length > 0) {
+      setPedidoPendenteDialog(pendentes);
+    } else {
+      setNovoPedido({ ...novoPedido, clienteId });
+    }
+  };
+
+  const handleAcrecimo = () => {
+    if (pedidoPendenteDialog && pedidoPendenteDialog.length > 0) {
+      const pedido = pedidoPendenteDialog[0];
+      setPedidoPendenteDialog(null);
+      resetModal();
+      abrirDetalhe(pedido);
+    }
+  };
+
+  const handleNovoPedido = () => {
+    if (pedidoPendenteDialog && pedidoPendenteDialog.length > 0) {
+      setNovoPedido({ ...novoPedido, clienteId: String(pedidoPendenteDialog[0].clienteId) });
+    }
+    setPedidoPendenteDialog(null);
+  };
 
   const criarPedido = async () => {
-    if (!novoPedido.clienteId || !novoPedido.valor.trim() || itensPedido.length === 0) return;
+    if (!novoPedido.clienteId || itensPedido.length === 0 || itensPedido.some(i => !i.produtoId)) return;
     const clienteId = parseInt(novoPedido.clienteId);
-    const valor = parseFloat(novoPedido.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const desconto = parseFloat(novoPedido.desconto.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const acrescimo = parseFloat(novoPedido.acrescimo.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     await pedidoService.criarPedido({
       clienteId,
-      valorTotal: valor,
+      valorTotal: valorTotalCalc,
       pesoTotal: pesoTotalItens,
       tipoEntrega: novoPedido.tipoEntrega,
       pagamento: novoPedido.pagamento || undefined,
       desconto,
       acrescimo,
-      itens: itensPedido.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade, precoUnitario: i.precoUnitario, pesoUnitario: i.produto.pesoUnidade })),
+      itens: itensPedido.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade, precoUnitario: i.precoUnitario, pesoUnitario: i.produto?.pesoUnidade ?? 0 })),
     });
-    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
+    setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
     setDavFile(null);
     setIsModalOpen(false);
@@ -192,7 +223,7 @@ export default function ComercialPedidos() {
   };
 
   const resetModal = () => {
-    setNovoPedido({ clienteId: '', valor: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
+    setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
     setDavFile(null);
     setIsModalOpen(false);
@@ -289,7 +320,7 @@ export default function ComercialPedidos() {
               />
             </div>
             <button
-              onClick={() => { setIsModalOpen(true); setModalAberto(true); }}
+              onClick={() => { setIsModalOpen(true); setModalAberto(true); if (itensPedido.length === 0 && produtos.length > 0) adicionarItem(); }}
               className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
             >
               <Plus size={18} /> Novo Pedido
@@ -531,7 +562,7 @@ export default function ComercialPedidos() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
                 <select
                   value={novoPedido.clienteId}
-                  onChange={e => setNovoPedido({ ...novoPedido, clienteId: e.target.value })}
+                  onChange={e => selecionarCliente(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
                 >
                   <option value="">Selecione o cliente...</option>
@@ -581,14 +612,10 @@ export default function ComercialPedidos() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$) *</label>
-                  <input
-                    type="text"
-                    value={novoPedido.valor}
-                    onChange={e => setNovoPedido({ ...novoPedido, valor: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
-                    placeholder="0,00"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$)</label>
+                  <div className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-700">
+                    R$ {valorTotalCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Desconto (R$)</label>
@@ -623,9 +650,6 @@ export default function ComercialPedidos() {
                     <Plus size={14} /> Adicionar produto
                   </button>
                 </div>
-                {itensPedido.length === 0 && (
-                  <p className="text-xs text-gray-400 py-2">Nenhum produto adicionado. Clique em "Adicionar produto".</p>
-                )}
                 <div className="space-y-2">
                   {itensPedido.map((item, index) => (
                     <div key={index} className="flex gap-2 items-end border border-gray-200 rounded-lg p-3">
@@ -641,7 +665,7 @@ export default function ComercialPedidos() {
                           }}
                           sugestoes={produtos
                             .filter(p => p.nome.toLowerCase().includes((buscaProduto[index] ?? '').toLowerCase()))
-                            .map(p => ({ rotulo: p.nome, subRotulo: `${p.pesoUnidade} kg` } satisfies Sugestao))}
+                            .map(p => ({ rotulo: p.nome, subRotulo: `R$ ${p.precoVarejo.toFixed(2)} | ${p.pesoUnidade} kg` } satisfies Sugestao))}
                           aoSelecionar={s => {
                             const produto = produtos.find(p => p.nome === s.rotulo);
                             if (produto) selecionarProduto(index, produto);
@@ -670,7 +694,7 @@ export default function ComercialPedidos() {
                             atualizarItem(index, 'precoUnitario', val);
                           }}
                           className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
-                          placeholder="0,00"
+                          placeholder={item.produto?.precoVarejo.toFixed(2) ?? '0,00'}
                         />
                       </div>
                       <button
@@ -723,14 +747,70 @@ export default function ComercialPedidos() {
               </button>
               <button
                 onClick={criarPedido}
-                disabled={!novoPedido.clienteId || !novoPedido.valor.trim() || itensPedido.length === 0}
+                disabled={!novoPedido.clienteId || itensPedido.length === 0 || itensPedido.some(i => !i.produtoId)}
                 className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${
-                  novoPedido.clienteId && novoPedido.valor.trim() && itensPedido.length > 0
+                  novoPedido.clienteId && itensPedido.length > 0 && !itensPedido.some(i => !i.produtoId)
                     ? 'bg-black text-white hover:bg-gray-800'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 Criar Pedido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pedidoPendenteDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <span className="text-amber-600 text-lg font-bold">!</span>
+              </div>
+              <div>
+                <h2 className="text-lg font-serif font-bold text-gray-900">Pedido pendente encontrado</h2>
+                <p className="text-sm text-gray-500">
+                  Este cliente possui {pedidoPendenteDialog.length} pedido{pedidoPendenteDialog.length > 1 ? 's' : ''} pendente{pedidoPendenteDialog.length > 1 ? 's' : ''} de finalização:
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 mb-6">
+              {pedidoPendenteDialog.map(p => (
+                <div key={p.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                  <div>
+                    <span className="font-medium text-gray-900">#{p.id}</span>
+                    <span className="text-sm text-gray-500 ml-2">
+                      R$ {p.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-sm text-gray-400 ml-2">
+                      ({p.itens.length} {p.itens.length === 1 ? 'item' : 'itens'})
+                    </span>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                    {p.tipoEntrega}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPedidoPendenteDialog(null)}
+                className="flex-1 py-2.5 rounded-xl font-medium text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleNovoPedido}
+                className="flex-1 py-2.5 rounded-xl font-medium text-sm bg-black text-white hover:bg-gray-800 transition-colors"
+              >
+                Novo Pedido
+              </button>
+              <button
+                onClick={handleAcrecimo}
+                className="flex-1 py-2.5 rounded-xl font-medium text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
+              >
+                Acréscimo
               </button>
             </div>
           </div>
@@ -803,11 +883,12 @@ export default function ComercialPedidos() {
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Total</span>
-                {editando ? (
-                  <input type="text" value={editDetalhe!.valorTotal.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, valorTotal: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
-                ) : (
-                  <p className="text-gray-900 font-medium mt-0.5">R$ {detalhe.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                )}
+                <p className="text-gray-900 font-medium mt-0.5">
+                  R$ {(editando
+                    ? editDetalhe!.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0)
+                    : detalhe.valorTotal
+                  ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
@@ -833,7 +914,7 @@ export default function ComercialPedidos() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Final</span>
                 <p className="text-gray-900 font-bold mt-0.5">
                   R$ {(editando
-                    ? (editDetalhe!.valorTotal + editDetalhe!.acrescimo - editDetalhe!.desconto)
+                    ? (editDetalhe!.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0) + editDetalhe!.acrescimo - editDetalhe!.desconto)
                     : detalhe.valorFinal
                   ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
@@ -922,7 +1003,7 @@ export default function ComercialPedidos() {
                     estado: e.estado,
                     desconto: e.desconto,
                     acrescimo: e.acrescimo,
-                    valorTotal: e.valorTotal,
+                    valorTotal: e.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0),
                     itens: e.itens,
                   });
                   if (ok) { fecharDetalhe(); await carregar(); }
@@ -948,7 +1029,7 @@ export default function ComercialPedidos() {
                       estado: editDetalhe.estado,
                       desconto: editDetalhe.desconto,
                       acrescimo: editDetalhe.acrescimo,
-                      valorTotal: editDetalhe.valorTotal,
+                      valorTotal: editDetalhe.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0),
                       itens: editDetalhe.itens,
                     });
                     if (!ok) return;

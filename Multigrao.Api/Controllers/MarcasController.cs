@@ -33,10 +33,49 @@ namespace Multigrao.Api.Controllers
             return Ok(marca);
         }
 
+        [HttpGet("{id}/imagem")]
+        public async Task<IActionResult> GetMarcaImagem(int id)
+        {
+            var marca = await _context.Marcas.FindAsync(id);
+            if (marca == null) return NotFound();
+            if (marca.ImagemBytes == null || marca.ImagemContentType == null) return NotFound();
+
+            return File(marca.ImagemBytes, marca.ImagemContentType);
+        }
+
+        [HttpPost("{id}/imagem")]
+        public async Task<IActionResult> UploadMarcaImagem(int id, IFormFile file)
+        {
+            var marca = await _context.Marcas.FindAsync(id);
+            if (marca == null) return NotFound();
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Arquivo não enviado." });
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (ext != ".jpg" && ext != ".jpeg" && ext != ".png")
+                return BadRequest(new { message = "Apenas arquivos JPG e PNG são permitidos." });
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+
+            marca.ImagemBytes = ms.ToArray();
+            marca.ImagemContentType = ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                _ => "application/octet-stream"
+            };
+            marca.ImagemUrl = null;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Imagem salva com sucesso." });
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateMarca([FromBody] Marca dto)
         {
-            var marca = new Marca { Nome = dto.Nome, ImagemUrl = dto.ImagemUrl, Cor = dto.Cor };
+            var marca = new Marca { Nome = dto.Nome, Cor = dto.Cor };
             _context.Marcas.Add(marca);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetMarca), new { id = marca.Id }, marca);
@@ -48,7 +87,6 @@ namespace Multigrao.Api.Controllers
             var marca = await _context.Marcas.FindAsync(id);
             if (marca == null) return NotFound();
             marca.Nome = dto.Nome;
-            marca.ImagemUrl = dto.ImagemUrl;
             marca.Cor = dto.Cor;
             await _context.SaveChangesAsync();
             return NoContent();

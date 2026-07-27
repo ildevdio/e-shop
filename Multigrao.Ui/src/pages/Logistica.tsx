@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown, User } from 'lucide-react';
-import { logisticaService, type Veiculo, type Motorista, type PedidoPronto } from '../services/logisticaService';
+import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown, User, Clock, Package, Filter, Calendar, RotateCcw } from 'lucide-react';
+import { logisticaService, type Veiculo, type Motorista, type PedidoPronto, type EntregaRota } from '../services/logisticaService';
 import { useUiStore } from '../store/uiStore';
 
+const ENTREGA_STATUS_LABELS: Record<string, string> = {
+  PendenteConferencia: 'Pendente Conferência',
+  EmConferencia: 'Em Conferência',
+  EmRota: 'Em Rota',
+  Entregue: 'Entregue',
+  Devolvido: 'Devolvido',
+};
+
 export default function Logistica() {
-  const [activeTab, setActiveTab] = useState<'roteirizacao' | 'veiculos'>('roteirizacao');
+  const [activeTab, setActiveTab] = useState<'roteirizacao' | 'emEntrega' | 'consultas' | 'veiculos'>('roteirizacao');
 
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -21,6 +29,12 @@ export default function Logistica() {
         <button onClick={() => setActiveTab('roteirizacao')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${activeTab === 'roteirizacao' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
           <Navigation size={18} /> Roteirização
         </button>
+        <button onClick={() => setActiveTab('emEntrega')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${activeTab === 'emEntrega' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
+          <Truck size={18} /> Em Entrega
+        </button>
+        <button onClick={() => setActiveTab('consultas')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${activeTab === 'consultas' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
+          <Search size={18} /> Consultas
+        </button>
         <button onClick={() => setActiveTab('veiculos')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${activeTab === 'veiculos' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
           <Truck size={18} /> Veículos
         </button>
@@ -28,6 +42,8 @@ export default function Logistica() {
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         {activeTab === 'roteirizacao' && <RoteirizacaoTab />}
+        {activeTab === 'emEntrega' && <EmEntregaTab />}
+        {activeTab === 'consultas' && <ConsultasTab />}
         {activeTab === 'veiculos' && <VeiculosTab />}
       </div>
     </div>
@@ -288,6 +304,463 @@ function RoteirizacaoTab() {
               }`}>
                 <CheckCircle2 size={18} /> FINALIZAR E GERAR ENTREGA
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmEntregaTab() {
+  const [entregas, setEntregas] = useState<EntregaRota[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [expandido, setExpandido] = useState<number | null>(null);
+
+  const carregar = async () => {
+    setCarregando(true);
+    const data = await logisticaService.getEntregas();
+    setEntregas(data.filter(e => e.status === 'EmRota'));
+    setCarregando(false);
+  };
+
+  useEffect(() => { carregar(); }, []);
+
+  const porRota = entregas.reduce<Record<number, { rota: EntregaRota['rota']; entregas: EntregaRota[] }>>((acc, e) => {
+    const rotaId = e.rotaId;
+    if (!acc[rotaId]) acc[rotaId] = { rota: e.rota, entregas: [] };
+    acc[rotaId].entregas.push(e);
+    return acc;
+  }, {});
+
+  const totalPendentes = Object.values(porRota).reduce((acc, r) => acc + r.entregas.filter(e => e.status === 'EmRota').length, 0);
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+            <Truck size={20} /> Entregas em Andamento
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {totalPendentes} entrega{totalPendentes !== 1 ? 's' : ''} em rota
+          </p>
+        </div>
+        <button onClick={carregar} className="text-sm text-gray-500 hover:text-black flex items-center gap-1 transition-colors">
+          <RotateCcw size={14} /> Atualizar
+        </button>
+      </div>
+
+      {carregando ? (
+        <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Carregando...</div>
+      ) : Object.keys(porRota).length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+          <Truck size={40} className="mb-3 opacity-30" />
+          <p className="text-sm font-medium">Nenhuma entrega em andamento</p>
+          <p className="text-xs mt-1">As entregas em rota aparecerão aqui</p>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {Object.entries(porRota).map(([rotaId, { rota, entregas: rotasEntregas }]) => {
+            const total = rotasEntregas.length;
+            const concluidas = rotasEntregas.filter(e => e.status === 'Entregue').length;
+            const problema = rotasEntregas.filter(e => e.status === 'Devolvido').length;
+            const emRota = rotasEntregas.filter(e => e.status === 'EmRota');
+            const proximaEntrega = emRota.sort((a, b) => a.ordem - b.ordem)[0];
+            const progresso = total > 0 ? ((concluidas / total) * 100) : 0;
+            const isExpanded = expandido === Number(rotaId);
+
+            return (
+              <div key={rotaId} className="border border-gray-200 rounded-2xl overflow-hidden">
+                <div
+                  onClick={() => setExpandido(isExpanded ? null : Number(rotaId))}
+                  className="p-5 bg-gray-50/80 cursor-pointer hover:bg-gray-100/80 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center">
+                        <Truck size={20} />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900">
+                          {rota?.motorista?.nome ?? 'Motorista'} — Rota #{rotaId}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {rota?.veiculo?.modelo} ({rota?.veiculo?.placa}) • {total} entrega{total !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900">{Math.round(progresso)}%</div>
+                      <div className="text-xs text-gray-500">{concluidas}/{total} entregues</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progresso}%` }} />
+                  </div>
+                  <div className="flex gap-4 mt-3 text-xs">
+                    <span className="text-emerald-600 font-medium">{concluidas} entregue{concluidas !== 1 ? 's' : ''}</span>
+                    <span className="text-blue-600 font-medium">{emRota.length} em rota</span>
+                    {problema > 0 && <span className="text-red-600 font-medium">{problema} devolvido{problema !== 1 ? 's' : ''}</span>}
+                  </div>
+                  {proximaEntrega && (
+                    <div className="mt-3 p-3 bg-white rounded-xl border border-gray-200">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Próxima entrega</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Pedido #{proximaEntrega.pedido?.id} — {proximaEntrega.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {proximaEntrega.pedido?.cliente?.logradouro}, {proximaEntrega.pedido?.cliente?.numero} — {proximaEntrega.pedido?.cliente?.bairro}
+                      </div>
+                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                        <Clock size={12} />
+                        <span>Ordem {proximaEntrega.ordem} de {total}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {isExpanded && (
+                  <div className="p-4 space-y-2">
+                    {rotasEntregas.sort((a, b) => a.ordem - b.ordem).map(e => (
+                      <div key={e.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
+                        e.status === 'Entregue' ? 'bg-emerald-50 border-emerald-200' :
+                        e.status === 'Devolvido' ? 'bg-red-50 border-red-200' :
+                        e.status === 'EmRota' ? 'bg-blue-50 border-blue-200' :
+                        'bg-white border-gray-200'
+                      }`}>
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          e.status === 'Entregue' ? 'bg-emerald-500 text-white' :
+                          e.status === 'Devolvido' ? 'bg-red-500 text-white' :
+                          e.status === 'EmRota' ? 'bg-blue-500 text-white' :
+                          'bg-gray-300 text-white'
+                        }`}>
+                          {e.ordem}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            #{e.pedido?.id} — {e.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {e.pedido?.cliente?.bairro}
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                            e.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
+                            e.status === 'Devolvido' ? 'bg-red-100 text-red-700' :
+                            e.status === 'EmRota' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {ENTREGA_STATUS_LABELS[e.status] ?? e.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConsultasTab() {
+  const [entregas, setEntregas] = useState<EntregaRota[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [busca, setBusca] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState<string>('Todos');
+  const [filtroDataInicio, setFiltroDataInicio] = useState('');
+  const [filtroDataFim, setFiltroDataFim] = useState('');
+  const [resultados, setResultados] = useState<EntregaRota[]>([]);
+  const [consultaRealizada, setConsultaRealizada] = useState(false);
+  const [detalhe, setDetalhe] = useState<EntregaRota | null>(null);
+
+  const carregar = async () => {
+    setCarregando(true);
+    const data = await logisticaService.getEntregas();
+    setEntregas(data);
+    setCarregando(false);
+  };
+
+  useEffect(() => { carregar(); }, []);
+
+  const buscar = () => {
+    let filtro = [...entregas];
+
+    if (busca.trim()) {
+      const termo = busca.toLowerCase();
+      filtro = filtro.filter(e =>
+        String(e.pedidoId).includes(termo) ||
+        e.pedido?.cliente?.razaoSocialNome?.toLowerCase().includes(termo) ||
+        e.pedido?.cliente?.bairro?.toLowerCase().includes(termo) ||
+        e.rota?.motorista?.nome?.toLowerCase().includes(termo)
+      );
+    }
+
+    if (filtroStatus !== 'Todos') {
+      filtro = filtro.filter(e => e.status === filtroStatus);
+    }
+
+    if (filtroDataInicio) {
+      const di = new Date(filtroDataInicio);
+      filtro = filtro.filter(e => e.rota?.data && new Date(e.rota.data) >= di);
+    }
+
+    if (filtroDataFim) {
+      const df = new Date(filtroDataFim);
+      df.setDate(df.getDate() + 1);
+      filtro = filtro.filter(e => e.rota?.data && new Date(e.rota.data) < df);
+    }
+
+    setResultados(filtro);
+    setConsultaRealizada(true);
+  };
+
+  const temFiltro = busca || filtroStatus !== 'Todos' || filtroDataInicio || filtroDataFim;
+
+  const limparFiltros = () => {
+    setBusca('');
+    setFiltroStatus('Todos');
+    setFiltroDataInicio('');
+    setFiltroDataFim('');
+    setResultados([]);
+    setConsultaRealizada(false);
+  };
+
+  const statusEntregue = resultados.filter(e => e.status === 'Entregue').length;
+  const statusDevolvido = resultados.filter(e => e.status === 'Devolvido').length;
+  const valorTotal = resultados.reduce((acc, e) => acc + (e.pedido?.valorTotal ?? 0), 0);
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+          <Search size={20} /> Consulta de Entregas
+        </h2>
+        {temFiltro && (
+          <button onClick={limparFiltros} className="text-xs text-gray-500 hover:text-black flex items-center gap-1 transition-colors">
+            <RotateCcw size={12} /> Limpar filtros
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-3 mb-4">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Buscar por #pedido, cliente, bairro, motorista..."
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') buscar(); }}
+              className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+            />
+          </div>
+          <button
+            onClick={buscar}
+            className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
+          >
+            <Search size={16} /> Buscar
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block">Status</label>
+            <div className="flex flex-wrap gap-1.5">
+              {['Todos', 'EmRota', 'Entregue', 'Devolvido', 'PendenteConferencia'].map(status => (
+                <button
+                  key={status}
+                  onClick={() => setFiltroStatus(status)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    filtroStatus === status
+                      ? 'bg-black text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {status === 'Todos' ? 'Todos' : ENTREGA_STATUS_LABELS[status] ?? status}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="min-w-[260px]">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block">Período</label>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input type="date" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black" />
+              </div>
+              <span className="text-gray-400 text-xs">até</span>
+              <div className="relative">
+                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input type="date" value={filtroDataFim} onChange={e => setFiltroDataFim(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {consultaRealizada && resultados.length > 0 && (
+        <div className="flex gap-4 mb-4 text-xs">
+          <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-medium text-gray-700">{resultados.length} resultado{resultados.length !== 1 ? 's' : ''}</span>
+          <span className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-medium">{statusEntregue} entregue{statusEntregue !== 1 ? 's' : ''}</span>
+          {statusDevolvido > 0 && <span className="bg-red-50 text-red-700 px-3 py-1.5 rounded-lg font-medium">{statusDevolvido} devolvido{statusDevolvido !== 1 ? 's' : ''}</span>}
+          <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-medium text-gray-700">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto">
+        {carregando ? (
+          <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Carregando...</div>
+        ) : !consultaRealizada ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Filter size={32} className="mb-3 opacity-30" />
+            <p className="text-sm font-medium">Use os filtros e clique em Buscar</p>
+            <p className="text-xs mt-1">para pesquisar entregas realizadas</p>
+          </div>
+        ) : resultados.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Package size={32} className="mb-3 opacity-30" />
+            <p className="text-sm font-medium">Nenhuma entrega encontrada</p>
+          </div>
+        ) : (
+          <table className="w-full text-left text-sm text-gray-500">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b sticky top-0">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Pedido</th>
+                <th className="px-4 py-3 font-semibold">Cliente</th>
+                <th className="px-4 py-3 font-semibold">Motorista</th>
+                <th className="px-4 py-3 font-semibold">Veículo</th>
+                <th className="px-4 py-3 font-semibold">Valor</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resultados.map(e => (
+                <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900">#{e.pedidoId}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900">{e.pedido?.cliente?.razaoSocialNome ?? '—'}</div>
+                    <div className="text-xs text-gray-400">{e.pedido?.cliente?.bairro}</div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-700">{e.rota?.motorista?.nome ?? '—'}</td>
+                  <td className="px-4 py-3">
+                    <div className="text-gray-700">{e.rota?.veiculo?.modelo ?? '—'}</div>
+                    <div className="text-xs text-gray-400">{e.rota?.veiculo?.placa}</div>
+                  </td>
+                  <td className="px-4 py-3">R$ {(e.pedido?.valorTotal ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
+                      e.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
+                      e.status === 'Devolvido' ? 'bg-red-100 text-red-700' :
+                      e.status === 'EmRota' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {ENTREGA_STATUS_LABELS[e.status] ?? e.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button onClick={() => setDetalhe(e)} className="text-gray-700 hover:underline text-xs font-medium">Ver</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {detalhe && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetalhe(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes da Entrega</h2>
+              <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><Trash2 size={18} className="text-gray-400" /></button>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Pedido</span>
+                <p className="text-gray-900 font-medium mt-0.5">#{detalhe.pedidoId}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Status</span>
+                <p className="mt-0.5">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    detalhe.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
+                    detalhe.status === 'Devolvido' ? 'bg-red-100 text-red-700' :
+                    detalhe.status === 'EmRota' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {ENTREGA_STATUS_LABELS[detalhe.status] ?? detalhe.status}
+                  </span>
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente</span>
+                <p className="text-gray-900 font-medium mt-0.5">{detalhe.pedido?.cliente?.razaoSocialNome ?? '—'}</p>
+                {(detalhe.pedido?.cliente?.logradouro || detalhe.pedido?.cliente?.bairro) && (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {detalhe.pedido?.cliente?.logradouro}, {detalhe.pedido?.cliente?.numero} — {detalhe.pedido?.cliente?.bairro}
+                  </p>
+                )}
+                {detalhe.pedido?.cliente?.telefone && (
+                  <p className="text-xs text-gray-500 mt-0.5">Tel: {detalhe.pedido?.cliente.telefone}</p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Valor</span>
+                  <p className="text-gray-900 font-medium mt-0.5">R$ {(detalhe.pedido?.valorTotal ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Peso</span>
+                  <p className="text-gray-900 font-medium mt-0.5">{detalhe.pedido?.pesoTotal?.toFixed(2) ?? '0'} kg</p>
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Motorista</span>
+                <p className="text-gray-900 font-medium mt-0.5">{detalhe.rota?.motorista?.nome ?? '—'}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Veículo</span>
+                <p className="text-gray-900 font-medium mt-0.5">{detalhe.rota?.veiculo?.modelo} — {detalhe.rota?.veiculo?.placa}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Ordem na Rota</span>
+                <p className="text-gray-900 font-medium mt-0.5">{detalhe.ordem}ª parada</p>
+              </div>
+              {detalhe.observacao && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <span className="text-amber-600 text-xs uppercase tracking-wider font-semibold">Observação</span>
+                  <p className="text-amber-900 text-sm mt-0.5">{detalhe.observacao}</p>
+                </div>
+              )}
+              {detalhe.motivoDevolucao && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                  <span className="text-red-600 text-xs uppercase tracking-wider font-semibold">Motivo da Devolução</span>
+                  <p className="text-red-900 text-sm mt-0.5">{detalhe.motivoDevolucao}</p>
+                </div>
+              )}
+              {detalhe.pedido?.itens && detalhe.pedido.itens.length > 0 && (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Itens ({detalhe.pedido.itens.length})</span>
+                  <div className="mt-2 space-y-1">
+                    {detalhe.pedido.itens.map(item => (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span className="text-gray-700">{item.produto?.nome ?? `Produto #${item.id}`}</span>
+                        <span className="text-gray-500">{item.quantidade}x</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

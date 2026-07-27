@@ -22,6 +22,14 @@ export interface EntregaRota {
   status: string;
   observacao: string | null;
   motivoDevolucao: string | null;
+  rota?: {
+    id: number;
+    data: string;
+    motoristaId: number;
+    motorista?: { id: number; nome: string };
+    veiculo?: { id: number; modelo: string; placa: string };
+    status: string;
+  };
   pedido?: {
     id: number;
     cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
@@ -134,6 +142,16 @@ export const logisticaService = {
     } catch (error) {
       console.error('Erro ao gerar rota', error);
       return null;
+    }
+  },
+
+  getEntregas: async (): Promise<EntregaRota[]> => {
+    try {
+      const response = await axios.get((import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Motorista/entregas');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Erro ao buscar entregas', error);
+      return [];
     }
   },
 };

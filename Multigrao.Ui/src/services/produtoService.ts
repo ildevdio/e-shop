@@ -12,6 +12,7 @@ export interface Marca {
   id: number;
   nome: string;
   imagemUrl: string | null;
+  imagemContentType: string | null;
   cor: string | null;
 }
 
