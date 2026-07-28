@@ -458,46 +458,9 @@ function EmEntregaTab() {
                       </div>
                     ))}
                   </div>
-      )}
-
-      {editando && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditando(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-serif font-bold text-gray-900">Editar Entrega #{editando.id}</h2>
-              <button onClick={() => setEditando(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Pedido</label>
-                <p className="text-gray-900 mt-0.5">#{editando.pedidoId} — {editando.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}</p>
+                )}
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Ordem na Rota</label>
-                <input type="number" min={1} value={editForm.ordem} onChange={e => setEditForm({ ...editForm, ordem: Number(e.target.value) })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
-                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1">
-                  {Object.entries(ENTREGA_STATUS_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Observação</label>
-                <textarea value={editForm.observacao} onChange={e => setEditForm({ ...editForm, observacao: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1 resize-none" placeholder="Observações sobre a entrega..." />
-              </div>
-            </div>
-            <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setEditando(null)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={salvarEdicao} className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm">Salvar</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+            );
           })}
         </div>
       )}
@@ -828,6 +791,43 @@ function ConsultasTab() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editando && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditando(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-serif font-bold text-gray-900">Editar Entrega #{editando.id}</h2>
+              <button onClick={() => setEditando(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Pedido</label>
+                <p className="text-gray-900 mt-0.5">#{editando.pedidoId} — {editando.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Ordem na Rota</label>
+                <input type="number" min={1} value={editForm.ordem} onChange={e => setEditForm({ ...editForm, ordem: Number(e.target.value) })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Status</label>
+                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1">
+                  {Object.entries(ENTREGA_STATUS_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Observação</label>
+                <textarea value={editForm.observacao} onChange={e => setEditForm({ ...editForm, observacao: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1 resize-none" placeholder="Observações sobre a entrega..." />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => setEditando(null)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={salvarEdicao} className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm">Salvar</button>
             </div>
           </div>
         </div>

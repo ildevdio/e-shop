@@ -17,7 +17,7 @@ export default function EmpresaEnquetes() {
   const [showNova, setShowNova] = useState(false);
   const [novaEnquete, setNovaEnquete] = useState({ titulo: '', opcoes: ['', ''] });
   const [filtro, setFiltro] = useState('');
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
 
   function tempoRestante(dataExpiracao: string): string {
     const exp = new Date(dataExpiracao).getTime();
@@ -107,7 +107,6 @@ export default function EmpresaEnquetes() {
           ) : (
             enquetesFiltradas.map(enquete => {
               const jaVotou = votouEm.includes(enquete.id);
-              const statusLabel = enquete.ativa ? 'Ativa' : 'Encerrada';
               return (
                 <div key={enquete.id} className={`p-5 rounded-2xl border-2 transition-all ${enquete.ativa ? 'bg-gray-50/50 border-gray-200 hover:border-gray-300' : 'bg-gray-100/50 border-gray-200 opacity-80'}`}>
                   <div className="flex justify-between items-start mb-4">
