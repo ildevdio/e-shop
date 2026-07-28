@@ -62,7 +62,12 @@ namespace Multigrao.Api.Models
         public decimal ValorTotal { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
+        [StringLength(500)]
+        public string? Observacao { get; set; }
+
+        public bool LiberadoFinanceiro { get; set; }
+
         public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
-        public ICollection<Entrega> Entregas { get; set; } = new List<Entrega>();
+        public ICollection<EntregaPedido> EntregaPedidos { get; set; } = new List<EntregaPedido>();
     }
 }

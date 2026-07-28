@@ -17,7 +17,6 @@ export interface Motorista {
 export interface EntregaRota {
   id: number;
   rotaId: number;
-  pedidoId: number;
   ordem: number;
   status: string;
   observacao: string | null;
@@ -30,13 +29,16 @@ export interface EntregaRota {
     veiculo?: { id: number; modelo: string; placa: string };
     status: string;
   };
-  pedido?: {
-    id: number;
-    cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
-    valorTotal: number;
-    pesoTotal: number;
-    itens?: { id: number; quantidade: number; produto?: { nome: string } }[];
-  };
+  entregaPedidos?: {
+    pedidoId: number;
+    pedido?: {
+      id: number;
+      cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
+      valorTotal: number;
+      pesoTotal: number;
+      itens?: { id: number; quantidade: number; produto?: { nome: string } }[];
+    };
+  }[];
 }
 
 export interface Rota {

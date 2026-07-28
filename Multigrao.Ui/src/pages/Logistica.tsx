@@ -11,6 +11,19 @@ const ENTREGA_STATUS_LABELS: Record<string, string> = {
   Devolvido: 'Devolvido',
 };
 
+const primeiroPedido = (e: EntregaRota) => e.entregaPedidos?.[0]?.pedido;
+const todosItens = (e: EntregaRota) => e.entregaPedidos?.flatMap(ep => ep.pedido?.itens ?? []) ?? [];
+const pedidosArray = (e: EntregaRota) => e.entregaPedidos?.map(ep => ep.pedido).filter(Boolean) ?? [];
+const nomeCliente = (e: EntregaRota) => primeiroPedido(e)?.cliente?.razaoSocialNome ?? 'Cliente';
+const valorTotal = (e: EntregaRota) => pedidosArray(e).reduce((s, p) => s + (p.valorTotal ?? 0), 0);
+const pesoTotal = (e: EntregaRota) => pedidosArray(e).reduce((s, p) => s + (p.pesoTotal ?? 0), 0);
+const enderecoStr = (e: EntregaRota) => {
+  const c = primeiroPedido(e)?.cliente;
+  if (!c) return '';
+  return `${c.logradouro ?? ''}, ${c.numero ?? ''}`.trim().replace(/^,\s*/, '') || c.bairro || '';
+};
+const pedidosLabel = (e: EntregaRota) => pedidosArray(e).map(p => `#${p.id}`).join(', ') || `#${e.id}`;
+
 export default function Logistica() {
   const [activeTab, setActiveTab] = useState<'roteirizacao' | 'emEntrega' | 'consultas' | 'veiculos'>('roteirizacao');
 
@@ -407,10 +420,10 @@ function EmEntregaTab() {
                     <div className="mt-3 p-3 bg-white rounded-xl border border-gray-200">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Próxima entrega</div>
                       <div className="text-sm font-medium text-gray-900">
-                        Pedido #{proximaEntrega.pedido?.id} — {proximaEntrega.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}
+                        {pedidosLabel(proximaEntrega)} — {nomeCliente(proximaEntrega)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {proximaEntrega.pedido?.cliente?.logradouro}, {proximaEntrega.pedido?.cliente?.numero} — {proximaEntrega.pedido?.cliente?.bairro}
+                        {enderecoStr(proximaEntrega) || '—'}
                       </div>
                       <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                         <Clock size={12} />
@@ -439,10 +452,10 @@ function EmEntregaTab() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
-                            #{e.pedido?.id} — {e.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}
+                            {pedidosLabel(e)}
                           </div>
                           <div className="text-xs text-gray-500 truncate">
-                            {e.pedido?.cliente?.bairro}
+                            {primeiroPedido(e)?.cliente?.bairro ?? ''}
                           </div>
                         </div>
                         <div className="shrink-0">
@@ -496,9 +509,9 @@ function ConsultasTab() {
     if (busca.trim()) {
       const termo = busca.toLowerCase();
       filtro = filtro.filter(e =>
-        String(e.pedidoId).includes(termo) ||
-        e.pedido?.cliente?.razaoSocialNome?.toLowerCase().includes(termo) ||
-        e.pedido?.cliente?.bairro?.toLowerCase().includes(termo) ||
+        pedidosLabel(e).includes(termo) ||
+        nomeCliente(e).toLowerCase().includes(termo) ||
+        primeiroPedido(e)?.cliente?.bairro?.toLowerCase().includes(termo) ||
         e.rota?.motorista?.nome?.toLowerCase().includes(termo)
       );
     }
@@ -559,7 +572,7 @@ function ConsultasTab() {
 
   const statusEntregue = resultados.filter(e => e.status === 'Entregue').length;
   const statusDevolvido = resultados.filter(e => e.status === 'Devolvido').length;
-  const valorTotal = resultados.reduce((acc, e) => acc + (e.pedido?.valorTotal ?? 0), 0);
+  const valorTotalGeral = resultados.reduce((acc, e) => acc + valorTotal(e), 0);
 
   return (
     <div className="p-6 h-full flex flex-col">
@@ -638,7 +651,7 @@ function ConsultasTab() {
           <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-medium text-gray-700">{resultados.length} resultado{resultados.length !== 1 ? 's' : ''}</span>
           <span className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-medium">{statusEntregue} entregue{statusEntregue !== 1 ? 's' : ''}</span>
           {statusDevolvido > 0 && <span className="bg-red-50 text-red-700 px-3 py-1.5 rounded-lg font-medium">{statusDevolvido} devolvido{statusDevolvido !== 1 ? 's' : ''}</span>}
-          <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-medium text-gray-700">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+          <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-medium text-gray-700">R$ {valorTotalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
         </div>
       )}
 
@@ -672,17 +685,17 @@ function ConsultasTab() {
             <tbody>
               {resultados.map(e => (
                 <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-900">#{e.pedidoId}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{pedidosLabel(e)}</td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{e.pedido?.cliente?.razaoSocialNome ?? '—'}</div>
-                    <div className="text-xs text-gray-400">{e.pedido?.cliente?.bairro}</div>
+                    <div className="font-medium text-gray-900">{nomeCliente(e)}</div>
+                    <div className="text-xs text-gray-400">{primeiroPedido(e)?.cliente?.bairro ?? ''}</div>
                   </td>
                   <td className="px-4 py-3 text-gray-700">{e.rota?.motorista?.nome ?? '—'}</td>
                   <td className="px-4 py-3">
                     <div className="text-gray-700">{e.rota?.veiculo?.modelo ?? '—'}</div>
                     <div className="text-xs text-gray-400">{e.rota?.veiculo?.placa}</div>
                   </td>
-                  <td className="px-4 py-3">R$ {(e.pedido?.valorTotal ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-3">R$ {valorTotal(e).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
                       e.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
@@ -717,7 +730,7 @@ function ConsultasTab() {
             <div className="space-y-3">
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Pedido</span>
-                <p className="text-gray-900 font-medium mt-0.5">#{detalhe.pedidoId}</p>
+                <p className="text-gray-900 font-medium mt-0.5">{pedidosLabel(detalhe)}</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Status</span>
@@ -734,24 +747,22 @@ function ConsultasTab() {
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente</span>
-                <p className="text-gray-900 font-medium mt-0.5">{detalhe.pedido?.cliente?.razaoSocialNome ?? '—'}</p>
-                {(detalhe.pedido?.cliente?.logradouro || detalhe.pedido?.cliente?.bairro) && (
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {detalhe.pedido?.cliente?.logradouro}, {detalhe.pedido?.cliente?.numero} — {detalhe.pedido?.cliente?.bairro}
-                  </p>
+                <p className="text-gray-900 font-medium mt-0.5">{nomeCliente(detalhe)}</p>
+                {enderecoStr(detalhe) && (
+                  <p className="text-xs text-gray-500 mt-0.5">{enderecoStr(detalhe)}</p>
                 )}
-                {detalhe.pedido?.cliente?.telefone && (
-                  <p className="text-xs text-gray-500 mt-0.5">Tel: {detalhe.pedido?.cliente.telefone}</p>
+                {primeiroPedido(detalhe)?.cliente?.telefone && (
+                  <p className="text-xs text-gray-500 mt-0.5">Tel: {primeiroPedido(detalhe)?.cliente?.telefone}</p>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Valor</span>
-                  <p className="text-gray-900 font-medium mt-0.5">R$ {(detalhe.pedido?.valorTotal ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-gray-900 font-medium mt-0.5">R$ {valorTotal(detalhe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Peso</span>
-                  <p className="text-gray-900 font-medium mt-0.5">{detalhe.pedido?.pesoTotal?.toFixed(2) ?? '0'} kg</p>
+                  <p className="text-gray-900 font-medium mt-0.5">{pesoTotal(detalhe).toFixed(2)} kg</p>
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
@@ -778,11 +789,11 @@ function ConsultasTab() {
                   <p className="text-red-900 text-sm mt-0.5">{detalhe.motivoDevolucao}</p>
                 </div>
               )}
-              {detalhe.pedido?.itens && detalhe.pedido.itens.length > 0 && (
+              {todosItens(detalhe).length > 0 && (
                 <div className="bg-gray-50 rounded-xl p-3">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider">Itens ({detalhe.pedido.itens.length})</span>
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Itens ({todosItens(detalhe).length})</span>
                   <div className="mt-2 space-y-1">
-                    {detalhe.pedido.itens.map(item => (
+                    {todosItens(detalhe).map(item => (
                       <div key={item.id} className="flex justify-between text-sm">
                         <span className="text-gray-700">{item.produto?.nome ?? `Produto #${item.id}`}</span>
                         <span className="text-gray-500">{item.quantidade}x</span>
@@ -806,7 +817,7 @@ function ConsultasTab() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">Pedido</label>
-                <p className="text-gray-900 mt-0.5">#{editando.pedidoId} — {editando.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}</p>
+                <p className="text-gray-900 mt-0.5">{pedidosLabel(editando)}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Ordem na Rota</label>

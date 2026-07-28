@@ -107,6 +107,7 @@ namespace Multigrao.Api.DTOs
         public decimal? Desconto { get; set; }
         public decimal? Acrescimo { get; set; }
         public decimal? ValorTotal { get; set; }
+        public string? Observacao { get; set; }
         public List<AtualizarItemPedidoDto>? Itens { get; set; }
     }
 
@@ -222,6 +223,11 @@ namespace Multigrao.Api.DTOs
     public class VincularClienteDto
     {
         public int ClienteId { get; set; }
+    }
+
+    public class LiberarFinanceiroDto
+    {
+        public string? Observacao { get; set; }
     }
 
     // Atendimento

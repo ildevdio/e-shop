@@ -34,7 +34,7 @@ export default function Configuracoes() {
   const [senhaMestreErro, setSenhaMestreErro] = useState('');
   const [senhaMestreLoading, setSenhaMestreLoading] = useState(false);
 
-  const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas', 'Compras', 'Vendedor'];
+  const setores = ['Comercial', 'Separação', 'Logística', 'Conferência', 'Entregas', 'Compras', 'Vendedor', 'Financeiro'];
   const perfis = ['AdminMaster', 'SuperAdmin', 'Comum'];
 
   const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -136,7 +136,7 @@ export default function Configuracoes() {
     setLoading(true);
 
     const setoresIds = formNovoUsuario.setores.map(s => {
-      const mapa: Record<string, number> = { 'Comercial': 1, 'Separação': 2, 'Logística': 3, 'Conferência': 4, 'Entregas': 5, 'Compras': 6, 'Vendedor': 7 };
+      const mapa: Record<string, number> = { 'Comercial': 1, 'Separação': 2, 'Logística': 3, 'Conferência': 4, 'Entregas': 5, 'Compras': 6, 'Vendedor': 7, 'Financeiro': 8 };
       return mapa[s] || 0;
     }).filter(id => id > 0);
 
@@ -360,6 +360,7 @@ export default function Configuracoes() {
                     { modulo: 'Logística', admin: true, super: true, comum: 'Setor' },
                     { modulo: 'Conferência', admin: true, super: true, comum: 'Setor' },
                     { modulo: 'Entregas', admin: true, super: true, comum: 'Setor' },
+                    { modulo: 'Financeiro', admin: true, super: true, comum: 'Setor' },
                     { modulo: 'Gerenciar Catálogo', admin: true, super: true, comum: 'Setor (Compras)' },
                     { modulo: 'Configurações', admin: true, super: true, comum: 'Setor (Compras)' },
                     { modulo: 'Gerenciar Usuários', admin: true, super: false, comum: 'Setor (Compras)' },

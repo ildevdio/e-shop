@@ -47,6 +47,7 @@ export interface Pedido {
   pesoTotal: number;
   valorTotal: number;
   dataCriacao: string;
+  observacao?: string;
   itens: ItemPedido[];
 }
 
@@ -165,13 +166,15 @@ export const pedidoService = {
     desconto?: number;
     acrescimo?: number;
     valorTotal?: number;
+    observacao?: string;
     itens?: { id: number; quantidade?: number; precoUnitario?: number }[];
   }): Promise<Pedido | null> => {
     try {
       const response = await axios.put(`${API_URL}/${id}`, dto);
       return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar pedido', error);
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Erro ao atualizar pedido';
+      alert(msg);
       return null;
     }
   },
@@ -216,9 +219,9 @@ export const pedidoService = {
     }
   },
 
-  liberarPedido: async (id: number): Promise<boolean> => {
+  liberarPedido: async (id: number, observacao?: string): Promise<boolean> => {
     try {
-      await axios.put(`${API_URL}/${id}/liberar-financeiro`);
+      await axios.put(`${API_URL}/${id}/liberar-financeiro`, observacao ? { observacao } : undefined);
       return true;
     } catch (error) {
       console.error('Erro ao liberar pedido', error);

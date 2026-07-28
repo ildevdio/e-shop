@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Multigrao.Api.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Multigrao.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728135941_PedidoObservacao")]
+    partial class PedidoObservacao
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -504,6 +507,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<int>("Ordem")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("RotaId")
                         .HasColumnType("integer");
 
@@ -514,24 +520,11 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PedidoId");
+
                     b.HasIndex("RotaId");
 
                     b.ToTable("Entregas");
-                });
-
-            modelBuilder.Entity("Multigrao.Api.Models.EntregaPedido", b =>
-                {
-                    b.Property<int>("EntregaId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PedidoId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("EntregaId", "PedidoId");
-
-                    b.HasIndex("PedidoId");
-
-                    b.ToTable("EntregasPedidos");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.ItemPedido", b =>
@@ -762,9 +755,6 @@ namespace Multigrao.Api.Migrations
                     b.Property<string>("Estado")
                         .HasMaxLength(2)
                         .HasColumnType("character varying(2)");
-
-                    b.Property<bool>("LiberadoFinanceiro")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Logradouro")
                         .HasMaxLength(200)
@@ -1312,32 +1302,21 @@ namespace Multigrao.Api.Migrations
 
             modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
                 {
+                    b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
+                        .WithMany("Entregas")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Multigrao.Api.Models.Rota", "Rota")
                         .WithMany("Entregas")
                         .HasForeignKey("RotaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Rota");
-                });
-
-            modelBuilder.Entity("Multigrao.Api.Models.EntregaPedido", b =>
-                {
-                    b.HasOne("Multigrao.Api.Models.Entrega", "Entrega")
-                        .WithMany("EntregaPedidos")
-                        .HasForeignKey("EntregaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
-                        .WithMany("EntregaPedidos")
-                        .HasForeignKey("PedidoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Entrega");
-
                     b.Navigation("Pedido");
+
+                    b.Navigation("Rota");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.ItemPedido", b =>
@@ -1510,11 +1489,6 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Votos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
-                {
-                    b.Navigation("EntregaPedidos");
-                });
-
             modelBuilder.Entity("Multigrao.Api.Models.Marca", b =>
                 {
                     b.Navigation("Produtos");
@@ -1522,7 +1496,7 @@ namespace Multigrao.Api.Migrations
 
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
                 {
-                    b.Navigation("EntregaPedidos");
+                    b.Navigation("Entregas");
 
                     b.Navigation("Itens");
                 });

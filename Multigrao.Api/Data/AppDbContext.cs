@@ -23,6 +23,7 @@ namespace Multigrao.Api.Data
         public DbSet<Veiculo> Veiculos { get; set; }
         public DbSet<Rota> Rotas { get; set; }
         public DbSet<Entrega> Entregas { get; set; }
+        public DbSet<EntregaPedido> EntregasPedidos { get; set; }
         
         public DbSet<Conversa> Conversas { get; set; }
         public DbSet<Mensagem> Mensagens { get; set; }
@@ -81,10 +82,19 @@ namespace Multigrao.Api.Data
                 .HasForeignKey(p => p.MarcaId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<Entrega>()
-                .HasOne(e => e.Pedido)
-                .WithMany(p => p.Entregas)
-                .HasForeignKey(e => e.PedidoId)
+            modelBuilder.Entity<EntregaPedido>()
+                .HasKey(ep => new { ep.EntregaId, ep.PedidoId });
+
+            modelBuilder.Entity<EntregaPedido>()
+                .HasOne(ep => ep.Entrega)
+                .WithMany(e => e.EntregaPedidos)
+                .HasForeignKey(ep => ep.EntregaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EntregaPedido>()
+                .HasOne(ep => ep.Pedido)
+                .WithMany(p => p.EntregaPedidos)
+                .HasForeignKey(ep => ep.PedidoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Cliente>()

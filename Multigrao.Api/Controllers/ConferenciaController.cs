@@ -21,11 +21,13 @@ namespace Multigrao.Api.Controllers
         {
             var entregas = await _context.Entregas
                 .Where(e => e.Status == "PendenteConferencia" || e.Status == "EmConferencia")
-                .Include(e => e.Pedido)
-                    .ThenInclude(p => p!.Cliente)
-                .Include(e => e.Pedido)
-                    .ThenInclude(p => p!.Itens)
-                        .ThenInclude(i => i.Produto)
+                .Include(e => e.EntregaPedidos)
+                    .ThenInclude(ep => ep.Pedido)
+                        .ThenInclude(p => p!.Cliente)
+                .Include(e => e.EntregaPedidos)
+                    .ThenInclude(ep => ep.Pedido)
+                        .ThenInclude(p => p!.Itens)
+                            .ThenInclude(i => i.Produto)
                 .Include(e => e.Rota)
                     .ThenInclude(r => r!.Motorista)
                 .OrderBy(e => e.Ordem)
@@ -53,7 +55,8 @@ namespace Multigrao.Api.Controllers
         public async Task<IActionResult> ConcluirConferencia(int entregaId)
         {
             var entrega = await _context.Entregas
-                .Include(e => e.Pedido)
+                .Include(e => e.EntregaPedidos)
+                    .ThenInclude(ep => ep.Pedido)
                 .FirstOrDefaultAsync(e => e.Id == entregaId);
 
             if (entrega == null) return NotFound();
@@ -63,8 +66,8 @@ namespace Multigrao.Api.Controllers
 
             entrega.Status = "Conferido";
 
-            if (entrega.Pedido != null)
-                entrega.Pedido.Status = "ProntoEntrega";
+            foreach (var ep in entrega.EntregaPedidos)
+                if (ep.Pedido != null) ep.Pedido.Status = "ProntoEntrega";
 
             await _context.SaveChangesAsync();
 

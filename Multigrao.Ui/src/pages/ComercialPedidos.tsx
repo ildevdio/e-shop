@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2 } from 'lucide-react';
+import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2, ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
@@ -11,6 +11,7 @@ import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocompl
 import { buscarCEP } from '../utils/buscarCEP';
 
 const STATUS_LABELS: Record<string, string> = {
+  BloqueadoFinanceiro: 'Pendente de Lib. Financeira',
   AguardandoConfirmacao: 'Aguardando Confirmação',
   Pendente: 'Pendente',
   EmProducao: 'Em Produção',
@@ -29,7 +30,7 @@ const STATUS_GROUPS: Record<string, string[]> = {
   'Cancelados': ['Devolvido'],
 };
 
-const PENDENTES_STATUSES = ['AguardandoConfirmacao', 'Pendente', 'EmProducao', 'EmSeparacao', 'EmConferencia', 'ProntoEntrega', 'ProntoRetirada', 'EmEntrega'];
+const PENDENTES_STATUSES = ['BloqueadoFinanceiro', 'AguardandoConfirmacao', 'Pendente', 'EmProducao', 'EmSeparacao', 'EmConferencia', 'ProntoEntrega', 'ProntoRetirada', 'EmEntrega'];
 
 type StatusGroup = 'Todos' | 'Ativos' | 'Finalizados' | 'Cancelados';
 type AbaPedidos = 'pendentes' | 'consulta';
@@ -74,6 +75,8 @@ export default function ComercialPedidos() {
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
   const [buscaCliente, setBuscaCliente] = useState('');
   const [showNovoCliente, setShowNovoCliente] = useState(false);
+  const [showBloqueadoDialog, setShowBloqueadoDialog] = useState(false);
+  const [clienteBloqueadoSelecionado, setClienteBloqueadoSelecionado] = useState<Cliente | null>(null);
   const [novoCliente, setNovoCliente] = useState({ razaoSocialNome: '', cpfCnpj: '', telefone: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '' });
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
@@ -88,9 +91,10 @@ export default function ComercialPedidos() {
     desconto: number;
     acrescimo: number;
     valorTotal: number;
+    observacao: string;
     itens: { id: number; quantidade: number; precoUnitario: number }[];
   } | null>(null);
-  const editando = detalhe != null && !isVendedor && !['Entregue', 'Devolvido'].includes(detalhe.status);
+  const editando = detalhe != null && !isVendedor && !['Entregue', 'Devolvido', 'BloqueadoFinanceiro'].includes(detalhe.status);
   const [buscandoCEP, setBuscandoCEP] = useState<'novo' | 'edit' | null>(null);
 
   const handleBuscarCEPNovo = async () => {
@@ -165,6 +169,7 @@ export default function ComercialPedidos() {
       desconto: pedido.desconto,
       acrescimo: pedido.acrescimo,
       valorTotal: pedido.valorTotal,
+      observacao: pedido.observacao ?? '',
       itens: pedido.itens.map(i => ({ id: i.id, quantidade: i.quantidade, precoUnitario: i.precoUnitario })),
     });
     setModalAberto(true);
@@ -209,6 +214,12 @@ export default function ComercialPedidos() {
       setNovoPedido({ ...novoPedido, clienteId: '' });
       return;
     }
+    const cliente = clientes.find(c => c.id === parseInt(clienteId));
+    if (cliente?.bloqueadoFinanceiro) {
+      setClienteBloqueadoSelecionado(cliente);
+      setShowBloqueadoDialog(true);
+      return;
+    }
     const pendentes = pedidos.filter(p =>
       p.clienteId === parseInt(clienteId) &&
       PENDENTES_STATUSES.includes(p.status)
@@ -218,6 +229,28 @@ export default function ComercialPedidos() {
     } else {
       setNovoPedido({ ...novoPedido, clienteId });
     }
+  };
+
+  const confirmarClienteBloqueado = () => {
+    if (!clienteBloqueadoSelecionado) return;
+    const pendentes = pedidos.filter(p =>
+      p.clienteId === clienteBloqueadoSelecionado.id &&
+      PENDENTES_STATUSES.includes(p.status)
+    );
+    setShowBloqueadoDialog(false);
+    setClienteBloqueadoSelecionado(null);
+    if (pendentes.length > 0) {
+      setPedidoPendenteDialog(pendentes);
+    } else {
+      setNovoPedido({ ...novoPedido, clienteId: String(clienteBloqueadoSelecionado.id) });
+    }
+  };
+
+  const cancelarClienteBloqueado = () => {
+    setShowBloqueadoDialog(false);
+    setClienteBloqueadoSelecionado(null);
+    setBuscaCliente('');
+    setNovoPedido({ ...novoPedido, clienteId: '' });
   };
 
   const criarCliente = async () => {
@@ -556,7 +589,10 @@ export default function ComercialPedidos() {
                     </td>
                     <td className="px-6 py-4 text-gray-400">{new Date(pedido.dataCriacao).toLocaleDateString('pt-BR')}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-black ring-1 ring-black/20">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ${
+                        pedido.status === 'BloqueadoFinanceiro' ? 'bg-amber-100 text-amber-700 ring-amber-300' :
+                        'bg-gray-100 text-black ring-black/20'
+                      }`}>
                         {STATUS_LABELS[pedido.status] ?? pedido.status}
                       </span>
                     </td>
@@ -651,7 +687,15 @@ export default function ComercialPedidos() {
                   </button>
                 </div>
                 {novoPedido.clienteId && (
-                  <p className="text-xs text-gray-500 mt-1">Selecionado: {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.razaoSocialNome}</p>
+                  <div className="mt-1 space-y-1">
+                    <p className="text-xs text-gray-500">Selecionado: {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.razaoSocialNome}</p>
+                    {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.bloqueadoFinanceiro && (
+                      <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <ShieldAlert size={14} className="text-amber-600 shrink-0" />
+                        <span className="text-xs text-amber-700 font-medium">Este cliente está bloqueado pelo setor financeiro. O pedido ficará pendente de liberação.</span>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1073,6 +1117,23 @@ export default function ComercialPedidos() {
                   <p className="text-gray-500 mt-0.5 text-sm">Nenhum endereço informado</p>
                 )}
               </div>
+              <div className="col-span-2 bg-gray-50 rounded-xl p-3">
+                <span className="text-gray-400 text-xs uppercase tracking-wider">Observação</span>
+                {editando ? (
+                  <textarea
+                    value={editDetalhe!.observacao}
+                    onChange={e => setEditDetalhe({ ...editDetalhe!, observacao: e.target.value })}
+                    placeholder="Observações sobre o pedido..."
+                    rows={3}
+                    maxLength={500}
+                    className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-1 resize-none"
+                  />
+                ) : detalhe.observacao ? (
+                  <p className="text-gray-900 text-sm mt-1 whitespace-pre-wrap">{detalhe.observacao}</p>
+                ) : (
+                  <p className="text-gray-500 mt-1 text-sm">Nenhuma observação</p>
+                )}
+              </div>
               {detalhe.itens && detalhe.itens.length > 0 && (
                 <div className="col-span-2 bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Itens ({detalhe.itens.length})</span>
@@ -1116,6 +1177,7 @@ export default function ComercialPedidos() {
                     desconto: e.desconto,
                     acrescimo: e.acrescimo,
                     valorTotal: e.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0),
+                    observacao: e.observacao,
                     itens: e.itens,
                   });
                   if (ok) { fecharDetalhe(); await carregar(); }
@@ -1142,6 +1204,7 @@ export default function ComercialPedidos() {
                       desconto: editDetalhe.desconto,
                       acrescimo: editDetalhe.acrescimo,
                       valorTotal: editDetalhe.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0),
+                      observacao: editDetalhe.observacao,
                       itens: editDetalhe.itens,
                     });
                     if (!ok) return;
@@ -1243,6 +1306,33 @@ export default function ComercialPedidos() {
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setShowNovoCliente(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={criarCliente} disabled={!novoCliente.razaoSocialNome.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoCliente.razaoSocialNome.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Cadastrar e Selecionar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBloqueadoDialog && clienteBloqueadoSelecionado && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
+                <ShieldAlert size={22} className="text-amber-500" /> Cliente Bloqueado
+              </h2>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-amber-800 font-medium">{clienteBloqueadoSelecionado.razaoSocialNome}</p>
+              <p className="text-xs text-amber-600 mt-1">{clienteBloqueadoSelecionado.cpfCnpj}</p>
+              <p className="text-xs text-amber-700 mt-3 leading-relaxed">
+                Este cliente está bloqueado pelo setor financeiro. Um pedido pode ser criado, mas ficará <strong>pendente de liberação</strong> até que o financeiro aprove.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button onClick={cancelarClienteBloqueado} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">
+                Cancelar
+              </button>
+              <button onClick={confirmarClienteBloqueado} className="px-5 py-2.5 bg-amber-600 text-white hover:bg-amber-700 rounded-xl font-medium transition-colors text-sm flex items-center gap-2">
+                <ShieldAlert size={14} /> Solicitar Liberação ao Financeiro
+              </button>
             </div>
           </div>
         </div>

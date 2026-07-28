@@ -150,7 +150,7 @@ namespace Multigrao.Api.Controllers
             if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
 
             var statusInicial = cliente.BloqueadoFinanceiro ? "BloqueadoFinanceiro" : "Pendente";
-            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo, status: statusInicial);
+            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo, status: statusInicial, observacao: dto.Observacao);
             
             if (cliente.BloqueadoFinanceiro)
                 await Notificar("Pedido Bloqueado", $"Pedido #{pedido.Id} criado para cliente bloqueado — aguardando liberação do financeiro.", "pedido", "Financeiro");
@@ -234,9 +234,19 @@ namespace Multigrao.Api.Controllers
             if (dto.Bairro != null) pedido.Bairro = dto.Bairro;
             if (dto.Cidade != null) pedido.Cidade = dto.Cidade;
             if (dto.Estado != null) pedido.Estado = dto.Estado;
+
+            if (pedido.Status == "ProntoRetirada" && pedido.TipoEntrega == "Entrega")
+            {
+                if (string.IsNullOrWhiteSpace(pedido.Logradouro) || string.IsNullOrWhiteSpace(pedido.Numero) ||
+                    string.IsNullOrWhiteSpace(pedido.Bairro) || string.IsNullOrWhiteSpace(pedido.Cidade) ||
+                    string.IsNullOrWhiteSpace(pedido.Estado) || string.IsNullOrWhiteSpace(pedido.Cep))
+                    return BadRequest(new { message = "Preencha o endereço completo (logradouro, número, bairro, cidade, estado e CEP) antes de alterar para Entrega." });
+                pedido.Status = "ProntoEntrega";
+            }
             if (dto.Desconto.HasValue) pedido.Desconto = dto.Desconto.Value;
             if (dto.Acrescimo.HasValue) pedido.Acrescimo = dto.Acrescimo.Value;
             if (dto.ValorTotal.HasValue) pedido.ValorTotal = dto.ValorTotal.Value;
+            if (dto.Observacao != null) pedido.Observacao = dto.Observacao;
 
             if (dto.Itens != null)
             {
@@ -293,7 +303,8 @@ namespace Multigrao.Api.Controllers
             string? cidade = null,
             string? estado = null,
             bool enderecoConfere = false,
-            string status = "Pendente"
+            string status = "Pendente",
+            string? observacao = null
         )
         {
             var itens = new List<ItemPedido>();
@@ -341,6 +352,7 @@ namespace Multigrao.Api.Controllers
                 ValorTotal = valorTotal,
                 PesoTotal = pesoTotal,
                 DataCriacao = DateTime.UtcNow,
+                Observacao = observacao,
                 Itens = itens
             };
 
@@ -441,7 +453,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpPut("{id}/liberar-financeiro")]
-        public async Task<IActionResult> LiberarPedidoFinanceiro(int id)
+        public async Task<IActionResult> LiberarPedidoFinanceiro(int id, [FromBody] LiberarFinanceiroDto? dto = null)
         {
             var pedido = await _context.Pedidos.FindAsync(id);
             if (pedido == null) return NotFound();
@@ -449,6 +461,9 @@ namespace Multigrao.Api.Controllers
                 return BadRequest(new { message = "O pedido não está bloqueado pelo financeiro." });
 
             pedido.Status = "Pendente";
+            pedido.LiberadoFinanceiro = true;
+            if (!string.IsNullOrWhiteSpace(dto?.Observacao))
+                pedido.Observacao = dto.Observacao;
             await _context.SaveChangesAsync();
             await Notificar("Pedido Liberado", $"Pedido #{id} foi liberado pelo setor financeiro.", "pedido", "Comercial");
             return Ok(pedido);
@@ -459,12 +474,12 @@ namespace Multigrao.Api.Controllers
         {
             var pedido = await _context.Pedidos
                 .Include(p => p.Itens)
-                .Include(p => p.Entregas)
+                .Include(p => p.EntregaPedidos)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (pedido == null) return NotFound();
 
-            if (pedido.Entregas.Any())
-                _context.Entregas.RemoveRange(pedido.Entregas);
+            if (pedido.EntregaPedidos.Any())
+                _context.EntregasPedidos.RemoveRange(pedido.EntregaPedidos);
 
             _context.ItensPedido.RemoveRange(pedido.Itens);
             _context.Pedidos.Remove(pedido);

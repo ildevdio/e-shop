@@ -24,8 +24,14 @@ namespace Multigrao.Api.Controllers
                 .Where(r => r.MotoristaId == motoristaId && r.Data.Date == DateTime.UtcNow.Date)
                 .Include(r => r.Veiculo)
                 .Include(r => r.Entregas)
-                    .ThenInclude(e => e.Pedido)
-                        .ThenInclude(p => p!.Cliente)
+                    .ThenInclude(e => e.EntregaPedidos)
+                        .ThenInclude(ep => ep.Pedido)
+                            .ThenInclude(p => p!.Cliente)
+                .Include(r => r.Entregas)
+                    .ThenInclude(e => e.EntregaPedidos)
+                        .ThenInclude(ep => ep.Pedido)
+                            .ThenInclude(p => p!.Itens)
+                                .ThenInclude(i => i.Produto)
                 .ToListAsync();
 
             return Ok(rotas);
@@ -37,8 +43,13 @@ namespace Multigrao.Api.Controllers
             var query = _context.Entregas
                 .Include(e => e.Rota)
                     .ThenInclude(r => r!.Motorista)
-                .Include(e => e.Pedido)
-                    .ThenInclude(p => p!.Cliente)
+                .Include(e => e.EntregaPedidos)
+                    .ThenInclude(ep => ep.Pedido)
+                        .ThenInclude(p => p!.Cliente)
+                .Include(e => e.EntregaPedidos)
+                    .ThenInclude(ep => ep.Pedido)
+                        .ThenInclude(p => p!.Itens)
+                            .ThenInclude(i => i.Produto)
                 .AsQueryable();
 
             if (motoristaId.HasValue)
@@ -55,7 +66,8 @@ namespace Multigrao.Api.Controllers
         public async Task<IActionResult> RegistrarAcaoEntrega(int entregaId, [FromBody] RegistroEntregaDto dto)
         {
             var entrega = await _context.Entregas
-                .Include(e => e.Pedido)
+                .Include(e => e.EntregaPedidos)
+                    .ThenInclude(ep => ep.Pedido)
                 .FirstOrDefaultAsync(e => e.Id == entregaId);
 
             if (entrega == null) return NotFound();
@@ -65,22 +77,22 @@ namespace Multigrao.Api.Controllers
                 case "Entregue":
                     entrega.Status = "Entregue";
                     entrega.Observacao = dto.Observacao ?? string.Empty;
-                    if (entrega.Pedido != null)
-                        entrega.Pedido.Status = "Entregue";
+                    foreach (var ep in entrega.EntregaPedidos)
+                        if (ep.Pedido != null) ep.Pedido.Status = "Entregue";
                     break;
 
                 case "Devolvido":
                     entrega.Status = "Devolvido";
                     entrega.MotivoDevolucao = dto.MotivoDevolucao ?? string.Empty;
                     entrega.Observacao = dto.Observacao ?? string.Empty;
-                    if (entrega.Pedido != null)
-                        entrega.Pedido.Status = "Devolvido";
+                    foreach (var ep in entrega.EntregaPedidos)
+                        if (ep.Pedido != null) ep.Pedido.Status = "Devolvido";
                     break;
 
                 case "EmRota":
                     entrega.Status = "EmRota";
-                    if (entrega.Pedido != null)
-                        entrega.Pedido.Status = "EmEntrega";
+                    foreach (var ep in entrega.EntregaPedidos)
+                        if (ep.Pedido != null) ep.Pedido.Status = "EmEntrega";
                     break;
 
                 default:

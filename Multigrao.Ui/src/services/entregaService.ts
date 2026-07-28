@@ -5,7 +5,6 @@ const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/ap
 export interface Entrega {
   id: number;
   rotaId: number;
-  pedidoId: number;
   ordem: number;
   status: string;
   observacao: string | null;
@@ -15,14 +14,20 @@ export interface Entrega {
     motoristaId: number;
     motorista?: { id: number; nome: string };
     veiculo?: { id: number; modelo: string; placa: string };
+    linkGoogleMaps?: string | null;
   };
-  pedido?: {
-    id: number;
-    valorTotal: number;
-    pesoTotal: number;
-    cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
-    itens?: { id: number; quantidade: number; produto?: { nome: string } }[];
-  };
+  entregaPedidos?: {
+    pedidoId: number;
+    pedido?: {
+      id: number;
+      valorTotal: number;
+      pesoTotal: number;
+      pagamento?: string;
+      liberadoFinanceiro?: boolean;
+      cliente?: { id: number; razaoSocialNome: string; bairro: string; logradouro: string; numero: string; telefone: string; };
+      itens?: { id: number; quantidade: number; produto?: { nome: string } }[];
+    };
+  }[];
 }
 
 export interface RegistroEntregaDto {

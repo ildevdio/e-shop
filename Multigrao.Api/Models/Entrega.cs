@@ -11,16 +11,15 @@ namespace Multigrao.Api.Models
         public int RotaId { get; set; }
         public Rota? Rota { get; set; }
 
-        public int PedidoId { get; set; }
-        public Pedido? Pedido { get; set; }
-
         public int Ordem { get; set; }
 
         [Required]
         [StringLength(50)]
-        public string Status { get; set; } = "PendenteConferencia"; // PendenteConferencia, EmConferencia, EmEntrega, Entregue, Devolvido
+        public string Status { get; set; } = "PendenteConferencia";
 
         public string Observacao { get; set; } = string.Empty;
         public string MotivoDevolucao { get; set; } = string.Empty;
+
+        public ICollection<EntregaPedido> EntregaPedidos { get; set; } = new List<EntregaPedido>();
     }
 }
