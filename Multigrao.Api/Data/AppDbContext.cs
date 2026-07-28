@@ -101,7 +101,8 @@ namespace Multigrao.Api.Data
                 new Setor { Id = 4, Nome = "Conferência" },
                 new Setor { Id = 5, Nome = "Entregas" },
                 new Setor { Id = 6, Nome = "Compras" },
-                new Setor { Id = 7, Nome = "Vendedor" }
+                new Setor { Id = 7, Nome = "Vendedor" },
+                new Setor { Id = 8, Nome = "Financeiro" }
             );
 
             // Seed: Usuários

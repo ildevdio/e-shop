@@ -31,6 +31,7 @@ export interface Cliente {
   vendedorId?: number | null;
   vendedor?: { id: number; nome: string } | null;
   contatos?: ContatoResumo[];
+  bloqueadoFinanceiro?: boolean;
 }
 
 export interface CriarClienteDto {
@@ -95,5 +96,15 @@ export const clienteService = {
 
   deletarCliente: async (id: number): Promise<void> => {
     await axios.delete(`${API_URL}/${id}`);
+  },
+
+  bloquearFinanceiro: async (id: number): Promise<Cliente> => {
+    const response = await axios.put(`${API_URL}/${id}/bloquear-financeiro`);
+    return response.data;
+  },
+
+  desbloquearFinanceiro: async (id: number): Promise<Cliente> => {
+    const response = await axios.put(`${API_URL}/${id}/desbloquear-financeiro`);
+    return response.data;
   },
 };

@@ -149,8 +149,14 @@ namespace Multigrao.Api.Controllers
             var cliente = await _context.Clientes.FindAsync(dto.ClienteId);
             if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
 
-            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo);
-            await Notificar("Novo Pedido", $"Pedido #{pedido.Id} criado no valor de R$ {pedido.ValorTotal:F2}.", "pedido", "Comercial");
+            var statusInicial = cliente.BloqueadoFinanceiro ? "BloqueadoFinanceiro" : "Pendente";
+            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo, status: statusInicial);
+            
+            if (cliente.BloqueadoFinanceiro)
+                await Notificar("Pedido Bloqueado", $"Pedido #{pedido.Id} criado para cliente bloqueado — aguardando liberação do financeiro.", "pedido", "Financeiro");
+            else
+                await Notificar("Novo Pedido", $"Pedido #{pedido.Id} criado no valor de R$ {pedido.ValorTotal:F2}.", "pedido", "Comercial");
+            
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
 
@@ -169,6 +175,7 @@ namespace Multigrao.Api.Controllers
 
             int? clienteId = cliente?.Id;
             bool enderecoConfere = false;
+            bool clienteBloqueado = cliente?.BloqueadoFinanceiro == true;
 
             if (cliente != null)
             {
@@ -181,6 +188,7 @@ namespace Multigrao.Api.Controllers
                     (cliente.Estado ?? "") == (dto.Estado ?? "");
             }
 
+            var statusInicial = clienteBloqueado ? "BloqueadoFinanceiro" : "AguardandoConfirmacao";
             var pedido = await CriarPedido(
                 clienteId,
                 dto.SolicitanteNome,
@@ -200,9 +208,12 @@ namespace Multigrao.Api.Controllers
                 dto.Cidade,
                 dto.Estado,
                 enderecoConfere,
-                status: "AguardandoConfirmacao"
+                status: statusInicial
             );
-            await Notificar("Solicitação de Catálogo", $"{dto.SolicitanteNome} solicitou pedido via catálogo (R$ {pedido.ValorTotal:F2}).", "pedido", "Compras");
+            if (clienteBloqueado)
+                await Notificar("Solicitação Bloqueada", $"{dto.SolicitanteNome} solicitou pedido via catálogo (R$ {pedido.ValorTotal:F2}), mas o cliente está bloqueado — aguardando liberação do financeiro.", "pedido", "Financeiro");
+            else
+                await Notificar("Solicitação de Catálogo", $"{dto.SolicitanteNome} solicitou pedido via catálogo (R$ {pedido.ValorTotal:F2}).", "pedido", "Compras");
             return CreatedAtAction(nameof(GetPedido), new { id = pedido.Id }, pedido);
         }
 
@@ -427,6 +438,20 @@ namespace Multigrao.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Cliente vinculado ao pedido." });
+        }
+
+        [HttpPut("{id}/liberar-financeiro")]
+        public async Task<IActionResult> LiberarPedidoFinanceiro(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+            if (pedido.Status != "BloqueadoFinanceiro")
+                return BadRequest(new { message = "O pedido não está bloqueado pelo financeiro." });
+
+            pedido.Status = "Pendente";
+            await _context.SaveChangesAsync();
+            await Notificar("Pedido Liberado", $"Pedido #{id} foi liberado pelo setor financeiro.", "pedido", "Comercial");
+            return Ok(pedido);
         }
 
         [HttpDelete("{id}")]

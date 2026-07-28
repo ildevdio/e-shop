@@ -20,6 +20,7 @@ import Separacao from './pages/Separacao';
 import Logistica from './pages/Logistica';
 import Entregas from './pages/Entregas';
 import Conferencia from './pages/Conferencia';
+import Financeiro from './pages/Financeiro';
 import { useAuthStore } from './store/authStore';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -57,6 +58,7 @@ function App() {
 
           <Route path="conferencia" element={<Conferencia />} />
           <Route path="entregas" element={<Entregas />} />
+          <Route path="financeiro" element={<Financeiro />} />
         </Route>
 
         <Route path="/tabela" element={<LayoutPublico />}>

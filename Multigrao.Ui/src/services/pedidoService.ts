@@ -216,6 +216,16 @@ export const pedidoService = {
     }
   },
 
+  liberarPedido: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/liberar-financeiro`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao liberar pedido', error);
+      return false;
+    }
+  },
+
   buscarPedidos: async (params: {
     busca?: string;
     status?: string;

@@ -127,5 +127,27 @@ namespace Multigrao.Api.Controllers
 
             return NoContent();
         }
+
+        [HttpPut("{id}/bloquear-financeiro")]
+        public async Task<IActionResult> BloquearFinanceiro(int id)
+        {
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null) return NotFound();
+
+            cliente.BloqueadoFinanceiro = true;
+            await _context.SaveChangesAsync();
+            return Ok(cliente);
+        }
+
+        [HttpPut("{id}/desbloquear-financeiro")]
+        public async Task<IActionResult> DesbloquearFinanceiro(int id)
+        {
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null) return NotFound();
+
+            cliente.BloqueadoFinanceiro = false;
+            await _context.SaveChangesAsync();
+            return Ok(cliente);
+        }
     }
 }

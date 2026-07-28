@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Phone, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, X, Phone, Pencil, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import SearchAutocomplete from '../components/SearchAutocomplete';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { clienteService, type Cliente, type CriarClienteDto } from '../services/clienteService';
 import { useUiStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 const REGIMES = ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI'];
@@ -17,6 +18,9 @@ const camposVazios: CriarClienteDto = {
 
 export default function ComercialClientes() {
   const { setModalAberto } = useUiStore();
+  const { setores } = useAuthStore();
+  const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const isFinanceiro = setores.some(s => normalize(s) === 'financeiro');
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busca, setBusca] = useState('');
   const [modalTipo, setModalTipo] = useState<'criar' | 'editar' | 'detalhe' | null>(null);
@@ -85,6 +89,18 @@ export default function ComercialClientes() {
     await clienteService.deletarCliente(id);
     await carregarClientes();
     fecharModal();
+  };
+
+  const bloquearDesbloquear = async (c: Cliente) => {
+    const acao = c.bloqueadoFinanceiro ? 'desbloquear' : 'bloquear';
+    if (!confirm(`Deseja ${acao} este cliente?`)) return;
+    if (c.bloqueadoFinanceiro) {
+      const atualizado = await clienteService.desbloquearFinanceiro(c.id);
+      setClientes(prev => prev.map(cli => cli.id === atualizado.id ? atualizado : cli));
+    } else {
+      const atualizado = await clienteService.bloquearFinanceiro(c.id);
+      setClientes(prev => prev.map(cli => cli.id === atualizado.id ? atualizado : cli));
+    }
   };
 
   const filtrados = clientes.filter(c =>
@@ -357,13 +373,14 @@ export default function ComercialClientes() {
                 <th className="px-6 py-3 font-semibold">Cidade</th>
                 <th className="px-6 py-3 font-semibold">Telefone</th>
                 <th className="px-6 py-3 font-semibold">Vendedor</th>
+                <th className="px-6 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 font-semibold">Contatos</th>
                 <th className="px-6 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">Nenhum cliente encontrado.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-12 text-center text-gray-400">Nenhum cliente encontrado.</td></tr>
               ) : filtrados.map(c => (
                 <tr key={c.id} onDoubleClick={() => abrirDetalhe(c)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
                   <td className="px-6 py-4 font-medium text-gray-900">{c.razaoSocialNome}</td>
@@ -378,6 +395,17 @@ export default function ComercialClientes() {
                     ) : <span className="text-gray-400">—</span>}
                   </td>
                   <td className="px-6 py-4">
+                    {c.bloqueadoFinanceiro ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 ring-1 ring-red-200">
+                        <Lock size={10} /> Bloqueado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200">
+                        Ativo
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
                     {c.contatos && c.contatos.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {c.contatos.map(ct => (
@@ -390,6 +418,11 @@ export default function ComercialClientes() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {isFinanceiro && (
+                        <button onClick={(e) => { e.stopPropagation(); bloquearDesbloquear(c); }} className={`p-1.5 rounded-lg transition-colors ${c.bloqueadoFinanceiro ? 'hover:bg-emerald-100 text-emerald-600' : 'hover:bg-red-100 text-red-500'}`} title={c.bloqueadoFinanceiro ? 'Desbloquear' : 'Bloquear'}>
+                          {c.bloqueadoFinanceiro ? <Unlock size={14} /> : <Lock size={14} />}
+                        </button>
+                      )}
                       <button onClick={(e) => { e.stopPropagation(); abrirEditar(c); }} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Editar">
                         <Pencil size={14} className="text-gray-500" />
                       </button>

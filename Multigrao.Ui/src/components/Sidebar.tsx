@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -63,6 +63,9 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
     if (!sectorNav.some(i => i.path === '/entregas')) {
       sectorNav.push({ icon: Truck, label: 'Entregas', path: '/entregas' });
     }
+  }
+  if (isAdmin || hasSetor('Financeiro')) {
+    sectorNav.push({ icon: ShieldCheck, label: 'Financeiro', path: '/financeiro' });
   }
 
   const comNav: NavItem[] = [
