@@ -414,6 +414,21 @@ namespace Multigrao.Api.Controllers
             return NoContent();
         }
 
+        [HttpPut("{id}/vincular-cliente")]
+        public async Task<IActionResult> VincularCliente(int id, [FromBody] VincularClienteDto dto)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+
+            var cliente = await _context.Clientes.FindAsync(dto.ClienteId);
+            if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
+
+            pedido.ClienteId = dto.ClienteId;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cliente vinculado ao pedido." });
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePedido(int id)
         {

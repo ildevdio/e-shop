@@ -212,6 +212,18 @@ namespace Multigrao.Api.DTOs
         public string? Observacao { get; set; }
     }
 
+    public class EditarEntregaDto
+    {
+        public int? Ordem { get; set; }
+        public string? Observacao { get; set; }
+        public string? Status { get; set; }
+    }
+
+    public class VincularClienteDto
+    {
+        public int ClienteId { get; set; }
+    }
+
     // Atendimento
     public class CriarAtendimentoDto
     {

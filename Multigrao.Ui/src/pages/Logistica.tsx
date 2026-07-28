@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown, User, Clock, Package, Filter, Calendar, RotateCcw } from 'lucide-react';
+import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown, User, Clock, Package, Filter, Calendar, RotateCcw, Pencil, X } from 'lucide-react';
 import { logisticaService, type Veiculo, type Motorista, type PedidoPronto, type EntregaRota } from '../services/logisticaService';
 import { useUiStore } from '../store/uiStore';
 
@@ -15,7 +15,7 @@ export default function Logistica() {
   const [activeTab, setActiveTab] = useState<'roteirizacao' | 'emEntrega' | 'consultas' | 'veiculos'>('roteirizacao');
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="h-full flex flex-col gap-6 min-h-0">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
@@ -40,7 +40,7 @@ export default function Logistica() {
         </button>
       </div>
 
-      <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         {activeTab === 'roteirizacao' && <RoteirizacaoTab />}
         {activeTab === 'emEntrega' && <EmEntregaTab />}
         {activeTab === 'consultas' && <ConsultasTab />}
@@ -144,8 +144,8 @@ function RoteirizacaoTab() {
   }
 
   return (
-    <div className="p-6 h-full flex flex-col">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="p-6 h-full min-h-0 flex flex-col">
+      <div className="flex items-center gap-4 mb-6 shrink-0">
         <button onClick={() => setEtapa('selecionar')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${etapa === 'selecionar' ? 'bg-gray-100 text-gray-800 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${etapa === 'selecionar' ? 'bg-black text-white' : 'bg-gray-300 text-white'}`}>1</span>
           Selecionar Pedidos
@@ -200,13 +200,13 @@ function RoteirizacaoTab() {
           </button>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-1/2 flex flex-col h-full rounded-2xl bg-gray-50/50 border border-gray-100 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-white flex items-center justify-between">
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/2 min-h-0 flex flex-col rounded-2xl bg-gray-50/50 border border-gray-100 overflow-hidden">
+            <div className="p-5 border-b border-gray-100 bg-white flex items-center justify-between shrink-0">
               <h2 className="font-semibold text-gray-800">Pedidos na Rota ({selecionados.length})</h2>
               <button onClick={() => setEtapa('selecionar')} className="text-xs text-black font-semibold hover:text-gray-800">Editar seleção</button>
             </div>
-            <div className="p-4 flex-1 overflow-y-auto space-y-3">
+            <div className="p-4 flex-1 min-h-0 overflow-y-auto space-y-3">
               {selecionados.map((pedido) => (
                 <div key={pedido.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-200 text-gray-800 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
@@ -223,7 +223,7 @@ function RoteirizacaoTab() {
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t border-gray-100 bg-white space-y-2">
+            <div className="p-4 border-t border-gray-100 bg-white space-y-2 shrink-0">
               <div className="flex justify-between text-sm text-gray-600 font-medium">
                 <span>Valor Total:</span>
                 <span className="font-bold text-gray-900">R$ {selecionados.reduce((acc, p) => acc + (p.valorTotal ?? 0), 0).toLocaleString('pt-BR')}</span>
@@ -237,11 +237,11 @@ function RoteirizacaoTab() {
             </div>
           </div>
 
-          <div className="w-full md:w-1/2 flex flex-col h-full rounded-2xl bg-gray-50/50 border border-gray-100 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-white">
+          <div className="w-full md:w-1/2 min-h-0 flex flex-col rounded-2xl bg-gray-50/50 border border-gray-100 overflow-hidden">
+            <div className="p-5 border-b border-gray-100 bg-white shrink-0">
               <h2 className="font-semibold text-gray-800">Veículo e Motorista</h2>
             </div>
-            <div className="p-5 flex-1 flex flex-col gap-4 overflow-y-auto">
+            <div className="p-5 flex-1 min-h-0 overflow-y-auto space-y-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 block">Veículo</span>
                 <div className="space-y-2">
@@ -252,11 +252,11 @@ function RoteirizacaoTab() {
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${veiculoSelecionado === veiculo.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
                         <Truck size={20} />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="font-semibold text-gray-900 text-sm">{veiculo.modelo}</div>
                         <div className="text-xs text-gray-500">{veiculo.placa} — {veiculo.pesoMaximo}kg max</div>
                       </div>
-                      {veiculoSelecionado === veiculo.id && <CheckCircle2 size={18} className="text-black" />}
+                      {veiculoSelecionado === veiculo.id && <CheckCircle2 size={18} className="text-black shrink-0" />}
                     </div>
                   ))}
                   {veiculos.length === 0 && <p className="text-xs text-gray-400">Nenhum veículo cadastrado</p>}
@@ -273,24 +273,18 @@ function RoteirizacaoTab() {
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${motoristaSelecionado === motorista.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
                         <User size={20} />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="font-semibold text-gray-900 text-sm">{motorista.nome}</div>
                       </div>
-                      {motoristaSelecionado === motorista.id && <CheckCircle2 size={18} className="text-black" />}
+                      {motoristaSelecionado === motorista.id && <CheckCircle2 size={18} className="text-black shrink-0" />}
                     </div>
                   ))}
                   {motoristas.length === 0 && <p className="text-xs text-gray-400">Nenhum motorista no setor de Entregas</p>}
                 </div>
               </div>
+            </div>
 
-              <div className="flex-1" />
-
-              <button onClick={otimizarRota} disabled={!veiculoSelecionado || !motoristaSelecionado} className={`w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
-                veiculoSelecionado && motoristaSelecionado ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}>
-                <Navigation size={18} /> OTIMIZAR ROTA
-              </button>
-
+            <div className="p-5 border-t border-gray-100 bg-white shrink-0 space-y-3">
               {rotaOtimizada && (
                 <div className="bg-gray-100 border border-gray-300 rounded-xl p-4 text-center">
                   <CheckCircle2 size={24} className="text-black mx-auto mb-2" />
@@ -298,6 +292,12 @@ function RoteirizacaoTab() {
                   <p className="text-xs text-black mt-1">A ordem foi reorganizada automaticamente.</p>
                 </div>
               )}
+
+              <button onClick={otimizarRota} disabled={!veiculoSelecionado || !motoristaSelecionado} className={`w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
+                veiculoSelecionado && motoristaSelecionado ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}>
+                <Navigation size={18} /> OTIMIZAR ROTA
+              </button>
 
               <button onClick={finalizarRota} disabled={!rotaOtimizada || !veiculoSelecionado || !motoristaSelecionado} className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
                 rotaOtimizada && veiculoSelecionado && motoristaSelecionado ? 'bg-black text-white hover:bg-gray-800 shadow-sm shadow-black/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -458,9 +458,46 @@ function EmEntregaTab() {
                       </div>
                     ))}
                   </div>
-                )}
+      )}
+
+      {editando && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditando(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-serif font-bold text-gray-900">Editar Entrega #{editando.id}</h2>
+              <button onClick={() => setEditando(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Pedido</label>
+                <p className="text-gray-900 mt-0.5">#{editando.pedidoId} — {editando.pedido?.cliente?.razaoSocialNome ?? 'Cliente'}</p>
               </div>
-            );
+              <div>
+                <label className="text-sm font-medium text-gray-700">Ordem na Rota</label>
+                <input type="number" min={1} value={editForm.ordem} onChange={e => setEditForm({ ...editForm, ordem: Number(e.target.value) })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Status</label>
+                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1">
+                  {Object.entries(ENTREGA_STATUS_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Observação</label>
+                <textarea value={editForm.observacao} onChange={e => setEditForm({ ...editForm, observacao: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1 resize-none" placeholder="Observações sobre a entrega..." />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => setEditando(null)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={salvarEdicao} className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm">Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
           })}
         </div>
       )}
@@ -478,6 +515,8 @@ function ConsultasTab() {
   const [resultados, setResultados] = useState<EntregaRota[]>([]);
   const [consultaRealizada, setConsultaRealizada] = useState(false);
   const [detalhe, setDetalhe] = useState<EntregaRota | null>(null);
+  const [editando, setEditando] = useState<EntregaRota | null>(null);
+  const [editForm, setEditForm] = useState({ observacao: '', ordem: 0, status: '' });
 
   const carregar = async () => {
     setCarregando(true);
@@ -529,6 +568,30 @@ function ConsultasTab() {
     setFiltroDataFim('');
     setResultados([]);
     setConsultaRealizada(false);
+  };
+
+  const abrirEdicao = (e: EntregaRota) => {
+    setEditando(e);
+    setEditForm({ observacao: e.observacao ?? '', ordem: e.ordem, status: e.status });
+  };
+
+  const salvarEdicao = async () => {
+    if (!editando) return;
+    const ok = await logisticaService.editarEntrega(editando.id, editForm);
+    if (ok) {
+      setEditando(null);
+      await carregar();
+      if (consultaRealizada) buscar();
+    }
+  };
+
+  const excluirEntrega = async (id: number) => {
+    if (!confirm('Excluir esta entrega? O pedido voltará a ficar disponível para roteirização.')) return;
+    const ok = await logisticaService.excluirEntrega(id);
+    if (ok) {
+      await carregar();
+      if (consultaRealizada) buscar();
+    }
   };
 
   const statusEntregue = resultados.filter(e => e.status === 'Entregue').length;
@@ -668,7 +731,11 @@ function ConsultasTab() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => setDetalhe(e)} className="text-gray-700 hover:underline text-xs font-medium">Ver</button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => setDetalhe(e)} className="text-gray-700 hover:underline text-xs font-medium">Ver</button>
+                      <button onClick={() => abrirEdicao(e)} className="text-gray-400 hover:text-gray-700 transition-colors"><Pencil size={14} /></button>
+                      <button onClick={() => excluirEntrega(e.id)} className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -682,7 +749,7 @@ function ConsultasTab() {
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes da Entrega</h2>
-              <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><Trash2 size={18} className="text-gray-400" /></button>
+              <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
             </div>
             <div className="space-y-3">
               <div className="bg-gray-50 rounded-xl p-3">

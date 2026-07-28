@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Mail } from 'lucide-react';
+import { Plus, X, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Mail, Loader2 } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
+import { buscarCEP } from '../utils/buscarCEP';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
@@ -37,6 +38,23 @@ export default function Tabela() {
   const [pagamento, setPagamento] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [pedidoCriado, setPedidoCriado] = useState(false);
+  const [buscandoCEP, setBuscandoCEP] = useState(false);
+
+  const handleBuscarCEP = async () => {
+    setBuscandoCEP(true);
+    const resultado = await buscarCEP(solicitante.cep);
+    if (resultado) {
+      setSolicitante(f => ({
+        ...f,
+        logradouro: resultado.logradouro || f.logradouro,
+        complemento: resultado.complemento || f.complemento,
+        bairro: resultado.bairro || f.bairro,
+        cidade: resultado.cidade || f.cidade,
+        estado: resultado.estado || f.estado,
+      }));
+    }
+    setBuscandoCEP(false);
+  };
 
   const carregar = async () => {
     setCarregando(true);
@@ -502,7 +520,10 @@ export default function Tabela() {
                     </div>
                     <div>
                       <label className="text-sm text-neutral-500">CEP</label>
-                      <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} className="w-full bg-white border border-neutral-200 rounded-lg p-3 outline-none focus:border-neutral-800 text-base text-neutral-800 placeholder-neutral-400" placeholder="00000-000" />
+                      <div className="relative">
+                        <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full bg-white border border-neutral-200 rounded-lg p-3 outline-none focus:border-neutral-800 text-base text-neutral-800 placeholder-neutral-400 ${buscandoCEP ? 'pr-10' : ''}`} placeholder="00000-000" />
+                        {buscandoCEP && <Loader2 size={18} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm text-neutral-500">Cidade</label>

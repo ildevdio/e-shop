@@ -11,6 +11,8 @@ namespace Multigrao.Api.Models
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
+        public DateTime DataExpiracao { get; set; }
+
         public bool Ativa { get; set; } = true;
 
         public int AutorId { get; set; }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { Bell, Target, TrendingUp, Plus, Calendar, Megaphone, X, Users, Vote } from 'lucide-react';
+import { Bell, Target, TrendingUp, Plus, Calendar, Megaphone, X, Users, Vote, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { avisoService, type Aviso as AvisoApi } from '../services/avisoService';
@@ -23,12 +23,16 @@ interface EnqueteUI {
   opcoes: { id: number; texto: string; votos: number }[];
   autor: string;
   dataPublicacao: string;
+  dataExpiracao: string;
+  ativa: boolean;
   votada: boolean;
 }
 
 export default function Empresa() {
   const nome = useAuthStore(state => state.nome);
   const usuarioId = useAuthStore(state => state.usuarioId);
+  const role = useAuthStore(state => state.role);
+  const isAdmin = role === 'AdminMaster' || role === 'SuperAdmin';
   const { setModalAberto } = useUiStore();
   const [avisos, setAvisos] = useState<AvisoUI[]>([]);
   const [enquetes, setEnquetes] = useState<EnqueteUI[]>([]);
@@ -41,6 +45,15 @@ export default function Empresa() {
   const [showNovaEnquete, setShowNovaEnquete] = useState(false);
   const [novoAviso, setNovoAviso] = useState({ titulo: '', conteudo: '', tipo: 'comunicado' as const, setorDestino: '' });
   const [novaEnquete, setNovaEnquete] = useState({ titulo: '', opcoes: ['', ''] });
+
+  function tempoRestante(dataExpiracao: string): string {
+    const diff = new Date(dataExpiracao).getTime() - Date.now();
+    if (diff <= 0) return 'Encerrada';
+    const horas = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    if (horas > 0) return `${horas}h ${mins}min`;
+    return `${mins}min`;
+  }
 
   useEffect(() => {
     carregarDados();
@@ -91,6 +104,8 @@ export default function Empresa() {
         opcoes: e.opcoes.map((o: OpcaoEnquete) => ({ id: o.id, texto: o.texto, votos: o.votos })),
         autor: e.autorNome || 'Sistema',
         dataPublicacao: e.dataCriacao,
+        dataExpiracao: e.dataExpiracao,
+        ativa: e.ativa,
         votada: false,
       }));
 
@@ -174,6 +189,11 @@ export default function Empresa() {
   const excluirAviso = async (id: number) => {
     const ok = await avisoService.excluirAviso(id);
     if (ok) setAvisos(avisos.filter(a => a.id !== id));
+  };
+
+  const excluirEnquete = async (id: number) => {
+    const ok = await enqueteService.excluir(id);
+    if (ok) setEnquetes(enquetes.filter(e => e.id !== id));
   };
 
   const tipoStyles: Record<string, { bg: string; icon: string; label: string }> = {
@@ -289,20 +309,26 @@ export default function Empresa() {
                 <p className="text-sm">Nenhuma enquete ativa.</p>
               </div>
             ) : (
-              enquetes.map(enquete => {
+               enquetes.map(enquete => {
                 const totalVotos = enquete.opcoes.reduce((acc, o) => acc + o.votos, 0);
                 return (
-                  <div key={enquete.id} className="p-4 rounded-2xl border border-gray-200 bg-gray-50">
-                    <h3 className="font-bold text-gray-900 text-sm mb-1">{enquete.titulo}</h3>
-                    <p className="text-[10px] text-gray-400 mb-3">{enquete.autor} - {new Date(enquete.dataPublicacao).toLocaleDateString('pt-BR')}</p>
+                  <div key={enquete.id} className={`p-4 rounded-2xl border bg-gray-50 ${enquete.ativa ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}>
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="font-bold text-gray-900 text-sm">{enquete.titulo}</h3>
+                      {isAdmin && (
+                        <button onClick={() => excluirEnquete(enquete.id)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-900 shrink-0"><Trash2 size={14} /></button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-400 mb-1">{enquete.autor} - {new Date(enquete.dataPublicacao).toLocaleDateString('pt-BR')}</p>
+                    {enquete.ativa && <p className="text-[10px] text-gray-500 mb-3 font-medium">{tempoRestante(enquete.dataExpiracao)}</p>}
                     <div className="space-y-2">
                       {enquete.opcoes.map((opcao) => {
                         const pct = totalVotos > 0 ? Math.round((opcao.votos / totalVotos) * 100) : 0;
                         return (
                           <button
                             key={opcao.id}
-                            onClick={() => !enquete.votada && votarEnquete(enquete.id, opcao)}
-                            disabled={enquete.votada}
+                            onClick={() => !enquete.votada && enquete.ativa && votarEnquete(enquete.id, opcao)}
+                            disabled={enquete.votada || !enquete.ativa}
                             className={`w-full text-left p-3 rounded-xl text-sm transition-all relative overflow-hidden ${
                               enquete.votada
                                 ? 'cursor-default'

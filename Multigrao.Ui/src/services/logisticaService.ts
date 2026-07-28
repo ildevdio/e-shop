@@ -154,4 +154,34 @@ export const logisticaService = {
       return [];
     }
   },
+
+  getEntrega: async (id: number): Promise<EntregaRota | null> => {
+    try {
+      const response = await axios.get(`${API_URL}/entregas/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar entrega', error);
+      return null;
+    }
+  },
+
+  editarEntrega: async (id: number, dto: { ordem?: number; observacao?: string; status?: string }): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/entregas/${id}`, dto);
+      return true;
+    } catch (error) {
+      console.error('Erro ao editar entrega', error);
+      return false;
+    }
+  },
+
+  excluirEntrega: async (id: number): Promise<boolean> => {
+    try {
+      await axios.delete(`${API_URL}/entregas/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao excluir entrega', error);
+      return false;
+    }
+  },
 };

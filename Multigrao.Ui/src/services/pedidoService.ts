@@ -206,6 +206,16 @@ export const pedidoService = {
     }
   },
 
+  vincularCliente: async (pedidoId: number, clienteId: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${pedidoId}/vincular-cliente`, { clienteId });
+      return true;
+    } catch (error) {
+      console.error('Erro ao vincular cliente ao pedido', error);
+      return false;
+    }
+  },
+
   buscarPedidos: async (params: {
     busca?: string;
     status?: string;

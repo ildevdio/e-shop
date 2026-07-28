@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw } from 'lucide-react';
+import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
@@ -8,6 +8,7 @@ import { produtoService, type Produto } from '../services/produtoService';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
+import { buscarCEP } from '../utils/buscarCEP';
 
 const STATUS_LABELS: Record<string, string> = {
   AguardandoConfirmacao: 'Aguardando Confirmação',
@@ -71,6 +72,9 @@ export default function ComercialPedidos() {
   const davInputRef = useRef<HTMLInputElement>(null);
   const [pedidoPendenteDialog, setPedidoPendenteDialog] = useState<Pedido[] | null>(null);
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
+  const [buscaCliente, setBuscaCliente] = useState('');
+  const [showNovoCliente, setShowNovoCliente] = useState(false);
+  const [novoCliente, setNovoCliente] = useState({ razaoSocialNome: '', cpfCnpj: '', telefone: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '' });
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
     pagamento: string;
@@ -87,6 +91,39 @@ export default function ComercialPedidos() {
     itens: { id: number; quantidade: number; precoUnitario: number }[];
   } | null>(null);
   const editando = detalhe != null && !isVendedor && !['Entregue', 'Devolvido'].includes(detalhe.status);
+  const [buscandoCEP, setBuscandoCEP] = useState<'novo' | 'edit' | null>(null);
+
+  const handleBuscarCEPNovo = async () => {
+    setBuscandoCEP('novo');
+    const resultado = await buscarCEP(novoCliente.cep);
+    if (resultado) {
+      setNovoCliente(f => ({
+        ...f,
+        logradouro: resultado.logradouro || f.logradouro,
+        bairro: resultado.bairro || f.bairro,
+        cidade: resultado.cidade || f.cidade,
+        estado: resultado.estado || f.estado,
+      }));
+    }
+    setBuscandoCEP(null);
+  };
+
+  const handleBuscarCEPEdit = async () => {
+    if (!editDetalhe) return;
+    setBuscandoCEP('edit');
+    const resultado = await buscarCEP(editDetalhe.cep);
+    if (resultado) {
+      setEditDetalhe(f => f ? {
+        ...f,
+        logradouro: resultado.logradouro || f.logradouro,
+        complemento: resultado.complemento || f.complemento,
+        bairro: resultado.bairro || f.bairro,
+        cidade: resultado.cidade || f.cidade,
+        estado: resultado.estado || f.estado,
+      } : f);
+    }
+    setBuscandoCEP(null);
+  };
 
   const carregar = async () => {
     setCarregando(true);
@@ -180,6 +217,34 @@ export default function ComercialPedidos() {
       setPedidoPendenteDialog(pendentes);
     } else {
       setNovoPedido({ ...novoPedido, clienteId });
+    }
+  };
+
+  const criarCliente = async () => {
+    if (!novoCliente.razaoSocialNome.trim()) return;
+    const cli = await clienteService.criarCliente({
+      razaoSocialNome: novoCliente.razaoSocialNome,
+      cpfCnpj: novoCliente.cpfCnpj,
+      telefone: novoCliente.telefone,
+      cep: novoCliente.cep,
+      logradouro: novoCliente.logradouro,
+      numero: novoCliente.numero,
+      bairro: novoCliente.bairro,
+      cidade: novoCliente.cidade,
+      estado: novoCliente.estado,
+    });
+    if (cli) {
+      setClientes(prev => [...prev, cli]);
+      if (detalhe && !detalhe.clienteId) {
+        await pedidoService.vincularCliente(detalhe.id, cli.id);
+        setDetalhe({ ...detalhe, clienteId: cli.id, cliente: { id: cli.id, razaoSocialNome: cli.razaoSocialNome, cpfCnpj: cli.cpfCnpj, bairro: cli.bairro, logradouro: cli.logradouro, numero: cli.numero, telefone: cli.telefone } });
+        await carregar();
+      } else {
+        setBuscaCliente(cli.razaoSocialNome);
+        selecionarCliente(String(cli.id));
+      }
+      setShowNovoCliente(false);
+      setNovoCliente({ razaoSocialNome: '', cpfCnpj: '', telefone: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '' });
     }
   };
 
@@ -560,16 +625,34 @@ export default function ComercialPedidos() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
-                <select
-                  value={novoPedido.clienteId}
-                  onChange={e => selecionarCliente(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
-                >
-                  <option value="">Selecione o cliente...</option>
-                  {clientes.map(c => (
-                    <option key={c.id} value={c.id}>{c.razaoSocialNome}</option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <SearchAutocomplete
+                      placeholder="Buscar cliente por nome..."
+                      valor={buscaCliente}
+                      onChange={v => {
+                        setBuscaCliente(v);
+                        if (!v) setNovoPedido({ ...novoPedido, clienteId: '' });
+                      }}
+                      sugestoes={clientes
+                        .filter(c => c.razaoSocialNome.toLowerCase().includes(buscaCliente.toLowerCase()) || c.cpfCnpj.includes(buscaCliente))
+                        .map(c => ({ rotulo: c.razaoSocialNome, subRotulo: c.cpfCnpj || c.telefone || '' }))}
+                      aoSelecionar={s => {
+                        const c = clientes.find(cl => cl.razaoSocialNome === s.rotulo);
+                        if (c) {
+                          setBuscaCliente(c.razaoSocialNome);
+                          selecionarCliente(String(c.id));
+                        }
+                      }}
+                    />
+                  </div>
+                  <button type="button" onClick={() => setShowNovoCliente(true)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors shrink-0 flex items-center gap-1">
+                    <Plus size={16} /> Novo
+                  </button>
+                </div>
+                {novoPedido.clienteId && (
+                  <p className="text-xs text-gray-500 mt-1">Selecionado: {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.razaoSocialNome}</p>
+                )}
               </div>
 
               <div>
@@ -836,7 +919,31 @@ export default function ComercialPedidos() {
                 <p className="text-gray-900 font-medium mt-0.5">{STATUS_LABELS[detalhe.status] ?? detalhe.status}</p>
               </div>
               <div className="col-span-2 bg-gray-50 rounded-xl p-3">
-                <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente / Solicitante</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente / Solicitante</span>
+                  {!detalhe.clienteId && detalhe.solicitanteNome && (
+                    <button
+                      onClick={() => {
+                        setNovoCliente({
+                          razaoSocialNome: detalhe.solicitanteNome ?? '',
+                          cpfCnpj: detalhe.cpfCnpj ?? '',
+                          telefone: detalhe.solicitanteTelefone ?? '',
+                          cep: detalhe.cep ?? '',
+                          logradouro: detalhe.logradouro ?? '',
+                          numero: detalhe.numero ?? '',
+                          bairro: detalhe.bairro ?? '',
+                          cidade: detalhe.cidade ?? '',
+                          estado: detalhe.estado ?? '',
+                        });
+                        setBuscaCliente(detalhe.solicitanteNome ?? '');
+                        setShowNovoCliente(true);
+                      }}
+                      className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded-lg transition-colors"
+                    >
+                      <Plus size={14} /> Cliente não cadastrado
+                    </button>
+                  )}
+                </div>
                 <p className="text-gray-900 font-medium mt-0.5">{detalhe.cliente?.razaoSocialNome ?? detalhe.solicitanteNome ?? '—'}</p>
                 {detalhe.cliente?.vendedor && (
                   <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 ring-1 ring-violet-200">
@@ -845,7 +952,9 @@ export default function ComercialPedidos() {
                 )}
                 {detalhe.cpfCnpj && <p className="text-xs text-gray-500 mt-0.5">CPF/CNPJ: {detalhe.cpfCnpj}</p>}
                 {detalhe.solicitanteTelefone && <p className="text-xs text-gray-500 mt-0.5">Tel: {detalhe.solicitanteTelefone}</p>}
-                {detalhe.cliente && <p className="text-xs text-gray-500 mt-0.5">Cliente cadastrado: {detalhe.cliente.razaoSocialNome}</p>}
+                {!detalhe.clienteId && detalhe.logradouro && (
+                  <p className="text-xs text-gray-500 mt-0.5">{detalhe.logradouro}, {detalhe.numero} — {detalhe.bairro}, {detalhe.cidade}/{detalhe.estado}</p>
+                )}
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
@@ -942,7 +1051,10 @@ export default function ComercialPedidos() {
                     </div>
                     <div className="flex gap-2">
                       <input type="text" value={editDetalhe!.estado} onChange={e => setEditDetalhe({ ...editDetalhe!, estado: e.target.value })} placeholder="UF" maxLength={2} className="w-16 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
-                      <input type="text" value={editDetalhe!.cep} onChange={e => setEditDetalhe({ ...editDetalhe!, cep: e.target.value })} placeholder="CEP" className="w-32 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <div className="relative flex-1">
+                        <input type="text" value={editDetalhe!.cep} onChange={e => setEditDetalhe({ ...editDetalhe!, cep: e.target.value })} onBlur={handleBuscarCEPEdit} placeholder="CEP" className={`w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm ${buscandoCEP === 'edit' ? 'pr-8' : ''}`} />
+                        {buscandoCEP === 'edit' && <Loader2 size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
+                      </div>
                     </div>
                   </div>
                 ) : (detalhe.logradouro || detalhe.bairro) ? (
@@ -1069,6 +1181,69 @@ export default function ComercialPedidos() {
             >
               Excluir Pedido
             </button>
+          </div>
+        </div>
+      )}
+
+      {showNovoCliente && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setShowNovoCliente(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-serif font-bold text-gray-900">Novo Cliente</h2>
+              <button onClick={() => setShowNovoCliente(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+            </div>
+            <p className="text-gray-500 mb-4 text-sm">Preencha os dados para cadastrar o cliente.</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Nome / Razão Social *</label>
+                <input value={novoCliente.razaoSocialNome} onChange={e => setNovoCliente({ ...novoCliente, razaoSocialNome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Nome completo ou razão social" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">CPF / CNPJ</label>
+                  <input value={novoCliente.cpfCnpj} onChange={e => setNovoCliente({ ...novoCliente, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="000.000.000-00" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Telefone</label>
+                  <input value={novoCliente.telefone} onChange={e => setNovoCliente({ ...novoCliente, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="(00) 00000-0000" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">CEP</label>
+                  <div className="relative">
+                    <input value={novoCliente.cep} onChange={e => setNovoCliente({ ...novoCliente, cep: e.target.value })} onBlur={handleBuscarCEPNovo} className={`w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5 ${buscandoCEP === 'novo' ? 'pr-9' : ''}`} placeholder="00000-000" />
+                    {buscandoCEP === 'novo' && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-gray-700">Logradouro</label>
+                  <input value={novoCliente.logradouro} onChange={e => setNovoCliente({ ...novoCliente, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Rua, Avenida..." />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Número</label>
+                  <input value={novoCliente.numero} onChange={e => setNovoCliente({ ...novoCliente, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="123" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Bairro</label>
+                  <input value={novoCliente.bairro} onChange={e => setNovoCliente({ ...novoCliente, bairro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">UF</label>
+                  <input value={novoCliente.estado} onChange={e => setNovoCliente({ ...novoCliente, estado: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="SP" maxLength={2} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Cidade</label>
+                <input value={novoCliente.cidade} onChange={e => setNovoCliente({ ...novoCliente, cidade: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-6">
+              <button onClick={() => setShowNovoCliente(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={criarCliente} disabled={!novoCliente.razaoSocialNome.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoCliente.razaoSocialNome.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Cadastrar e Selecionar</button>
+            </div>
           </div>
         </div>
       )}

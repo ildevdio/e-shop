@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
@@ -8,6 +9,7 @@ namespace Multigrao.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class EnqueteController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -27,11 +29,24 @@ namespace Multigrao.Api.Controllers
                 .OrderByDescending(e => e.DataCriacao)
                 .ToListAsync();
 
+            var agora = DateTime.UtcNow;
+            var alteradas = false;
+
+            foreach (var e in enquetes.Where(e => e.Ativa && e.DataExpiracao <= agora))
+            {
+                e.Ativa = false;
+                alteradas = true;
+            }
+
+            if (alteradas)
+                await _context.SaveChangesAsync();
+
             var resultado = enquetes.Select(e => new
             {
                 id = e.Id,
                 titulo = e.Titulo,
                 dataCriacao = e.DataCriacao,
+                dataExpiracao = e.DataExpiracao,
                 ativa = e.Ativa,
                 autorNome = e.Autor?.Nome ?? "Sistema",
                 totalVotos = e.Votos.Count,
@@ -56,12 +71,14 @@ namespace Multigrao.Api.Controllers
             var autor = await _context.Usuarios.FindAsync(dto.AutorId);
             if (autor == null) return BadRequest(new { message = "Autor não encontrado." });
 
+            var agora = DateTime.UtcNow;
             var enquete = new Enquete
             {
                 Titulo = dto.Titulo,
                 AutorId = dto.AutorId,
                 Ativa = true,
-                DataCriacao = DateTime.UtcNow
+                DataCriacao = agora,
+                DataExpiracao = agora.AddHours(24)
             };
 
             _context.Enquetes.Add(enquete);
@@ -92,7 +109,7 @@ namespace Multigrao.Api.Controllers
 
             if (enquete == null) return NotFound();
 
-            if (!enquete.Ativa)
+            if (!enquete.Ativa || enquete.DataExpiracao <= DateTime.UtcNow)
                 return BadRequest(new { message = "Esta enquete foi encerrada." });
 
             var jaVotou = enquete.Votos.Any(v => v.UsuarioId == dto.UsuarioId);
@@ -131,6 +148,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpDelete("{enqueteId}")]
+        [Authorize(Roles = "AdminMaster,SuperAdmin")]
         public async Task<IActionResult> ExcluirEnquete(int enqueteId)
         {
             var enquete = await _context.Enquetes

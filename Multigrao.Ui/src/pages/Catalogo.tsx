@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2 } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { useAuthStore } from '../store/authStore';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
@@ -8,6 +8,7 @@ import { marcaService } from '../services/marcaService';
 import { uploadService } from '../services/uploadService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl } from '../utils/imageUrl';
+import { buscarCEP } from '../utils/buscarCEP';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
@@ -44,6 +45,23 @@ export default function Catalogo() {
   const [solicitante, setSolicitante] = useState({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
   const [enviando, setEnviando] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [buscandoCEP, setBuscandoCEP] = useState(false);
+
+  const handleBuscarCEP = async () => {
+    setBuscandoCEP(true);
+    const resultado = await buscarCEP(solicitante.cep);
+    if (resultado) {
+      setSolicitante(f => ({
+        ...f,
+        logradouro: resultado.logradouro || f.logradouro,
+        complemento: resultado.complemento || f.complemento,
+        bairro: resultado.bairro || f.bairro,
+        cidade: resultado.cidade || f.cidade,
+        estado: resultado.estado || f.estado,
+      }));
+    }
+    setBuscandoCEP(false);
+  };
 
   const copiarLinkTabela = () => {
     navigator.clipboard.writeText(`${window.location.origin}/tabela`);
@@ -389,7 +407,10 @@ export default function Catalogo() {
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">CEP</label>
-                  <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="00000-000" />
+                  <div className="relative">
+                    <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5 ${buscandoCEP ? 'pr-9' : ''}`} placeholder="00000-000" />
+                    {buscandoCEP && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Cidade</label>

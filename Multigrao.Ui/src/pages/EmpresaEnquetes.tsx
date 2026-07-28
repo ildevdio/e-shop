@@ -8,13 +8,26 @@ import { useUiStore } from '../store/uiStore';
 
 export default function EmpresaEnquetes() {
   const usuarioId = useAuthStore(state => state.usuarioId);
+  const role = useAuthStore(state => state.role);
   const { setModalAberto } = useUiStore();
+  const isAdmin = role === 'AdminMaster' || role === 'SuperAdmin';
   const [enquetes, setEnquetes] = useState<Enquete[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [votouEm, setVotouEm] = useState<number[]>([]);
   const [showNova, setShowNova] = useState(false);
   const [novaEnquete, setNovaEnquete] = useState({ titulo: '', opcoes: ['', ''] });
   const [filtro, setFiltro] = useState('');
+  const [tick, setTick] = useState(0);
+
+  function tempoRestante(dataExpiracao: string): string {
+    const exp = new Date(dataExpiracao).getTime();
+    const diff = exp - Date.now();
+    if (diff <= 0) return 'Encerrada';
+    const horas = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    if (horas > 0) return `${horas}h ${mins}min restantes`;
+    return `${mins}min restantes`;
+  }
 
   const carregar = async () => {
     setCarregando(true);
@@ -24,6 +37,7 @@ export default function EmpresaEnquetes() {
   };
 
   useEffect(() => { carregar(); }, []);
+  useEffect(() => { const t = setInterval(() => setTick(n => n + 1), 60000); return () => clearInterval(t); }, []);
 
   const adicionarOpcao = () => {
     if (novaEnquete.opcoes.length < 4) {
@@ -107,8 +121,9 @@ export default function EmpresaEnquetes() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider ${enquete.ativa ? 'bg-gray-100 text-gray-700' : 'bg-gray-200 text-gray-500'}`}>{statusLabel}</span>
-                      <button onClick={() => excluir(enquete.id)} className="text-gray-400 hover:text-gray-900 transition-colors"><Trash2 size={16} /></button>
+                      {enquete.ativa && <span className="text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider bg-gray-100 text-gray-500">{tempoRestante(enquete.dataExpiracao)}</span>}
+                      <span className={`text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider ${enquete.ativa ? 'bg-gray-100 text-gray-700' : 'bg-gray-200 text-gray-500'}`}>{enquete.ativa ? 'Ativa' : 'Encerrada'}</span>
+                      {isAdmin && <button onClick={() => excluir(enquete.id)} className="text-gray-400 hover:text-gray-900 transition-colors"><Trash2 size={16} /></button>}
                     </div>
                   </div>
 

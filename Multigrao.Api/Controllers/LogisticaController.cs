@@ -80,7 +80,8 @@ namespace Multigrao.Api.Controllers
         public async Task<IActionResult> GetPedidosProntos()
         {
             var pedidos = await _context.Pedidos
-                .Where(p => p.Status == "ProntoEntrega" && p.TipoEntrega == "Entrega")
+                .Where(p => p.Status == "ProntoEntrega" && p.TipoEntrega == "Entrega"
+                    && !_context.Entregas.Any(e => e.PedidoId == p.Id && e.Status != "Devolvido"))
                 .Include(p => p.Cliente)
                 .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)
@@ -121,11 +122,97 @@ namespace Multigrao.Api.Controllers
                     Status = "PendenteConferencia"
                 };
                 _context.Entregas.Add(entrega);
+
+                var pedido = await _context.Pedidos.FindAsync(pedidoId);
+                if (pedido != null)
+                    pedido.Status = "EmEntrega";
             }
 
             await _context.SaveChangesAsync();
 
             return Ok(new { mensagem = "Rota gerada com sucesso", rotaId = rota.Id });
+        }
+
+        [HttpGet("entregas/{id}")]
+        public async Task<IActionResult> GetEntrega(int id)
+        {
+            var entrega = await _context.Entregas
+                .Include(e => e.Rota)
+                    .ThenInclude(r => r!.Motorista)
+                .Include(e => e.Rota)
+                    .ThenInclude(r => r!.Veiculo)
+                .Include(e => e.Pedido)
+                    .ThenInclude(p => p!.Cliente)
+                .Include(e => e.Pedido)
+                    .ThenInclude(p => p!.Itens)
+                        .ThenInclude(i => i.Produto)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (entrega == null) return NotFound();
+            return Ok(entrega);
+        }
+
+        [HttpPut("entregas/{id}")]
+        public async Task<IActionResult> EditarEntrega(int id, [FromBody] EditarEntregaDto dto)
+        {
+            var entrega = await _context.Entregas
+                .Include(e => e.Pedido)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (entrega == null) return NotFound();
+
+            if (dto.Ordem.HasValue)
+                entrega.Ordem = dto.Ordem.Value;
+
+            if (dto.Observacao != null)
+                entrega.Observacao = dto.Observacao;
+
+            if (dto.Status != null && dto.Status != entrega.Status)
+            {
+                var transicoesValidas = new Dictionary<string, string[]>
+                {
+                    ["PendenteConferencia"] = ["EmConferencia", "EmRota", "Cancelada"],
+                    ["EmConferencia"] = ["EmRota", "Cancelada"],
+                    ["EmRota"] = ["Entregue", "Devolvido"],
+                };
+
+                if (transicoesValidas.TryGetValue(entrega.Status, out var proximos) && proximos.Contains(dto.Status))
+                {
+                    entrega.Status = dto.Status;
+
+                    if (dto.Status == "Cancelada" && entrega.Pedido != null)
+                        entrega.Pedido.Status = "ProntoEntrega";
+                    else if (dto.Status == "Entregue" && entrega.Pedido != null)
+                        entrega.Pedido.Status = "Entregue";
+                    else if (dto.Status == "Devolvido" && entrega.Pedido != null)
+                        entrega.Pedido.Status = "Devolvido";
+                }
+                else
+                {
+                    return BadRequest(new { message = $"Transição de '{entrega.Status}' para '{dto.Status}' não é permitida." });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(entrega);
+        }
+
+        [HttpDelete("entregas/{id}")]
+        public async Task<IActionResult> ExcluirEntrega(int id)
+        {
+            var entrega = await _context.Entregas
+                .Include(e => e.Pedido)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (entrega == null) return NotFound();
+
+            if (entrega.Pedido != null && entrega.Status != "Entregue")
+                entrega.Pedido.Status = "ProntoEntrega";
+
+            _context.Entregas.Remove(entrega);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Entrega excluída com sucesso." });
         }
     }
 }
