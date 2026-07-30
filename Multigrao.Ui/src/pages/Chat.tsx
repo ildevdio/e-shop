@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { Send, Search, Hash, Users, MessageSquareText, Check, CheckCheck, Smile, Paperclip, UserPlus, X, MapPin, Package, File, Image } from 'lucide-react';
+import { Send, Search, Hash, Users, MessageSquareText, Check, CheckCheck, Smile, Paperclip, UserPlus, X, MapPin, Package, File } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { chatService, type MensagemChat } from '../services/chatService';

@@ -75,7 +75,7 @@ export default function Financeiro() {
       if (atualizado) setDetalhe(atualizado);
       setPedidos(todos.filter(p => p.status === 'BloqueadoFinanceiro'));
     }
-    return ok;
+    return ok !== null && ok !== undefined;
   };
 
   const abrirDetalhe = (pedido: Pedido) => {
