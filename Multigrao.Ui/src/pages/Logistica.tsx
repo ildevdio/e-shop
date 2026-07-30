@@ -13,7 +13,7 @@ const ENTREGA_STATUS_LABELS: Record<string, string> = {
 
 const primeiroPedido = (e: EntregaRota) => e.entregaPedidos?.[0]?.pedido;
 const todosItens = (e: EntregaRota) => e.entregaPedidos?.flatMap(ep => ep.pedido?.itens ?? []) ?? [];
-const pedidosArray = (e: EntregaRota) => e.entregaPedidos?.map(ep => ep.pedido).filter(Boolean) ?? [];
+const pedidosArray = (e: EntregaRota) => e.entregaPedidos?.map(ep => ep.pedido).filter((p): p is NonNullable<typeof p> => !!p) ?? [];
 const nomeCliente = (e: EntregaRota) => primeiroPedido(e)?.cliente?.razaoSocialNome ?? 'Cliente';
 const valorTotal = (e: EntregaRota) => pedidosArray(e).reduce((s, p) => s + (p.valorTotal ?? 0), 0);
 const pesoTotal = (e: EntregaRota) => pedidosArray(e).reduce((s, p) => s + (p.pesoTotal ?? 0), 0);

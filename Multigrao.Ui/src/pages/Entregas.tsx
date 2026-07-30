@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, CheckCircle2, AlertTriangle, ArrowLeft, Phone, ChevronRight, Truck, Navigation, Package, Play, Eye, DollarSign, ClipboardCheck } from 'lucide-react';
+import { MapPin, CheckCircle2, AlertTriangle, ArrowLeft, Phone, ChevronRight, Truck, Navigation, Package, Play, Eye, DollarSign } from 'lucide-react';
 import { entregaService, type Entrega } from '../services/entregaService';
 import { useAuthStore } from '../store/authStore';
 
@@ -18,7 +18,7 @@ export default function Entregas() {
 
   const primeiroPedido = (e: Entrega) => e.entregaPedidos?.[0]?.pedido;
   const todosItens = (e: Entrega) => e.entregaPedidos?.flatMap(ep => ep.pedido?.itens ?? []) ?? [];
-  const pedidosArray = (e: Entrega) => e.entregaPedidos?.map(ep => ep.pedido).filter(Boolean) ?? [];
+  const pedidosArray = (e: Entrega) => e.entregaPedidos?.map(ep => ep.pedido).filter((p): p is NonNullable<typeof p> => !!p) ?? [];
 
   const precisaConfirmarPagamento = (entrega: Entrega) => {
     const p = primeiroPedido(entrega);

@@ -9,7 +9,7 @@ export default function Financeiro() {
   const [liberando, setLiberando] = useState<number | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [detalhe, setDetalhe] = useState<Pedido | null>(null);
-  const [obsLiberacao, setObsLiberacao] = useState('');
+  const [, setObsLiberacao] = useState('');
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
     pagamento: string;
