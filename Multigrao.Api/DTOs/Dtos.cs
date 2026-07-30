@@ -180,6 +180,11 @@ namespace Multigrao.Api.DTOs
         public string? UrlAnexo { get; set; }
     }
 
+    public class VisualizarMensagensDto
+    {
+        public int UsuarioId { get; set; }
+    }
+
     // Avisos / Mural
     public class CriarAvisoDto
     {
