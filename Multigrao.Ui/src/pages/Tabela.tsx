@@ -164,12 +164,14 @@ function CardCarrossel({
   const isAtacado = qtd >= 5;
   return (
     <div className="relative aspect-[4/5] rounded-3xl overflow-hidden group bg-[#F7F5F2] border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-all">
-      {produto.imagemUrl ? (
-        <img src={imageUrl(produto.imagemUrl)} alt={produto.nome} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+      <button onClick={onAbrir} aria-label={`Ver ${produto.nome}`} className="absolute inset-0 w-full h-full block text-left cursor-pointer">
+        {produto.imagemUrl ? (
+          <img src={imageUrl(produto.imagemUrl)} alt={produto.nome} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+      </button>
       {isAtacado && (
         <span className="absolute top-3 left-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Atacado</span>
       )}
@@ -349,7 +351,6 @@ const [buscandoAcesso, setBuscandoAcesso] = useState(false);
 const [erroAcesso, setErroAcesso] = useState('');
 const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   const tickerRef = useRef<HTMLDivElement | null>(null);
-  const [carrosselPausado, setCarrosselPausado] = useState(false);
 
   const isRestaurant = tema === 'restaurant';
   const carrosselRef = useRef<HTMLDivElement>(null);
@@ -531,23 +532,6 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     if (!el) return;
     el.scrollBy({ left: direcao * el.clientWidth * 0.8, behavior: 'smooth' });
   };
-
-  useEffect(() => {
-    if (carrosselPausado) return;
-    const timer = setInterval(() => {
-      const el = carrosselRef.current;
-      if (!el || el.scrollWidth <= el.clientWidth) return;
-      const primeiro = el.children[0] as HTMLElement | undefined;
-      const passo = primeiro ? primeiro.offsetWidth + 16 : el.clientWidth * 0.8;
-      const alvo = el.scrollLeft + passo;
-      if (alvo >= el.scrollWidth - el.clientWidth - 1) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        el.scrollTo({ left: alvo, behavior: 'smooth' });
-      }
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [carrosselPausado]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -1185,10 +1169,6 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
             </div>
             <div
               ref={carrosselRef}
-              onMouseEnter={() => setCarrosselPausado(true)}
-              onMouseLeave={() => setCarrosselPausado(false)}
-              onTouchStart={() => setCarrosselPausado(true)}
-              onTouchEnd={() => setCarrosselPausado(false)}
               className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-1 px-1 pb-12"
             >
               {produtosDestaque.map(p => (
