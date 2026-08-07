@@ -5,7 +5,7 @@ import { produtoService, type Produto, type Categoria, type Marca } from '../ser
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
-import { imageUrl } from '../utils/imageUrl';
+import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
 
@@ -107,8 +107,8 @@ function CardEcommerce({
   return (
     <div className="group bg-white rounded-2xl border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-[#F7F5F2] border-b border-zinc-900/10 text-left">
-        {produto.imagemUrl ? (
-          <img src={imageUrl(produto.imagemUrl)} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        {produtoImagemUrl(produto) ? (
+          <img src={produtoImagemUrl(produto)} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <span className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
@@ -165,8 +165,8 @@ function CardCarrossel({
   return (
     <div className="relative aspect-[4/5] rounded-3xl overflow-hidden group bg-[#F7F5F2] border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-all">
       <button onClick={onAbrir} aria-label={`Ver ${produto.nome}`} className="absolute inset-0 w-full h-full block text-left cursor-pointer">
-        {produto.imagemUrl ? (
-          <img src={imageUrl(produto.imagemUrl)} alt={produto.nome} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        {produtoImagemUrl(produto) ? (
+          <img src={produtoImagemUrl(produto)} alt={produto.nome} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</div>
         )}
@@ -503,7 +503,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   const produtosDestaque = useMemo(() => {
     const todos = categorias
       .flatMap(c => c.grupos.flatMap(g => g.produtos))
-      .filter(p => p.imagemUrl && p.ativo);
+      .filter(p => produtoImagemUrl(p) && p.ativo);
     const poolBase = todos.filter(p => p.destaque);
     const pools = new Map<number, Produto[]>();
     for (const p of poolBase) {
@@ -811,8 +811,8 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
               <div>
                 <div className="aspect-square rounded-3xl bg-[#F7F5F2] border border-zinc-900/10 overflow-hidden flex items-center justify-center md:sticky md:top-24">
-                  {produtoDetalhe.imagemUrl ? (
-                    <img src={imageUrl(produtoDetalhe.imagemUrl)} alt={produtoDetalhe.nome} className="w-full h-full object-cover" />
+                  {produtoImagemUrl(produtoDetalhe) ? (
+                    <img src={produtoImagemUrl(produtoDetalhe)} alt={produtoDetalhe.nome} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-zinc-300 text-xs font-bold uppercase tracking-widest">Sem foto</span>
                   )}
@@ -1282,8 +1282,8 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                               return (
                                 <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 flex flex-col h-full hover:shadow-md transition-shadow">
                                   <div className="flex gap-4 mb-4">
-                                    {p.imagemUrl ? (
-                                      <img src={imageUrl(p.imagemUrl)} alt="" className="h-24 w-24 rounded-xl object-cover shrink-0 ring-1 ring-neutral-100" />
+                                    {produtoImagemUrl(p) ? (
+                                      <img src={produtoImagemUrl(p)} alt="" className="h-24 w-24 rounded-xl object-cover shrink-0 ring-1 ring-neutral-100" />
                                     ) : (
                                       <div className="h-24 w-24 rounded-xl bg-neutral-50 flex items-center justify-center shrink-0 ring-1 ring-neutral-100">
                                         <span className="text-neutral-300 text-xs">Sem foto</span>

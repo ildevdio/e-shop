@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Multigrao.Api.Models
 {
@@ -39,6 +40,12 @@ namespace Multigrao.Api.Models
 
         [StringLength(200)]
         public string? ImagemUrl { get; set; }
+
+        [JsonIgnore]
+        public byte[]? ImagemBytes { get; set; }
+
+        [StringLength(30)]
+        public string? ImagemContentType { get; set; }
 
         public bool Ativo { get; set; } = true;
 

@@ -57,6 +57,45 @@ namespace Multigrao.Api.Controllers
             return Ok(produto);
         }
 
+        [HttpGet("{id}/imagem")]
+        public async Task<IActionResult> GetProdutoImagem(int id)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+            if (produto == null) return NotFound();
+            if (produto.ImagemBytes == null || produto.ImagemContentType == null) return NotFound();
+
+            return File(produto.ImagemBytes, produto.ImagemContentType);
+        }
+
+        [HttpPost("{id}/imagem")]
+        public async Task<IActionResult> UploadProdutoImagem(int id, IFormFile file)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+            if (produto == null) return NotFound();
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Arquivo não enviado." });
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (ext != ".jpg" && ext != ".jpeg" && ext != ".png")
+                return BadRequest(new { message = "Apenas arquivos JPG e PNG são permitidos." });
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+
+            produto.ImagemBytes = ms.ToArray();
+            produto.ImagemContentType = ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                _ => "application/octet-stream"
+            };
+            produto.ImagemUrl = null;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Imagem salva com sucesso." });
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateProduto([FromBody] Produto dto)
         {

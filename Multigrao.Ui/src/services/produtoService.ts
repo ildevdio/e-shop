@@ -30,6 +30,7 @@ export interface Produto {
   embalagem: string | null;
   unidadeVenda: string | null;
   imagemUrl: string | null;
+  imagemContentType?: string | null;
   ativo: boolean;
   destaque: boolean;
 }
@@ -91,6 +92,24 @@ export const produtoService = {
       return true;
     } catch (error) {
       console.error('Erro ao deletar produto', error);
+      return false;
+    }
+  },
+
+  getImagemUrl: (produtoId: number): string => {
+    return `${API_URL}/${produtoId}/imagem`;
+  },
+
+  uploadImagem: async (produtoId: number, file: File): Promise<boolean> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await axios.post(`${API_URL}/${produtoId}/imagem`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return true;
+    } catch (error) {
+      console.error('Erro ao upload da imagem', error);
       return false;
     }
   },

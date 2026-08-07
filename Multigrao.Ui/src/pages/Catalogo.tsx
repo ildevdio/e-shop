@@ -5,9 +5,8 @@ import { useAuthStore } from '../store/authStore';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { marcaService } from '../services/marcaService';
-import { uploadService } from '../services/uploadService';
 import { pedidoService } from '../services/pedidoService';
-import { imageUrl } from '../utils/imageUrl';
+import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
 import { buscarCEP } from '../utils/buscarCEP';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
@@ -288,7 +287,7 @@ export default function Catalogo() {
                                     <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                                       <td className="py-2.5 pr-4">
                                         <div className="flex items-center gap-2">
-                                           {p.imagemUrl && <img src={imageUrl(p.imagemUrl)} alt="" className="h-8 w-8 rounded-lg object-cover" />}
+                                           {produtoImagemUrl(p) && <img src={produtoImagemUrl(p)} alt="" className="h-8 w-8 rounded-lg object-cover" />}
                                           <span className="font-medium text-gray-900">{p.nome}</span>
                                         </div>
                                       </td>
@@ -573,17 +572,15 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
   const [form, setForm] = useState({ ...produto });
   const [erro, setErro] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [arquivo, setArquivo] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const validarENumero = (v: any): v is number => typeof v === 'number' && !isNaN(v);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
-    const url = await uploadService.uploadImagem(file);
-    if (url) setForm({ ...form, imagemUrl: url });
-    setUploading(false);
+    setArquivo(file);
   };
 
   const salvar = async () => {
@@ -609,10 +606,18 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
       ativo: form.ativo ?? true,
       destaque: form.destaque ?? false,
     };
-    if (form.id) {
-      await produtoService.atualizarProduto(form.id, dto);
+    let produtoId = form.id;
+    if (produtoId) {
+      await produtoService.atualizarProduto(produtoId, dto);
     } else {
-      await produtoService.criarProduto(dto);
+      const criado = await produtoService.criarProduto(dto);
+      produtoId = criado?.id;
+    }
+    if (produtoId && arquivo) {
+      setUploading(true);
+      const ok = await produtoService.uploadImagem(produtoId, arquivo);
+      if (!ok) setErro('Não foi possível salvar a imagem.');
+      setUploading(false);
     }
     onSalvo();
     onClose();
@@ -686,7 +691,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
             <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
-            {form.imagemUrl && <img src={imageUrl(form.imagemUrl)} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
+            {(arquivo ? URL.createObjectURL(arquivo) : produtoImagemUrl(form)) && <img src={arquivo ? URL.createObjectURL(arquivo) : produtoImagemUrl(form)} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.ativo ?? true} onChange={e => setForm({ ...form, ativo: e.target.checked })} className="rounded" />
