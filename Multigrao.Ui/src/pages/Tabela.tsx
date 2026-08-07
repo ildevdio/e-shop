@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
@@ -338,6 +338,7 @@ export default function Tabela() {
   const [qtdDetalhe, setQtdDetalhe] = useState(1);
   const [vista, setVista] = useState<'catalogo' | 'produto' | 'carrinho'>('catalogo');
 const [menuCategorias, setMenuCategorias] = useState(false);
+const [categoriaFiltrada, setCategoriaFiltrada] = useState<number | null>(null);
 const [opacidadeNav, setOpacidadeNav] = useState(0);
 const [contaAberta, setContaAberta] = useState(false);
 const [cpfAcesso, setCpfAcesso] = useState('');
@@ -433,6 +434,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     : null;
 
   const produtoFiltrado = (p: Produto) => {
+    if (categoriaFiltrada !== null && p.categoriaId !== categoriaFiltrada) return false;
     if (!filtro) return true;
     const t = normalizar(filtro);
     return normalizar(p.nome).includes(t) || normalizar(p.marca?.nome ?? '').includes(t);
@@ -604,13 +606,20 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     }
   };
 
-  const scrollParaCategoria = (id: number) => {
+  const aplicarFiltroCategoria = (id: number | null) => {
+    setCategoriaFiltrada(id);
     setMenuCategorias(false);
     setTimeout(() => {
-      const el = document.getElementById(`cat-${id}`);
+      const alvo = id ?? categorias[0]?.categoria.id;
+      if (alvo === undefined) return;
+      const el = document.getElementById(`cat-${alvo}`);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
+    }, 60);
   };
+
+  const categoriaFiltradaNome = categoriaFiltrada !== null
+    ? todasCategorias.find(c => c.id === categoriaFiltrada)?.nome
+    : undefined;
 
   const abrirDetalhe = (p: Produto) => {
     setQtdDetalhe(qtdNoCarrinho(p.id) || 1);
@@ -750,9 +759,10 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                   </div>
                   <button
                     onClick={() => setMenuCategorias(true)}
-                    className="flex items-center gap-2 h-10 px-5 bg-white text-zinc-900 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm hover:bg-zinc-100 transition-colors"
+                    className={`flex items-center gap-2 h-10 px-5 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${categoriaFiltrada !== null ? 'bg-zinc-900 text-white hover:bg-zinc-800' : 'bg-white text-zinc-900 hover:bg-zinc-100'}`}
                   >
-                    <LayoutGrid size={16} /> Categorias
+                    <LayoutGrid size={16} />
+                    <span className="max-w-28 truncate">{categoriaFiltradaNome ?? 'Categorias'}</span>
                   </button>
                 </div>
                 <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">Multigrãos</h1>
@@ -1155,7 +1165,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
       {/* ── Conteúdo ── */}
       <div className={`max-w-7xl mx-auto px-4 ${isRestaurant ? 'py-10' : 'py-12'} pb-32`}>
         
-        {!isRestaurant && produtosDestaque.length > 0 && (
+        {!isRestaurant && categoriaFiltrada === null && produtosDestaque.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
@@ -1540,21 +1550,25 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
               <button onClick={() => setMenuCategorias(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
-              {/* Todas as categorias */}
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-2">Produtos</p>
-                <div className="space-y-2">
-                  {todasCategorias.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => scrollParaCategoria(c.id)}
-                      className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-2xl border border-zinc-900/15 hover:border-zinc-900 transition-colors text-left"
-                    >
-                      <span className="font-bold text-zinc-900 text-sm">{c.nome}</span>
-                      <ChevronRight size={16} className="text-zinc-400 shrink-0" />
-                    </button>
-                  ))}
-                </div>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-2">Filtrar por</p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => aplicarFiltroCategoria(null)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-900/15 hover:border-zinc-900'}`}
+                >
+                  <span className="font-bold text-sm">Todas as categorias</span>
+                  {categoriaFiltrada === null && <Check size={16} className="shrink-0" />}
+                </button>
+                {todasCategorias.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => aplicarFiltroCategoria(c.id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-900/15 hover:border-zinc-900'}`}
+                  >
+                    <span className="font-bold text-sm">{c.nome}</span>
+                    {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-zinc-400 shrink-0" />}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
