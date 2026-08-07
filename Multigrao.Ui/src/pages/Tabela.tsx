@@ -349,6 +349,7 @@ const [buscandoAcesso, setBuscandoAcesso] = useState(false);
 const [erroAcesso, setErroAcesso] = useState('');
 const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   const tickerRef = useRef<HTMLDivElement | null>(null);
+  const [carrosselPausado, setCarrosselPausado] = useState(false);
 
   const isRestaurant = tema === 'restaurant';
   const carrosselRef = useRef<HTMLDivElement>(null);
@@ -532,6 +533,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   };
 
   useEffect(() => {
+    if (carrosselPausado) return;
     const timer = setInterval(() => {
       const el = carrosselRef.current;
       if (!el || el.scrollWidth <= el.clientWidth) return;
@@ -545,7 +547,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
       }
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [carrosselPausado]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -1181,7 +1183,14 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                 </button>
               </div>
             </div>
-            <div ref={carrosselRef} className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-1 px-1 pb-12">
+            <div
+              ref={carrosselRef}
+              onMouseEnter={() => setCarrosselPausado(true)}
+              onMouseLeave={() => setCarrosselPausado(false)}
+              onTouchStart={() => setCarrosselPausado(true)}
+              onTouchEnd={() => setCarrosselPausado(false)}
+              className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-1 px-1 pb-12"
+            >
               {produtosDestaque.map(p => (
                 <div key={p.id} className="w-72 sm:w-80 shrink-0 snap-start">
                   <CardCarrossel
