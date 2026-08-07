@@ -12,10 +12,12 @@ interface Props {
   onChange: (val: string) => void;
   sugestoes: Sugestao[];
   aoSelecionar: (sugestao: Sugestao) => void;
+  onBuscar?: () => void;
   className?: string;
+  classNameInput?: string;
 }
 
-export default function SearchAutocomplete({ placeholder, valor, onChange, sugestoes, aoSelecionar, className = '' }: Props) {
+export default function SearchAutocomplete({ placeholder, valor, onChange, sugestoes, aoSelecionar, onBuscar, className = '', classNameInput }: Props) {
   const [aberto, setAberto] = useState(false);
   const [focoIndex, setFocoIndex] = useState(-1);
   const ref = useRef<HTMLDivElement>(null);
@@ -56,6 +58,10 @@ export default function SearchAutocomplete({ placeholder, valor, onChange, suges
     } else if (e.key === 'Enter' && focoIndex >= 0) {
       e.preventDefault();
       selecionar(filtradas[focoIndex]);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      setAberto(false);
+      onBuscar?.();
     } else if (e.key === 'Tab' && focoIndex >= 0) {
       selecionar(filtradas[focoIndex]);
     } else if (e.key === 'Escape') {
@@ -65,7 +71,13 @@ export default function SearchAutocomplete({ placeholder, valor, onChange, suges
 
   return (
     <div ref={ref} className={`relative ${className}`}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+      <button
+        type="button"
+        onClick={() => { setAberto(false); onBuscar?.(); }}
+        className="absolute left-0 top-0 h-full w-10 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <Search size={18} />
+      </button>
       <input
         ref={inputRef}
         type="text"
@@ -74,7 +86,7 @@ export default function SearchAutocomplete({ placeholder, valor, onChange, suges
         onChange={e => { onChange(e.target.value); setAberto(true); setFocoIndex(-1); }}
         onFocus={() => setAberto(true)}
         onKeyDown={handleKeyDown}
-        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+        className={classNameInput ?? 'w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all'}
       />
       {aberto && filtradas.length > 0 && (
         <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
