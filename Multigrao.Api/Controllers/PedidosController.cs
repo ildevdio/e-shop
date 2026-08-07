@@ -113,6 +113,28 @@ namespace Multigrao.Api.Controllers
             return Ok(pedidos);
         }
 
+        [HttpGet("por-cpf")]
+        public async Task<IActionResult> GetPedidosPorCpf([FromQuery] string cpfCnpj)
+        {
+            if (string.IsNullOrWhiteSpace(cpfCnpj))
+                return BadRequest(new { message = "CPF/CNPJ é obrigatório." });
+
+            var limpo = new string(cpfCnpj.Where(char.IsDigit).ToArray());
+            if (limpo.Length == 0)
+                return BadRequest(new { message = "CPF/CNPJ inválido." });
+
+            var pedidos = await _context.Pedidos
+                .Where(p => (p.CpfCnpj != null && p.CpfCnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim() == limpo) ||
+                            (p.Cliente != null && p.Cliente.CpfCnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim() == limpo))
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .OrderByDescending(p => p.DataCriacao)
+                .ToListAsync();
+
+            return Ok(pedidos);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPedido(int id)
         {

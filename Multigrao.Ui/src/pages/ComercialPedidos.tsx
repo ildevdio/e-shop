@@ -803,11 +803,11 @@ export default function ComercialPedidos() {
                       <div className="w-24">
                         <label className="text-[10px] text-gray-400 uppercase tracking-wider">Qtd</label>
                         <input
-                          type="number"
-                          min={0.1}
-                          step={0.1}
-                          value={item.quantidade}
-                          onChange={e => atualizarItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
+                          type="text"
+                          inputMode="decimal"
+                          value={item.quantidade === 0 ? '' : item.quantidade.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                          onChange={e => atualizarItem(index, 'quantidade', parseFloat(e.target.value.replace(',', '.')) || 0)}
+                          placeholder="0"
                           className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
                         />
                       </div>
@@ -1143,7 +1143,7 @@ export default function ComercialPedidos() {
                         <span className="min-w-0 flex-1">{item.produto?.nome ?? `Produto #${item.produtoId}`}</span>
                         {editando ? (
                           <div className="flex items-center gap-1 shrink-0">
-                            <input type="number" min={0.1} step={0.1} value={editDetalhe!.itens[idx]?.quantidade ?? item.quantidade} onChange={e => { const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value) || 0 }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-center" />
+                            <input type="text" inputMode="decimal" value={(editDetalhe!.itens[idx]?.quantidade ?? item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} onChange={e => { const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value.replace(',', '.')) || 0 }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-center" />
                             <span className="text-gray-400">x</span>
                             <input type="text" value={(editDetalhe!.itens[idx]?.precoUnitario ?? item.precoUnitario).toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], precoUnitario: v }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-20 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-right" />
                           </div>

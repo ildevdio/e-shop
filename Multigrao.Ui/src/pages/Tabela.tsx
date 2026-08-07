@@ -1,9 +1,10 @@
 import { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
-import { pedidoService } from '../services/pedidoService';
+import { pedidoService, type Pedido } from '../services/pedidoService';
+import { clienteService, type Cliente } from '../services/clienteService';
 import { imageUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
@@ -18,6 +19,55 @@ function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemCo
 function formatPreco(v: number) {
   return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
+
+function mascaraCpfCnpj(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 14);
+  if (d.length <= 11) {
+    return d
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+  return d
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+function formatarData(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const rotuloStatus: Record<string, string> = {
+  AguardandoConfirmacao: 'Aguardando confirmação',
+  Pendente: 'Pendente',
+  EmSeparacao: 'Em separação',
+  EmConferencia: 'Em conferência',
+  ProntoRetirada: 'Pronto para retirada',
+  EmEntrega: 'Em entrega',
+  Entregue: 'Entregue',
+  Concluido: 'Concluído',
+  Cancelado: 'Cancelado',
+  BloqueadoFinanceiro: 'Bloqueado financeiro',
+};
+
+const statusClasse: Record<string, string> = {
+  AguardandoConfirmacao: 'bg-amber-100 text-amber-700',
+  Pendente: 'bg-blue-100 text-blue-700',
+  EmSeparacao: 'bg-violet-100 text-violet-700',
+  EmConferencia: 'bg-cyan-100 text-cyan-700',
+  ProntoRetirada: 'bg-teal-100 text-teal-700',
+  EmEntrega: 'bg-indigo-100 text-indigo-700',
+  Entregue: 'bg-green-100 text-green-700',
+  Concluido: 'bg-green-100 text-green-700',
+  Cancelado: 'bg-red-100 text-red-700',
+  BloqueadoFinanceiro: 'bg-red-100 text-red-700',
+};
+
+const labelStatus = (s: string) => rotuloStatus[s] ?? s;
+const corStatus = (s: string) => statusClasse[s] ?? 'bg-zinc-100 text-zinc-700';
 
 function corClara(hex?: string | null): boolean {
   if (!hex) return false;
@@ -43,21 +93,19 @@ function descricaoProduto(p: Produto): { rotulo: string; valor: string }[] {
 function CardEcommerce({
   produto,
   qtd,
-  onAdd,
-  onRemove,
+  onQtd,
   onAbrir,
   showMarca,
 }: {
   produto: Produto;
   qtd: number;
-  onAdd: () => void;
-  onRemove: () => void;
+  onQtd: (q: number) => void;
   onAbrir: () => void;
   showMarca?: boolean;
 }) {
   const isAtacado = qtd >= 5;
   return (
-    <div className="group bg-white rounded-3xl border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
+    <div className="group bg-white rounded-2xl border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-[#F7F5F2] border-b border-zinc-900/10 text-left">
         {produto.imagemUrl ? (
           <img src={imageUrl(produto.imagemUrl)} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -65,43 +113,35 @@ function CardEcommerce({
           <span className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
         {isAtacado && (
-          <span className="absolute top-3 left-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Atacado</span>
+          <span className="absolute top-2 left-2 bg-zinc-900 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Atacado</span>
         )}
       </button>
-      <div className="p-4 sm:p-5 flex-1 flex flex-col">
+      <div className="p-3 flex-1 flex flex-col">
         {showMarca && produto.marca?.nome && (
-          <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">{produto.marca.nome}</p>
+          <p className="text-[9px] uppercase tracking-widest font-bold text-zinc-400 mb-1 truncate">{produto.marca.nome}</p>
         )}
         <button onClick={onAbrir} className="text-left">
-          <h3 className="font-heading font-bold text-zinc-900 text-lg leading-snug line-clamp-2 hover:underline decoration-zinc-300 underline-offset-4">{produto.nome}</h3>
+          <h3 className="font-heading font-bold text-zinc-900 text-base leading-snug line-clamp-2 hover:underline decoration-zinc-300 underline-offset-4">{produto.nome}</h3>
         </button>
-        <p className="text-[11px] uppercase tracking-widest font-semibold text-zinc-400 mt-1.5 mb-3">
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-zinc-400 mt-1 mb-2 truncate">
           {produto.embalagem && `${produto.embalagem} `}
           {produto.unidadeVenda && `· ${produto.unidadeVenda}`}
         </p>
-        <div className="mt-auto pt-3 pb-4">
+        <div className="mt-auto pt-2 pb-3">
           {isAtacado ? (
             <>
-              <p className="text-xs font-medium text-zinc-400 line-through">{formatPreco(produto.precoVarejo)}</p>
-              <p className="text-2xl font-black text-zinc-900 leading-none">{formatPreco(produto.precoAtacado)}</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mt-1">Atacado · 5+ un.</p>
+              <p className="text-[10px] font-medium text-zinc-400 line-through">{formatPreco(produto.precoVarejo)}</p>
+              <p className="text-lg font-black text-zinc-900 leading-none">{formatPreco(produto.precoAtacado)}</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 mt-0.5">Atacado · 5+ un.</p>
             </>
           ) : (
-            <p className="text-2xl font-black text-zinc-900 leading-none">{formatPreco(produto.precoVarejo)}</p>
+            <p className="text-lg font-black text-zinc-900 leading-none">{formatPreco(produto.precoVarejo)}</p>
           )}
         </div>
         {qtd > 0 ? (
-          <div className="flex items-center justify-between rounded-full border border-zinc-900/20 bg-zinc-50 p-1">
-            <button onClick={onRemove} className="p-2 rounded-full text-zinc-700 hover:bg-white hover:shadow-sm transition-colors">
-              <Minus size={16} />
-            </button>
-            <span className="font-bold text-zinc-900 w-10 text-center">{qtd}</span>
-            <button onClick={onAdd} className="p-2 rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-colors">
-              <Plus size={16} />
-            </button>
-          </div>
+          <CampoQuantidade valor={qtd} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between" />
         ) : (
-          <button onClick={onAbrir} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-xs rounded-full transition-colors">
+          <button onClick={onAbrir} className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-[10px] rounded-full transition-colors">
             Ver Produto
           </button>
         )}
@@ -113,14 +153,12 @@ function CardEcommerce({
 function CardCarrossel({
   produto,
   qtd,
-  onAdd,
-  onRemove,
+  onQtd,
   onAbrir,
 }: {
   produto: Produto;
   qtd: number;
-  onAdd: () => void;
-  onRemove: () => void;
+  onQtd: (q: number) => void;
   onAbrir: () => void;
 }) {
   const isAtacado = qtd >= 5;
@@ -154,16 +192,83 @@ function CardCarrossel({
             )}
           </div>
           {qtd > 0 ? (
-            <div className="flex items-center rounded-full bg-white p-1 shrink-0">
-              <button onClick={onRemove} className="p-1.5 rounded-full text-zinc-700 hover:bg-zinc-100 transition-colors"><Minus size={14} /></button>
-              <span className="font-bold text-zinc-900 w-7 text-center text-sm">{qtd}</span>
-              <button onClick={onAdd} className="p-1.5 rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-colors"><Plus size={14} /></button>
-            </div>
+            <CampoQuantidade valor={qtd} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-white shrink-0" />
           ) : (
             <button onClick={onAbrir} className="px-4 py-2 bg-white text-zinc-900 font-bold uppercase tracking-widest text-[10px] rounded-full hover:bg-zinc-100 transition-colors shrink-0">Ver Produto</button>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function CampoQuantidade({
+  valor,
+  onChange,
+  min = 1,
+  aoRemover,
+  grande = false,
+  className,
+}: {
+  valor: number;
+  onChange: (v: number) => void;
+  min?: number;
+  aoRemover?: () => void;
+  grande?: boolean;
+  className?: string;
+}) {
+  const [texto, setTexto] = useState(String(valor));
+  const [focado, setFocado] = useState(false);
+
+  useEffect(() => {
+    if (!focado) setTexto(String(valor));
+  }, [valor, focado]);
+
+  const aoAplicar = (v: number) => {
+    const n = Math.max(min, Math.round(v));
+    setTexto(String(n));
+    onChange(n);
+  };
+
+  const aoDecrementar = () => {
+    if (valor <= min && aoRemover) {
+      aoRemover();
+      return;
+    }
+    aoAplicar(valor - 1);
+  };
+
+  const commit = () => {
+    const n = parseInt(texto, 10);
+    aoAplicar(Number.isNaN(n) ? min : n);
+  };
+
+  return (
+    <div className={`flex items-center rounded-full border border-zinc-900/20 bg-zinc-50 ${grande ? 'p-1.5' : 'p-1'} ${className ?? ''}`}>
+      <button
+        type="button"
+        onClick={aoDecrementar}
+        className={`rounded-full text-zinc-700 hover:bg-white hover:shadow-sm transition-colors ${grande ? 'p-3' : 'p-1.5'}`}
+      >
+        <Minus size={grande ? 18 : 14} />
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={texto}
+        onFocus={() => setFocado(true)}
+        onChange={e => setTexto(e.target.value.replace(/\D/g, '').slice(0, 5))}
+        onBlur={() => { setFocado(false); commit(); }}
+        onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+        className={`text-center font-bold text-zinc-900 bg-transparent focus:outline-none ${grande ? 'w-14 text-lg font-black' : 'w-10 text-sm'}`}
+      />
+      <button
+        type="button"
+        onClick={() => aoAplicar(valor + 1)}
+        className={`rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-colors ${grande ? 'p-3' : 'p-1.5'}`}
+      >
+        <Plus size={grande ? 18 : 14} />
+      </button>
     </div>
   );
 }
@@ -232,8 +337,16 @@ export default function Tabela() {
   const [produtoDetalhe, setProdutoDetalhe] = useState<Produto | null>(null);
   const [qtdDetalhe, setQtdDetalhe] = useState(1);
   const [vista, setVista] = useState<'catalogo' | 'produto' | 'carrinho'>('catalogo');
-  const [menuCategorias, setMenuCategorias] = useState(false);
-  const [opacidadeNav, setOpacidadeNav] = useState(0);
+const [menuCategorias, setMenuCategorias] = useState(false);
+const [opacidadeNav, setOpacidadeNav] = useState(0);
+const [contaAberta, setContaAberta] = useState(false);
+const [cpfAcesso, setCpfAcesso] = useState('');
+const [acessado, setAcessado] = useState(false);
+const [clienteAcesso, setClienteAcesso] = useState<Cliente | null>(null);
+const [pedidosAcesso, setPedidosAcesso] = useState<Pedido[]>([]);
+const [buscandoAcesso, setBuscandoAcesso] = useState(false);
+const [erroAcesso, setErroAcesso] = useState('');
+const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   const tickerRef = useRef<HTMLDivElement | null>(null);
 
   const isRestaurant = tema === 'restaurant';
@@ -328,6 +441,18 @@ export default function Tabela() {
   const precoPorQtd = (produto: Produto, qtd: number) =>
     qtd >= 5 ? produto.precoAtacado : produto.precoVarejo;
 
+  const TAXA_EMBALAGEM = 2;
+
+  const temTaxaEmbalagem = (produto: Produto | undefined, qtd: number) =>
+    !!produto && produto.unidadeVenda?.toUpperCase() === 'KG' && qtd === 1;
+
+  const totalTaxaEmbalagem = useMemo(() =>
+    [...carrinho.entries()].reduce((acc, [id, qtd]) => {
+      const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
+      return acc + (temTaxaEmbalagem(p, qtd) ? TAXA_EMBALAGEM : 0);
+    }, 0),
+  [carrinho, categorias]);
+
   const addAoCarrinho = (produtoId: number) => {
     setCarrinho(prev => new Map(prev).set(produtoId, (prev.get(produtoId) ?? 0) + 1));
   };
@@ -338,6 +463,15 @@ export default function Tabela() {
       const qtd = next.get(produtoId) ?? 0;
       if (qtd <= 1) next.delete(produtoId);
       else next.set(produtoId, qtd - 1);
+      return next;
+    });
+  };
+
+  const setQtdCarrinho = (produtoId: number, quantidade: number) => {
+    setCarrinho(prev => {
+      const next = new Map(prev);
+      if (quantidade <= 0) next.delete(produtoId);
+      else next.set(produtoId, quantidade);
       return next;
     });
   };
@@ -363,9 +497,12 @@ export default function Tabela() {
     .filter(c => c.grupos.length > 0);
 
   const produtosDestaque = useMemo(() => {
+    const todos = categorias
+      .flatMap(c => c.grupos.flatMap(g => g.produtos))
+      .filter(p => p.imagemUrl && p.ativo);
+    const poolBase = todos.filter(p => p.destaque);
     const pools = new Map<number, Produto[]>();
-    for (const p of categorias.flatMap(c => c.grupos.flatMap(g => g.produtos))) {
-      if (!p.imagemUrl || !p.ativo) continue;
+    for (const p of poolBase) {
       const key = p.marca?.id ?? 0;
       if (!pools.has(key)) pools.set(key, []);
       pools.get(key)!.push(p);
@@ -458,6 +595,15 @@ export default function Tabela() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const buscarECatalogo = () => {
+    if (vista !== 'catalogo') {
+      setVista('catalogo');
+      setTimeout(scrollParaCatalogo, 60);
+    } else {
+      scrollParaCatalogo();
+    }
+  };
+
   const scrollParaCategoria = (id: number) => {
     setMenuCategorias(false);
     setTimeout(() => {
@@ -487,7 +633,7 @@ export default function Tabela() {
       const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(p => p.id === produtoId);
       return { produtoId, quantidade, precoUnitario: produto ? precoPorQtd(produto, quantidade) : 0, pesoUnitario: 0 };
     });
-    const valorTotal = itens.reduce((acc, i) => acc + i.precoUnitario * i.quantidade, 0);
+    const valorTotal = itens.reduce((acc, i) => acc + i.precoUnitario * i.quantidade, 0) + totalTaxaEmbalagem;
     await pedidoService.solicitarCatalogo({
       solicitanteNome: solicitante.nome.trim(),
       solicitanteTelefone: solicitante.telefone.trim(),
@@ -508,10 +654,56 @@ export default function Tabela() {
     });
     setEnviando(false);
     setPedidoCriado(true);
-    setSolicitante({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
+    setSolicitante(solicitanteDeCliente(clienteAcesso));
     setTipoEntrega('Entrega');
     setPagamento('');
     limparCarrinho();
+  };
+
+  const solicitanteDeCliente = (c: Cliente | null) => ({
+    nome: c?.razaoSocialNome || c?.nomeFantasia || '',
+    telefone: c?.telefone || '',
+    cpfCnpj: c?.cpfCnpj || '',
+    cep: c?.cep || '',
+    logradouro: c?.logradouro || '',
+    numero: c?.numero || '',
+    complemento: c?.complemento || '',
+    bairro: c?.bairro || '',
+    cidade: c?.cidade || '',
+    estado: c?.estado || '',
+  });
+
+  const acessarConta = async () => {
+    const limpo = cpfAcesso.replace(/\D/g, '');
+    if (limpo.length < 11) {
+      setErroAcesso('Informe um CPF ou CNPJ válido.');
+      return;
+    }
+    setBuscandoAcesso(true);
+    setErroAcesso('');
+    const [cliente, pedidos] = await Promise.all([
+      clienteService.buscarPorCpfCnpj(cpfAcesso),
+      pedidoService.getPedidosPorCpf(cpfAcesso),
+    ]);
+    setBuscandoAcesso(false);
+    if (!cliente && pedidos.length === 0) {
+      setErroAcesso('Nenhum registro encontrado para este CPF/CNPJ.');
+      return;
+    }
+    setClienteAcesso(cliente);
+    setPedidosAcesso(pedidos);
+    setPedidoAberto(null);
+    setAcessado(true);
+    if (cliente) setSolicitante(solicitanteDeCliente(cliente));
+  };
+
+  const sairConta = () => {
+    setClienteAcesso(null);
+    setPedidosAcesso([]);
+    setCpfAcesso('');
+    setErroAcesso('');
+    setPedidoAberto(null);
+    setAcessado(false);
   };
 
   return (
@@ -530,18 +722,94 @@ export default function Tabela() {
         </div>
       )}
 
-      {vista === 'produto' && produtoDetalhe ? (
-        <div className="min-h-screen pb-10">
-          <div className={`${isRestaurant ? 'bg-white border-b border-neutral-200' : 'bg-white border-b-2 border-zinc-900'}`}>
-            <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-              <button
-                onClick={() => { setProdutoDetalhe(null); setVista('catalogo'); }}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
-              >
-                <ArrowLeft size={16} /> Voltar
-              </button>
-              <h1 className={`font-bold ${isRestaurant ? 'text-lg text-neutral-900' : 'font-heading text-2xl text-zinc-900'}`}>Detalhes do produto</h1>
+      {/* ── Nav fixa (dock) — detalhe geral do sistema ── */}
+      {!isRestaurant && (
+        <div className="fixed top-0 inset-x-0 z-40 px-3 sm:px-4 pt-3">
+          <div
+            className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
+            style={{
+              backgroundColor: `rgba(24,24,27,${((vista === 'catalogo' ? opacidadeNav : 1) * 0.6).toFixed(3)})`,
+              backdropFilter: (vista === 'catalogo' ? opacidadeNav : 1) > 0 ? 'blur(20px) saturate(160%)' : 'none',
+              WebkitBackdropFilter: (vista === 'catalogo' ? opacidadeNav : 1) > 0 ? 'blur(20px) saturate(160%)' : 'none',
+              boxShadow: (vista === 'catalogo' ? opacidadeNav : 1) >= 1 ? '0 10px 40px rgba(0,0,0,0.35)' : 'none',
+            }}
+          >
+          <div className="px-4 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 flex items-center justify-start gap-8">
+                  <div className="hidden md:block w-44 lg:w-48">
+                    <SearchAutocomplete
+                      placeholder="Buscar..."
+                      valor={filtro}
+                      onChange={setFiltro}
+                      sugestoes={sugestoes}
+                      aoSelecionar={s => setFiltro(s.rotulo)}
+                      classNameInput="h-10 pl-10 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm transition-all"
+                      onBuscar={buscarECatalogo}
+                    />
+                  </div>
+                  <button
+                    onClick={() => setMenuCategorias(true)}
+                    className="flex items-center gap-2 h-10 px-5 bg-white text-zinc-900 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm hover:bg-zinc-100 transition-colors"
+                  >
+                    <LayoutGrid size={16} /> Categorias
+                  </button>
+                </div>
+                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">Multigrãos</h1>
+                <div className="flex-1 flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => setTema('restaurant')}
+                    title="Tema restaurante"
+                    className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
+                  >
+                    <Palette size={18} />
+                  </button>
+                  <button
+                    onClick={() => setContaAberta(true)}
+                    title="Conta"
+                    className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
+                  >
+                    <User size={18} />
+                  </button>
+                  <button
+                    onClick={() => setVista('carrinho')}
+                    title="Carrinho"
+                    className="relative h-10 w-10 flex items-center justify-center bg-white text-zinc-900 rounded-full shadow-sm hover:bg-zinc-100 transition-colors"
+                  >
+                    <ShoppingCart size={18} />
+                    {totalItensCarrinho > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-zinc-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {totalItensCarrinho}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="md:hidden mt-3">
+                <SearchAutocomplete
+                  placeholder="Buscar..."
+                  valor={filtro}
+                  onChange={setFiltro}
+                  sugestoes={sugestoes}
+                  aoSelecionar={s => setFiltro(s.rotulo)}
+                  classNameInput="w-full h-10 pl-10 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm transition-all"
+                  onBuscar={buscarECatalogo}
+                />
+              </div>
             </div>
+          </div>
+          </div>
+        )}
+
+      {vista === 'produto' && produtoDetalhe ? (
+        <div className={`min-h-screen pb-10 ${isRestaurant ? 'pt-4' : 'pt-36 sm:pt-28'}`}>
+          <div className="max-w-7xl mx-auto px-4">
+            <button
+              onClick={() => { setProdutoDetalhe(null); setVista('catalogo'); }}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
+            >
+              <ArrowLeft size={16} /> Voltar
+            </button>
           </div>
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
@@ -610,11 +878,7 @@ export default function Tabela() {
 
                 <div className="mb-6">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-2">Quantidade</p>
-                  <div className="inline-flex items-center rounded-full border border-zinc-900/20 bg-white overflow-hidden">
-                    <button onClick={() => setQtdDetalhe(q => Math.max(1, q - 1))} className="p-3 text-zinc-700 hover:bg-zinc-50 transition-colors"><Minus size={18} /></button>
-                    <span className="font-black text-zinc-900 w-12 text-center">{qtdDetalhe}</span>
-                    <button onClick={() => setQtdDetalhe(q => q + 1)} className="p-3 text-zinc-700 hover:bg-zinc-50 transition-colors"><Plus size={18} /></button>
-                  </div>
+                  <CampoQuantidade valor={qtdDetalhe} onChange={setQtdDetalhe} grande />
                 </div>
 
                 <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
@@ -641,17 +905,15 @@ export default function Tabela() {
           </div>
         </div>
       ) : vista === 'carrinho' ? (
-        <div className="min-h-screen pb-10">
-          <div className={`${isRestaurant ? 'bg-white border-b border-neutral-200' : 'bg-white border-b-2 border-zinc-900'}`}>
-            <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-              <button
-                onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
-              >
-                <ArrowLeft size={16} /> Voltar
-              </button>
-              <h1 className={`font-bold ${isRestaurant ? 'text-lg text-neutral-900' : 'font-heading text-2xl text-zinc-900'}`}>Seu Pedido</h1>
-            </div>
+        <div className={`min-h-screen pb-10 ${isRestaurant ? 'pt-4' : 'pt-36 sm:pt-28'}`}>
+          <div className="max-w-2xl mx-auto px-4 flex items-center gap-3">
+            <button
+              onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
+            >
+              <ArrowLeft size={16} /> Voltar
+            </button>
+            <h1 className={`font-bold ${isRestaurant ? 'text-lg text-neutral-900' : 'font-heading text-2xl text-zinc-900'}`}>Seu Pedido</h1>
           </div>
           <div className="max-w-2xl mx-auto px-4 py-8">
             {pedidoCriado ? (
@@ -685,21 +947,61 @@ export default function Tabela() {
                       if (!produto) return null;
                       const preco = precoPorQtd(produto, quantidade);
                       return (
-                        <div key={produtoId} className="flex justify-between items-start">
-                          <div className="flex-1 min-w-0 mr-3">
-                            <p className={`font-bold truncate ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900 text-sm'}`}>{produto.nome}</p>
-                            <p className={`text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>{quantidade} x {formatPreco(preco)}</p>
+                        <div key={produtoId}>
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1 min-w-0 mr-3">
+                              <p className={`font-bold truncate ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900 text-sm'}`}>{produto.nome}</p>
+                              <p className={`text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>{formatPreco(preco)} / un.</p>
+                              <div className="mt-2">
+                                <CampoQuantidade
+                                  valor={quantidade}
+                                  onChange={q => setQtdCarrinho(produtoId, q)}
+                                  aoRemover={() => setQtdCarrinho(produtoId, 0)}
+                                />
+                              </div>
+                            </div>
+                            <span className={`font-bold shrink-0 ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900'}`}>{formatPreco(preco * quantidade)}</span>
                           </div>
-                          <span className={`font-bold shrink-0 ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900'}`}>{formatPreco(preco * quantidade)}</span>
+                          {temTaxaEmbalagem(produto, quantidade) && (
+                            <div className="mt-3 flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                              <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-amber-800 font-bold">Taxa de embalagem de {formatPreco(TAXA_EMBALAGEM)} (1kg)</p>
+                                <p className="text-[11px] text-amber-700 mt-0.5">Deseja levar 2kg e não pagar a taxa?</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setQtdCarrinho(produtoId, 2)}
+                                className={`shrink-0 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors ${isRestaurant ? 'bg-amber-600 hover:bg-amber-700 text-white rounded-lg' : 'bg-amber-500 hover:bg-amber-600 text-white rounded-full'}`}
+                              >
+                                Levar 2kg
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
+                    {totalTaxaEmbalagem > 0 && (
+                      <>
+                        <div className={`pt-3 mt-3 flex justify-between text-sm ${isRestaurant ? 'border-t border-neutral-200 text-neutral-500' : 'border-t border-zinc-900 text-zinc-500 font-medium'}`}>
+                          <span>Subtotal</span>
+                          <span>{formatPreco([...carrinho.entries()].reduce((acc, [id, qtd]) => {
+                            const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
+                            return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
+                          }, 0))}</span>
+                        </div>
+                        <div className={`flex justify-between text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>
+                          <span>Taxa de embalagem</span>
+                          <span>{formatPreco(totalTaxaEmbalagem)}</span>
+                        </div>
+                      </>
+                    )}
                     <div className={`pt-3 mt-3 flex justify-between font-bold text-lg ${isRestaurant ? 'border-t border-neutral-200 text-neutral-900' : 'border-t border-zinc-900 text-zinc-900'}`}>
                       <span>Total</span>
                       <span>{formatPreco([...carrinho.entries()].reduce((acc, [id, qtd]) => {
                         const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
                         return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
-                      }, 0))}</span>
+                      }, 0) + totalTaxaEmbalagem)}</span>
                     </div>
                   </div>
 
@@ -797,84 +1099,6 @@ export default function Tabela() {
         </div>
       ) : (
         <>
-      {/* ── Nav fixa (dock) ── */}
-      {!isRestaurant && (
-        <div className="fixed top-0 inset-x-0 z-40 px-3 sm:px-4 pt-3">
-          <div
-            className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
-            style={{
-              backgroundColor: `rgba(24,24,27,${(opacidadeNav * 0.6).toFixed(3)})`,
-              backdropFilter: opacidadeNav > 0 ? 'blur(20px) saturate(160%)' : 'none',
-              WebkitBackdropFilter: opacidadeNav > 0 ? 'blur(20px) saturate(160%)' : 'none',
-              boxShadow: opacidadeNav >= 1 ? '0 10px 40px rgba(0,0,0,0.35)' : 'none',
-            }}
-          >
-          <div className="px-4 py-3 sm:py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 flex items-center justify-start gap-8">
-                  <div className="hidden md:block w-44 lg:w-48">
-                    <SearchAutocomplete
-                      placeholder="Buscar..."
-                      valor={filtro}
-                      onChange={setFiltro}
-                      sugestoes={sugestoes}
-                      aoSelecionar={s => setFiltro(s.rotulo)}
-                      classNameInput="h-10 pl-10 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm transition-all"
-                      onBuscar={scrollParaCatalogo}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setMenuCategorias(true)}
-                    className="flex items-center gap-2 h-10 px-5 bg-white text-zinc-900 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm hover:bg-zinc-100 transition-colors"
-                  >
-                    <LayoutGrid size={16} /> Categorias
-                  </button>
-                </div>
-                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">Multigrãos</h1>
-                <div className="flex-1 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => setTema('restaurant')}
-                    title="Tema restaurante"
-                    className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
-                  >
-                    <Palette size={18} />
-                  </button>
-                  <button
-                    title="Conta"
-                    className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
-                  >
-                    <User size={18} />
-                  </button>
-                  <button
-                    onClick={() => setVista('carrinho')}
-                    title="Carrinho"
-                    className="relative h-10 w-10 flex items-center justify-center bg-white text-zinc-900 rounded-full shadow-sm hover:bg-zinc-100 transition-colors"
-                  >
-                    <ShoppingCart size={18} />
-                    {totalItensCarrinho > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-zinc-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                        {totalItensCarrinho}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              </div>
-              <div className="md:hidden mt-3">
-                <SearchAutocomplete
-                  placeholder="Buscar..."
-                  valor={filtro}
-                  onChange={setFiltro}
-                  sugestoes={sugestoes}
-                  aoSelecionar={s => setFiltro(s.rotulo)}
-                  classNameInput="w-full h-10 pl-10 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm transition-all"
-                  onBuscar={scrollParaCatalogo}
-                />
-              </div>
-            </div>
-          </div>
-          </div>
-        )}
-
       {/* ── Hero ── */}
       <div className={`relative overflow-hidden shadow-sm ${isRestaurant ? 'rounded-none md:rounded-b-[3rem]' : 'h-screen rounded-none bg-white'}`}>
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
@@ -953,8 +1177,7 @@ export default function Tabela() {
                   <CardCarrossel
                     produto={p}
                     qtd={qtdNoCarrinho(p.id)}
-                    onAdd={() => addAoCarrinho(p.id)}
-                    onRemove={() => removeDoCarrinho(p.id)}
+                    onQtd={q => setQtdCarrinho(p.id, q)}
                     onAbrir={() => abrirDetalhe(p)}
                   />
                 </div>
@@ -1013,14 +1236,13 @@ export default function Tabela() {
                           <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">{categoria.nome}</h2>
                           <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">{produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'}</span>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                           {produtos.map(p => (
                             <CardEcommerce
                               key={p.id}
                               produto={p}
                               qtd={qtdNoCarrinho(p.id)}
-                              onAdd={() => addAoCarrinho(p.id)}
-                              onRemove={() => removeDoCarrinho(p.id)}
+                              onQtd={q => setQtdCarrinho(p.id, q)}
                               onAbrir={() => abrirDetalhe(p)}
                             />
                           ))}
@@ -1118,14 +1340,13 @@ export default function Tabela() {
                           return (
                           <div key={gi}>
                             <FaixaMarca marca={grupo.marca} total={grupo.produtos.length} />
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 mt-5">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 mt-5">
                               {grupo.produtos.map(p => (
                                 <CardEcommerce
                                   key={p.id}
                                   produto={p}
                                   qtd={qtdNoCarrinho(p.id)}
-                                  onAdd={() => addAoCarrinho(p.id)}
-                                  onRemove={() => removeDoCarrinho(p.id)}
+                                  onQtd={q => setQtdCarrinho(p.id, q)}
                                   onAbrir={() => abrirDetalhe(p)}
                                 />
                               ))}
@@ -1143,32 +1364,29 @@ export default function Tabela() {
         )}
       </div>
 
-      {/* Carrinho flutuante */}
+      {/* Mini barra de finalizar pedido */}
       {totalItensCarrinho > 0 && !pedidoCriado && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pointer-events-none">
+        <div className="fixed bottom-4 inset-x-0 z-40 px-4 pointer-events-none">
           <div className="max-w-7xl mx-auto pointer-events-auto">
-            <div className={`backdrop-blur-md px-5 py-4 flex items-center justify-between shadow-[0_-8px_30px_rgba(0,0,0,0.12)] ${isRestaurant ? 'bg-white/95 border border-neutral-200 rounded-2xl' : 'bg-zinc-900 text-white rounded-3xl border-2 border-zinc-900'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`h-12 w-12 flex items-center justify-center ${isRestaurant ? 'bg-red-50 rounded-full' : 'bg-white rounded-full'}`}>
-                  <ShoppingCart size={22} className={isRestaurant ? 'text-red-600' : 'text-zinc-900'} />
-                </div>
-                <div>
-                  <p className={`text-sm font-bold ${isRestaurant ? 'text-neutral-800' : 'text-white'}`}>{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</p>
-                  <p className={`text-xs font-medium ${isRestaurant ? 'text-neutral-500' : 'text-white/80 font-bold'}`}>
-                    {[...carrinho.entries()].reduce((acc, [id, qtd]) => {
-                      const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
-                      return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
-                    }, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button onClick={limparCarrinho} className={`text-xs px-2 py-1.5 font-medium transition-colors ${isRestaurant ? 'text-neutral-400 hover:text-neutral-600' : 'text-white/60 hover:text-white'}`}>Limpar</button>
-                <button onClick={() => setVista('carrinho')} className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-colors shadow-sm ${isRestaurant ? 'rounded-xl bg-red-600 hover:bg-red-700 text-white' : 'rounded-full bg-white text-zinc-900 hover:bg-zinc-200 uppercase tracking-widest text-xs'}`}>
-                  <ShoppingBag size={18} /> {isRestaurant ? 'Ver Pedido' : 'Finalizar Pedido'}
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => setVista('carrinho')}
+              className={`w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] ${isRestaurant ? 'bg-red-600 hover:bg-red-700 text-white rounded-2xl' : 'bg-zinc-900 text-white rounded-full border-2 border-zinc-900'}`}
+            >
+              <span className="flex items-center gap-3 min-w-0">
+                <span className="text-sm font-bold truncate">{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</span>
+              </span>
+              <span className="flex items-center gap-2 shrink-0">
+                <span className={`text-sm font-bold ${isRestaurant ? 'text-white/90' : 'text-white/80'}`}>
+                  {([...carrinho.entries()].reduce((acc, [id, qtd]) => {
+                    const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
+                    return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
+                  }, 0) + totalTaxaEmbalagem).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </span>
+                <span className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap ${isRestaurant ? 'bg-white text-red-600 rounded-xl' : 'bg-white text-zinc-900 rounded-full'}`}>
+                  <ShoppingBag size={16} /> Finalizar
+                </span>
+              </span>
+            </button>
           </div>
         </div>
       )}
@@ -1176,7 +1394,143 @@ export default function Tabela() {
         </>
       )}
 
-      {/* ── Aba lateral: Categorias / Conta / Carrinho ── */}
+      {/* ── Aba lateral: Conta do cliente ── */}
+      {!isRestaurant && contaAberta && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setContaAberta(false)} />
+          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-[#F7F5F2] shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 bg-zinc-900 text-white">
+              <h2 className="font-heading font-bold text-xl">Minha Conta</h2>
+              <button onClick={() => setContaAberta(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {!acessado ? (
+                <div>
+                  <div className="flex flex-col items-center text-center mb-6 mt-2">
+                    <div className="h-16 w-16 rounded-full bg-white border border-zinc-900/15 flex items-center justify-center mb-4">
+                      <User size={28} className="text-zinc-900" />
+                    </div>
+                    <p className="font-heading font-bold text-zinc-900 text-lg">Acesse sua conta</p>
+                    <p className="text-sm text-zinc-500 mt-1">Informe seu CPF ou CNPJ para consultar seus dados e pedidos.</p>
+                  </div>
+                  <div className="relative">
+                    <IdCard size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={cpfAcesso}
+                      onChange={e => setCpfAcesso(mascaraCpfCnpj(e.target.value))}
+                      onKeyDown={e => { if (e.key === 'Enter') acessarConta(); }}
+                      placeholder="CPF ou CNPJ"
+                      className="w-full h-12 pl-11 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 transition-all focus:ring-2 focus:ring-zinc-900"
+                    />
+                  </div>
+                  {erroAcesso && <p className="text-xs text-red-600 font-medium mt-2">{erroAcesso}</p>}
+                  <button
+                    onClick={acessarConta}
+                    disabled={buscandoAcesso}
+                    className="mt-4 w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-xs rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    {buscandoAcesso ? <><Loader2 size={16} className="animate-spin" /> Acessando...</> : <><KeyRound size={16} /> Acessar</>}
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  {clienteAcesso ? (
+                  <div className="bg-white rounded-2xl border border-zinc-900/15 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-heading font-bold text-zinc-900 text-lg leading-tight truncate">{clienteAcesso.nomeFantasia || clienteAcesso.razaoSocialNome}</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">{clienteAcesso.cpfCnpj}</p>
+                      </div>
+                      <button onClick={sairConta} title="Sair" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-bold rounded-full transition-colors shrink-0">
+                        <LogOut size={13} /> Sair
+                      </button>
+                    </div>
+                    {(clienteAcesso.telefone || clienteAcesso.email) && (
+                      <div className="mt-3 space-y-1 text-sm text-zinc-600">
+                        {clienteAcesso.telefone && <p className="flex items-center gap-2"><Phone size={14} className="text-zinc-400 shrink-0" /> {clienteAcesso.telefone}</p>}
+                        {clienteAcesso.email && <p className="flex items-center gap-2 truncate">{clienteAcesso.email}</p>}
+                      </div>
+                    )}
+                    {clienteAcesso.logradouro && (
+                      <p className="mt-3 text-sm text-zinc-600 flex items-center gap-2">
+                        <MapPin size={14} className="text-zinc-400 shrink-0" />
+                        {[clienteAcesso.logradouro, clienteAcesso.numero, clienteAcesso.bairro, clienteAcesso.cidade, clienteAcesso.estado].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                    {clienteAcesso.vendedor?.nome && (
+                      <p className="mt-3 text-xs text-zinc-500 font-medium">Vendedor: {clienteAcesso.vendedor.nome}</p>
+                    )}
+                  </div>
+                  ) : (
+                  <div className="bg-white rounded-2xl border border-zinc-900/15 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-heading font-bold text-zinc-900 text-lg leading-tight truncate">Conta do cliente</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">{cpfAcesso}</p>
+                      </div>
+                      <button onClick={sairConta} title="Sair" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-bold rounded-full transition-colors shrink-0">
+                        <LogOut size={13} /> Sair
+                      </button>
+                    </div>
+                  </div>
+                  )}
+
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mt-6 mb-2 flex items-center gap-2">
+                    <Package size={14} /> Meus Pedidos ({pedidosAcesso.length})
+                  </p>
+                  {pedidosAcesso.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-dashed border-zinc-300 p-8 text-center">
+                      <Package size={28} className="mx-auto text-zinc-300 mb-2" />
+                      <p className="text-sm text-zinc-500 font-medium">Nenhum pedido encontrado.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {pedidosAcesso.map(p => (
+                        <div key={p.id} className="bg-white rounded-2xl border border-zinc-900/15 overflow-hidden">
+                          <button
+                            onClick={() => setPedidoAberto(pedidoAberto === p.id ? null : p.id)}
+                            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-zinc-50 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-zinc-900">Pedido #{p.id}</p>
+                              <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5"><CalendarDays size={12} /> {formatarData(p.dataCriacao)} · {p.tipoEntrega}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${corStatus(p.status)}`}>{labelStatus(p.status)}</span>
+                              <ChevronRight size={16} className={`text-zinc-400 transition-transform ${pedidoAberto === p.id ? 'rotate-90' : ''}`} />
+                            </div>
+                          </button>
+                          {pedidoAberto === p.id && (
+                            <div className="border-t border-zinc-900/10 px-4 py-3 bg-zinc-50">
+                              <div className="space-y-1.5">
+                                {p.itens.map(i => (
+                                  <div key={i.id} className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-zinc-700 min-w-0 truncate">{i.quantidade}x {i.produto?.nome ?? `Produto #${i.produtoId}`}</span>
+                                    <span className="text-zinc-900 font-bold shrink-0">{formatPreco((i.precoUnitario || 0) * i.quantidade)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              {p.pagamento && <p className="text-xs text-zinc-500 mt-2">Pagamento: {p.pagamento}</p>}
+                              {p.observacao && <p className="text-xs text-zinc-500 mt-1">Obs.: {p.observacao}</p>}
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-900/10">
+                                <span className="text-xs text-zinc-500 font-medium">Total</span>
+                                <span className="text-lg font-black text-zinc-900">{formatPreco(p.valorFinal || p.valorTotal)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── Aba lateral: Categorias ── */}
       {!isRestaurant && menuCategorias && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuCategorias(false)} />

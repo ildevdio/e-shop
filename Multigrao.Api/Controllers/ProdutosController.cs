@@ -72,7 +72,8 @@ namespace Multigrao.Api.Controllers
                 Embalagem = dto.Embalagem,
                 UnidadeVenda = dto.UnidadeVenda,
                 ImagemUrl = dto.ImagemUrl,
-                Ativo = dto.Ativo
+                Ativo = dto.Ativo,
+                Destaque = dto.Destaque
             };
 
             _context.Produtos.Add(produto);
@@ -98,6 +99,7 @@ namespace Multigrao.Api.Controllers
             produto.UnidadeVenda = dto.UnidadeVenda;
             produto.ImagemUrl = dto.ImagemUrl;
             produto.Ativo = dto.Ativo;
+            produto.Destaque = dto.Destaque;
 
             await _context.SaveChangesAsync();
             return NoContent();

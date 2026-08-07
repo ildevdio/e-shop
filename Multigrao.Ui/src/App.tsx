@@ -61,9 +61,10 @@ function App() {
           <Route path="financeiro" element={<Financeiro />} />
         </Route>
 
-        <Route path="/tabela" element={<LayoutPublico />}>
+        <Route path="/multigraos-portal" element={<LayoutPublico />}>
           <Route index element={<Tabela />} />
         </Route>
+        <Route path="/tabela" element={<Navigate to="/multigraos-portal" replace />} />
       </Routes>
     </BrowserRouter>
   );

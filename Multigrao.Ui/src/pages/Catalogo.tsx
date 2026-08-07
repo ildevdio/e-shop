@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2, Star } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { useAuthStore } from '../store/authStore';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
@@ -497,6 +497,29 @@ function GerenciarCatalogo({
                     <span className="text-xs text-gray-400 ml-2">{p.categoria?.nome} / {p.marca?.nome ?? 'Diversos'}</span>
                   </div>
                   <div className="flex items-center gap-1">
+                    <button
+                      title={p.destaque ? 'Remover dos destaques' : 'Marcar como destaque'}
+                      onClick={async () => {
+                        await produtoService.atualizarProduto(p.id, {
+                          nome: p.nome,
+                          pesoUnidade: p.pesoUnidade,
+                          codigoERP: p.codigoERP,
+                          categoriaId: p.categoriaId,
+                          marcaId: p.marcaId,
+                          precoVarejo: p.precoVarejo,
+                          precoAtacado: p.precoAtacado,
+                          embalagem: p.embalagem,
+                          unidadeVenda: p.unidadeVenda,
+                          imagemUrl: p.imagemUrl,
+                          ativo: p.ativo,
+                          destaque: !p.destaque,
+                        });
+                        onSalvo();
+                      }}
+                      className={`p-2 transition-colors ${p.destaque ? 'text-amber-400 hover:text-amber-500' : 'text-gray-300 hover:text-amber-400'}`}
+                    >
+                      <Star size={16} className={p.destaque ? 'fill-amber-400' : ''} />
+                    </button>
                     <button onClick={() => setEditandoProduto(p)} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                       <Pencil size={16} />
                     </button>
@@ -584,6 +607,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
       unidadeVenda: form.unidadeVenda || null,
       imagemUrl: form.imagemUrl || null,
       ativo: form.ativo ?? true,
+      destaque: form.destaque ?? false,
     };
     if (form.id) {
       await produtoService.atualizarProduto(form.id, dto);
@@ -668,6 +692,17 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
             <input type="checkbox" checked={form.ativo ?? true} onChange={e => setForm({ ...form, ativo: e.target.checked })} className="rounded" />
             Produto ativo no catálogo
           </label>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Destaque</label>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, destaque: !(form.destaque ?? false) })}
+              className={`mt-0.5 flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border text-sm font-medium transition-colors ${form.destaque ? 'border-amber-400 bg-amber-50 text-amber-600' : 'border-gray-300 text-gray-500 hover:border-amber-300'}`}
+            >
+              <Star size={18} className={form.destaque ? 'fill-amber-400 text-amber-400' : ''} />
+              {form.destaque ? 'Produto em destaque' : 'Marcar como destaque'}
+            </button>
+          </div>
         </div>
         {erro && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5">{erro}</p>}
         <div className="flex gap-3 justify-end mt-6">

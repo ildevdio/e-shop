@@ -41,5 +41,7 @@ namespace Multigrao.Api.Models
         public string? ImagemUrl { get; set; }
 
         public bool Ativo { get; set; } = true;
+
+        public bool Destaque { get; set; }
     }
 }

@@ -93,6 +93,16 @@ export const pedidoService = {
     }
   },
 
+  getPedidosPorCpf: async (cpfCnpj: string): Promise<Pedido[]> => {
+    try {
+      const response = await axios.get(`${API_URL}/por-cpf`, { params: { cpfCnpj } });
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Erro ao buscar pedidos do cliente', error);
+      return [];
+    }
+  },
+
   getPedido: async (id: number): Promise<Pedido | null> => {
     try {
       const response = await axios.get(`${API_URL}/${id}`);

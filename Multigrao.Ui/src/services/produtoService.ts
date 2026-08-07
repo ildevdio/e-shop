@@ -31,6 +31,7 @@ export interface Produto {
   unidadeVenda: string | null;
   imagemUrl: string | null;
   ativo: boolean;
+  destaque: boolean;
 }
 
 export const produtoService = {
