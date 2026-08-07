@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Mail, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
