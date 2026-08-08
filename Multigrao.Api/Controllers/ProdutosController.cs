@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
+using Multigrao.Api.DTOs;
 using Multigrao.Api.Models;
 
 namespace Multigrao.Api.Controllers
@@ -44,6 +45,33 @@ namespace Multigrao.Api.Controllers
                 .ToList();
 
             return Ok(ordenados);
+        }
+
+        [HttpPut("estoque")]
+        public async Task<IActionResult> AjustarEstoque([FromBody] AjustarEstoqueDto dto)
+        {
+            if (dto.Itens == null || dto.Itens.Count == 0)
+                return BadRequest(new { message = "Nenhum produto informado." });
+
+            var ids = dto.Itens.Select(i => i.ProdutoId).Distinct().ToList();
+            var produtos = await _context.Produtos
+                .Where(p => ids.Contains(p.Id))
+                .ToListAsync();
+
+            var naoEncontrados = ids.Where(id => !produtos.Any(p => p.Id == id)).ToList();
+            if (naoEncontrados.Any())
+                return BadRequest(new { message = $"Produtos não encontrados: {string.Join(", ", naoEncontrados)}" });
+
+            foreach (var item in dto.Itens)
+            {
+                var produto = produtos.First(p => p.Id == item.ProdutoId);
+                if (item.Quantidade < 0)
+                    return BadRequest(new { message = $"Quantidade inválida para o produto '{produto.Nome}'." });
+                produto.Estoque = item.Quantidade;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Estoque atualizado com sucesso." });
         }
 
         [HttpGet("{id}")]

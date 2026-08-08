@@ -117,7 +117,9 @@ export const pedidoService = {
     try {
       const response = await axios.post(API_URL, dto);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Erro ao criar pedido';
+      alert(msg);
       console.error('Erro ao criar pedido', error);
       return null;
     }
@@ -127,7 +129,9 @@ export const pedidoService = {
     try {
       const response = await axios.post(`${API_URL}/solicitacao-catalogo`, dto);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Erro ao solicitar pedido do catálogo';
+      alert(msg);
       console.error('Erro ao solicitar pedido do catálogo', error);
       return null;
     }

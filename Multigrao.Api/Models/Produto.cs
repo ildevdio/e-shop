@@ -50,5 +50,7 @@ namespace Multigrao.Api.Models
         public bool Ativo { get; set; } = true;
 
         public bool Destaque { get; set; }
+
+        public decimal Estoque { get; set; }
     }
 }

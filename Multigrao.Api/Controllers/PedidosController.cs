@@ -171,6 +171,9 @@ namespace Multigrao.Api.Controllers
             var cliente = await _context.Clientes.FindAsync(dto.ClienteId);
             if (cliente == null) return BadRequest(new { message = "Cliente não encontrado." });
 
+            var erroEstoque = await ValidarEstoque(dto.Itens);
+            if (erroEstoque != null) return BadRequest(new { message = erroEstoque });
+
             var statusInicial = cliente.BloqueadoFinanceiro ? "BloqueadoFinanceiro" : "Pendente";
             var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo, status: statusInicial, observacao: dto.Observacao);
             
@@ -198,6 +201,9 @@ namespace Multigrao.Api.Controllers
             int? clienteId = cliente?.Id;
             bool enderecoConfere = false;
             bool clienteBloqueado = cliente?.BloqueadoFinanceiro == true;
+
+            var erroEstoque = await ValidarEstoque(dto.Itens);
+            if (erroEstoque != null) return BadRequest(new { message = erroEstoque });
 
             if (cliente != null)
             {
@@ -306,6 +312,19 @@ namespace Multigrao.Api.Controllers
             return NoContent();
         }
 
+        private async Task<string?> ValidarEstoque(List<CriarItemPedidoDto> itensDto)
+        {
+            foreach (var item in itensDto)
+            {
+                var produto = await _context.Produtos.FindAsync(item.ProdutoId);
+                if (produto == null)
+                    return $"Produto #{item.ProdutoId} não encontrado.";
+                if (produto.Estoque <= 0)
+                    return $"O produto '{produto.Nome}' está sem estoque para venda.";
+            }
+            return null;
+        }
+
         private async Task<Pedido> CriarPedido(
             int? clienteId,
             string? solicitanteNome,
@@ -344,6 +363,9 @@ namespace Multigrao.Api.Controllers
                     PesoUnitario = pesoUnitario,
                     Status = "Pendente"
                 };
+
+                if (produto != null)
+                    produto.Estoque -= item.Quantidade;
 
                 pesoTotal += pesoUnitario * item.Quantidade;
                 itens.Add(itemPedido);
@@ -502,6 +524,13 @@ namespace Multigrao.Api.Controllers
 
             if (pedido.EntregaPedidos.Any())
                 _context.EntregasPedidos.RemoveRange(pedido.EntregaPedidos);
+
+            foreach (var item in pedido.Itens)
+            {
+                var produto = await _context.Produtos.FindAsync(item.ProdutoId);
+                if (produto != null)
+                    produto.Estoque += item.Quantidade;
+            }
 
             _context.ItensPedido.RemoveRange(pedido.Itens);
             _context.Pedidos.Remove(pedido);

@@ -33,6 +33,7 @@ export interface Produto {
   imagemContentType?: string | null;
   ativo: boolean;
   destaque: boolean;
+  estoque: number;
 }
 
 export const produtoService = {
@@ -66,7 +67,7 @@ export const produtoService = {
     }
   },
 
-  criarProduto: async (dto: Omit<Produto, 'id' | 'categoria' | 'marca'>): Promise<Produto | null> => {
+  criarProduto: async (dto: Omit<Produto, 'id' | 'categoria' | 'marca' | 'estoque'>): Promise<Produto | null> => {
     try {
       const response = await axios.post(API_URL, dto);
       return response.data;
@@ -76,7 +77,7 @@ export const produtoService = {
     }
   },
 
-  atualizarProduto: async (id: number, dto: Omit<Produto, 'id' | 'categoria' | 'marca'>): Promise<boolean> => {
+  atualizarProduto: async (id: number, dto: Omit<Produto, 'id' | 'categoria' | 'marca' | 'estoque'>): Promise<boolean> => {
     try {
       await axios.put(`${API_URL}/${id}`, dto);
       return true;
@@ -110,6 +111,16 @@ export const produtoService = {
       return true;
     } catch (error) {
       console.error('Erro ao upload da imagem', error);
+      return false;
+    }
+  },
+
+  ajustarEstoque: async (itens: { produtoId: number; quantidade: number }[]): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/estoque`, { itens });
+      return true;
+    } catch (error) {
+      console.error('Erro ao ajustar estoque', error);
       return false;
     }
   },

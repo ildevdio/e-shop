@@ -9,6 +9,7 @@ import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { buscarCEP } from '../utils/buscarCEP';
+import { formatEstoque } from '../utils/formatEstoque';
 
 const STATUS_LABELS: Record<string, string> = {
   BloqueadoFinanceiro: 'Pendente de Lib. Financeira',
@@ -193,6 +194,10 @@ export default function ComercialPedidos() {
   };
 
   const selecionarProduto = (index: number, produto: Produto) => {
+    if (produto.estoque <= 0) {
+      alert(`O produto "${produto.nome}" está sem estoque para venda.`);
+      return;
+    }
     const atualizados = [...itensPedido];
     atualizados[index] = { ...atualizados[index], produtoId: produto.id, produto, quantidade: 1, precoUnitario: produto.precoVarejo };
     setItensPedido(atualizados);
@@ -302,7 +307,7 @@ export default function ComercialPedidos() {
     const clienteId = parseInt(novoPedido.clienteId);
     const desconto = parseFloat(novoPedido.desconto.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const acrescimo = parseFloat(novoPedido.acrescimo.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-    await pedidoService.criarPedido({
+    const pedido = await pedidoService.criarPedido({
       clienteId,
       valorTotal: valorTotalCalc,
       pesoTotal: pesoTotalItens,
@@ -312,6 +317,7 @@ export default function ComercialPedidos() {
       acrescimo,
       itens: itensPedido.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade, precoUnitario: i.precoUnitario, pesoUnitario: i.produto?.pesoUnidade ?? 0 })),
     });
+    if (!pedido) return;
     setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
     setDavFile(null);
@@ -792,13 +798,18 @@ export default function ComercialPedidos() {
                           }}
                           sugestoes={produtos
                             .filter(p => p.nome.toLowerCase().includes((buscaProduto[index] ?? '').toLowerCase()))
-                            .map(p => ({ rotulo: p.nome, subRotulo: `R$ ${p.precoVarejo.toFixed(2)} | ${p.pesoUnidade} kg` } satisfies Sugestao))}
+                            .map(p => ({ rotulo: p.nome, subRotulo: `R$ ${p.precoVarejo.toFixed(2)} | ${p.pesoUnidade} kg | Est.: ${formatEstoque(p.estoque)}${p.estoque <= 0 ? ' (esgotado)' : ''}` } satisfies Sugestao))}
                           aoSelecionar={s => {
                             const produto = produtos.find(p => p.nome === s.rotulo);
                             if (produto) selecionarProduto(index, produto);
                           }}
                           className="mt-0.5"
                         />
+                        {item.produto && item.produto.estoque > 0 && (
+                          <p className="text-[11px] text-gray-400 mt-1">
+                            Estoque disponível: <span className="font-semibold text-gray-600">{formatEstoque(item.produto.estoque)}</span>
+                          </p>
+                        )}
                       </div>
                       <div className="w-24">
                         <label className="text-[10px] text-gray-400 uppercase tracking-wider">Qtd</label>

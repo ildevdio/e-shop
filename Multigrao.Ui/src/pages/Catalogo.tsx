@@ -8,6 +8,7 @@ import { marcaService } from '../services/marcaService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
 import { resizeImage } from '../utils/resizeImage';
+import { formatEstoque } from '../utils/formatEstoque';
 import { buscarCEP } from '../utils/buscarCEP';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
@@ -214,7 +215,7 @@ export default function Catalogo() {
             placeholder="Pesquisar produto..."
             valor={filtro}
             onChange={setFiltro}
-            sugestoes={categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).map(p => ({ rotulo: p.nome, subRotulo: p.categoria?.nome }))}
+            sugestoes={categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).map(p => ({ rotulo: p.nome, subRotulo: p.estoque <= 0 ? 'Esgotado' : p.categoria?.nome }))}
             aoSelecionar={(s) => { setFiltro(s.rotulo); }}
             className="mb-6"
           />
@@ -290,6 +291,7 @@ export default function Catalogo() {
                                         <div className="flex items-center gap-2">
                                            {produtoImagemUrl(p) && <img src={produtoImagemUrl(p)} alt="" loading="lazy" className="h-8 w-8 rounded-lg object-cover" />}
                                           <span className="font-medium text-gray-900">{p.nome}</span>
+                                          {p.estoque <= 0 && <span className="text-[10px] font-semibold uppercase tracking-wider text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>}
                                         </div>
                                       </td>
                                       <td className="text-center py-2.5 px-2 text-gray-500">{p.embalagem ?? '—'}</td>
@@ -445,6 +447,7 @@ function GerenciarCatalogo({
   const [editandoProduto, setEditandoProduto] = useState<Partial<Produto> | null>(null);
   const [editandoMarca, setEditandoMarca] = useState<Partial<Marca> | null>(null);
   const [filtroProdutos, setFiltroProdutos] = useState('');
+  const [ajusteEstoqueAberto, setAjusteEstoqueAberto] = useState(false);
 
   const produtosFiltrados = produtos.filter(p => {
     if (!filtroProdutos) return true;
@@ -486,6 +489,9 @@ function GerenciarCatalogo({
               <button onClick={() => setEditandoProduto({ nome: '', ativo: true })} className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0">
                 <Plus size={16} /> Novo
               </button>
+              <button onClick={() => setAjusteEstoqueAberto(true)} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shrink-0">
+                <Pencil size={16} /> Ajuste de estoque
+              </button>
             </div>
             {produtosFiltrados.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">Nenhum produto encontrado.</p>
@@ -496,7 +502,13 @@ function GerenciarCatalogo({
                     <span className={`font-medium ${p.ativo ? 'text-gray-900' : 'text-gray-400 line-through'}`}>{p.nome}</span>
                     <span className="text-xs text-gray-400 ml-2">{p.categoria?.nome} / {p.marca?.nome ?? 'Diversos'}</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${p.estoque <= 0 ? 'text-red-600' : 'text-emerald-700'}`}>
+                      {p.estoque <= 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
+                      {formatEstoque(p.estoque)}
+                      <span className="text-[10px] font-normal text-gray-400">estoque</span>
+                    </span>
+                    <div className="flex items-center gap-1">
                     <button
                       title={p.destaque ? 'Remover dos destaques' : 'Marcar como destaque'}
                       onClick={async () => {
@@ -874,6 +886,220 @@ function MarcaForm({ marca, onClose, onSalvo }: {
           <button onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
           <button onClick={salvando} disabled={!form.nome?.trim() || uploading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && !uploading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
             {uploading ? 'Salvando...' : form.id ? 'Salvar' : 'Criar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EstoqueList({ produtos, onSalvo }: {
+  produtos: Produto[];
+  onSalvo: () => void;
+}) {
+  const [ajusteAberto, setAjusteAberto] = useState(false);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm text-gray-500">
+          {produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'} cadastrados
+        </p>
+        <button
+          onClick={() => setAjusteAberto(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0"
+        >
+          <Pencil size={16} /> Ajuste de estoque
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 text-[11px] text-gray-400 uppercase tracking-wider">
+              <th className="text-left py-3 px-4 font-medium">Produto</th>
+              <th className="text-left py-3 px-4 font-medium">Tipo</th>
+              <th className="text-right py-3 px-4 font-medium w-40">Qtd. em estoque</th>
+            </tr>
+          </thead>
+          <tbody>
+            {produtos.map(p => (
+              <tr key={p.id} className="border-b border-gray-50">
+                <td className="py-2.5 px-4">
+                  <span className="font-medium text-gray-900">{p.nome}</span>
+                  {p.categoria?.nome && <span className="text-xs text-gray-400 ml-2">{p.categoria.nome}</span>}
+                </td>
+                <td className="py-2.5 px-4 text-gray-500">
+                  {[p.embalagem, p.unidadeVenda].filter(Boolean).join(' · ') || '—'}
+                </td>
+                <td className="py-2.5 px-4 text-right">
+                  <span className={`inline-flex items-center gap-1.5 font-semibold ${p.estoque <= 0 ? 'text-red-600' : 'text-emerald-700'}`}>
+                    {p.estoque <= 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
+                    {formatEstoque(p.estoque)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {produtos.length === 0 && (
+              <tr>
+                <td colSpan={3} className="py-8 text-center text-sm text-gray-400">Nenhum produto cadastrado.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {ajusteAberto && (
+        <EstoqueAjuste produtos={produtos} onClose={() => setAjusteAberto(false)} onSalvo={onSalvo} />
+      )}
+    </div>
+  );
+}
+
+function EstoqueAjuste({ produtos, onClose, onSalvo }: {
+  produtos: Produto[];
+  onClose: () => void;
+  onSalvo: () => void;
+}) {
+  const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
+  const [quantidades, setQuantidades] = useState<Record<number, string>>(
+    () => Object.fromEntries(produtos.map(p => [p.id, String(p.estoque)]))
+  );
+  const [carga, setCarga] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+
+  const todosSelecionados = produtos.length > 0 && selecionados.size === produtos.length;
+
+  const toggleTodos = () => {
+    if (todosSelecionados) setSelecionados(new Set());
+    else setSelecionados(new Set(produtos.map(p => p.id)));
+  };
+
+  const toggleProduto = (id: number) => {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const aplicarCarga = () => {
+    const valor = parseFloat(carga.replace(',', '.'));
+    if (isNaN(valor) || valor < 0) {
+      setErro('Informe uma quantidade válida para a carga.');
+      return;
+    }
+    setErro('');
+    setQuantidades(prev => {
+      const next = { ...prev };
+      selecionados.forEach(id => { next[id] = String(valor); });
+      return next;
+    });
+  };
+
+  const salvar = async () => {
+    setErro('');
+    if (selecionados.size === 0) {
+      setErro('Selecione pelo menos um produto para ajustar.');
+      return;
+    }
+    const itens = [...selecionados].map(id => {
+      const valor = parseFloat((quantidades[id] ?? '0').replace(',', '.'));
+      return { produtoId: id, quantidade: isNaN(valor) ? 0 : valor };
+    });
+    if (itens.some(i => i.quantidade < 0)) {
+      setErro('Quantidade não pode ser negativa.');
+      return;
+    }
+    setSalvando(true);
+    const ok = await produtoService.ajustarEstoque(itens);
+    setSalvando(false);
+    if (!ok) {
+      setErro('Não foi possível salvar o ajuste de estoque.');
+      return;
+    }
+    onSalvo();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-serif font-bold text-gray-900">Ajuste de Estoque</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
+          <p className="text-xs font-medium text-gray-500 mb-2">
+            Definir quantidade para os <strong>{selecionados.size}</strong> produto{selecionados.size === 1 ? '' : 's'} selecionado{selecionados.size === 1 ? '' : 's'}:
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="decimal"
+              value={carga}
+              onChange={e => setCarga(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') aplicarCarga(); }}
+              placeholder="Ex.: 100"
+              className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+            />
+            <button
+              onClick={aplicarCarga}
+              disabled={selecionados.size === 0}
+              className="px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-200 disabled:text-gray-400"
+            >
+              Aplicar a todos
+            </button>
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+          <input type="checkbox" checked={todosSelecionados} onChange={toggleTodos} className="rounded" />
+          Selecionar todos os produtos
+        </label>
+
+        <div className="flex-1 overflow-y-auto border border-gray-100 rounded-xl">
+          {produtos.map(p => {
+            const selecionado = selecionados.has(p.id);
+            return (
+              <div
+                key={p.id}
+                className={`flex items-center gap-3 px-4 py-2.5 border-b border-gray-50 ${selecionado ? 'bg-amber-50/50' : ''}`}
+              >
+                <input type="checkbox" checked={selecionado} onChange={() => toggleProduto(p.id)} className="rounded shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{p.nome}</p>
+                  <p className="text-[11px] text-gray-400">{[p.embalagem, p.unidadeVenda].filter(Boolean).join(' · ') || '—'} · atual: {formatEstoque(p.estoque)}</p>
+                </div>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={quantidades[p.id] ?? '0'}
+                  onChange={e => setQuantidades(prev => ({ ...prev, [p.id]: e.target.value }))}
+                  disabled={!selecionado}
+                  className={`w-24 border rounded-lg p-2 outline-none focus:border-black text-sm text-right ${selecionado ? 'border-gray-300' : 'border-gray-100 bg-gray-50 text-gray-300'}`}
+                />
+              </div>
+            );
+          })}
+          {produtos.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400">Nenhum produto cadastrado.</p>
+          )}
+        </div>
+
+        {erro && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5 mt-3">{erro}</p>}
+
+        <div className="flex gap-3 justify-end mt-5">
+          <button onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+          <button
+            onClick={salvar}
+            disabled={salvando || selecionados.size === 0}
+            className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${salvando || selecionados.size === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
+          >
+            {salvando ? 'Salvando...' : 'Salvar ajuste'}
           </button>
         </div>
       </div>

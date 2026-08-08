@@ -115,6 +115,9 @@ function CardEcommerce({
         {isAtacado && (
           <span className="absolute top-2 left-2 bg-zinc-900 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Atacado</span>
         )}
+        {produto.estoque <= 0 && (
+          <span className="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Esgotado</span>
+        )}
       </button>
       <div className="p-3 flex-1 flex flex-col">
         {showMarca && produto.marca?.nome && (
@@ -140,6 +143,10 @@ function CardEcommerce({
         </div>
         {qtd > 0 ? (
           <CampoQuantidade valor={qtd} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between" />
+        ) : produto.estoque <= 0 ? (
+          <button disabled className="w-full py-2.5 bg-zinc-100 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed">
+            Produto esgotado
+          </button>
         ) : (
           <button onClick={onAbrir} className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-[10px] rounded-full transition-colors">
             Ver Produto
@@ -175,6 +182,9 @@ function CardCarrossel({
       {isAtacado && (
         <span className="absolute top-3 left-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Atacado</span>
       )}
+      {produto.estoque <= 0 && (
+        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Esgotado</span>
+      )}
       <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
         {produto.marca?.nome && (
           <p className="text-[10px] uppercase tracking-widest font-bold text-white/70 mb-1">{produto.marca.nome}</p>
@@ -195,6 +205,8 @@ function CardCarrossel({
           </div>
           {qtd > 0 ? (
             <CampoQuantidade valor={qtd} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-white shrink-0" />
+          ) : produto.estoque <= 0 ? (
+            <button disabled className="px-4 py-2 bg-zinc-200 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed shrink-0">Esgotado</button>
           ) : (
             <button onClick={onAbrir} className="px-4 py-2 bg-white text-zinc-900 font-bold uppercase tracking-widest text-[10px] rounded-full hover:bg-zinc-100 transition-colors shrink-0">Ver Produto</button>
           )}
@@ -458,6 +470,11 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   [carrinho, categorias]);
 
   const addAoCarrinho = (produtoId: number) => {
+    const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === produtoId);
+    if (produto && produto.estoque <= 0) {
+      alert('Este produto está esgotado.');
+      return;
+    }
     setCarrinho(prev => new Map(prev).set(produtoId, (prev.get(produtoId) ?? 0) + 1));
   };
 
@@ -488,14 +505,19 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
 
   const sugestoes: Sugestao[] = [
     ...marcasSugestao,
-    ...categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).map(p => ({ rotulo: p.nome, subRotulo: p.categoria?.nome })),
+    ...categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).map(p => ({ rotulo: p.nome, subRotulo: p.estoque <= 0 ? 'Esgotado' : p.categoria?.nome })),
   ];
 
   const categoriasFiltradas = categorias
     .map(({ categoria, grupos }) => ({
       categoria,
       grupos: grupos
-        .map(g => ({ ...g, produtos: g.produtos.filter(produtoFiltrado) }))
+        .map(g => ({
+          ...g,
+          produtos: g.produtos
+            .filter(produtoFiltrado)
+            .sort((a, b) => (a.estoque > 0 ? 0 : 1) - (b.estoque > 0 ? 0 : 1)),
+        }))
         .filter(g => g.produtos.length > 0),
     }))
     .filter(c => c.grupos.length > 0);
@@ -614,7 +636,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   };
 
   const adicionarDoDetalhe = () => {
-    if (!produtoDetalhe) return;
+    if (!produtoDetalhe || produtoDetalhe.estoque <= 0) return;
     setCarrinho(prev => new Map(prev).set(produtoDetalhe.id, (prev.get(produtoDetalhe.id) ?? 0) + qtdDetalhe));
     setProdutoDetalhe(null);
     setVista('catalogo');
@@ -846,6 +868,13 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                   {produtoDetalhe.unidadeVenda && `· ${produtoDetalhe.unidadeVenda}`}
                 </p>
 
+                {produtoDetalhe.estoque <= 0 && (
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-6 text-sm font-bold uppercase tracking-wider">
+                    <span className="h-2 w-2 rounded-full bg-red-600 shrink-0" />
+                    Produto esgotado
+                  </div>
+                )}
+
                 <div className="rounded-2xl bg-[#F7F5F2] border border-zinc-900/10 p-4 mb-6">
                   <div className="flex items-end justify-between gap-4">
                     {qtdDetalhe >= 5 ? (
@@ -874,12 +903,18 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
 
                 <div className="mb-6">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-2">Quantidade</p>
-                  <CampoQuantidade valor={qtdDetalhe} onChange={setQtdDetalhe} grande />
+                  <CampoQuantidade valor={qtdDetalhe} onChange={produtoDetalhe.estoque <= 0 ? () => {} : setQtdDetalhe} grande />
                 </div>
 
-                <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
-                  Adicionar {qtdDetalhe} {qtdDetalhe === 1 ? 'item' : 'itens'} ao carrinho
-                </button>
+                {produtoDetalhe.estoque <= 0 ? (
+                  <button disabled className="w-full py-4 bg-zinc-200 text-zinc-400 font-bold uppercase tracking-widest text-sm rounded-full cursor-not-allowed">
+                    Produto esgotado
+                  </button>
+                ) : (
+                  <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
+                    Adicionar {qtdDetalhe} {qtdDetalhe === 1 ? 'item' : 'itens'} ao carrinho
+                  </button>
+                )}
 
                 <div className="mt-8 border-t border-zinc-900/10 pt-6">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-3">Informações do produto</p>
@@ -1283,7 +1318,12 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                                 <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 flex flex-col h-full hover:shadow-md transition-shadow">
                                   <div className="flex gap-4 mb-4">
                                     {produtoImagemUrl(p) ? (
-                                      <img src={produtoImagemUrl(p)} alt="" className="h-24 w-24 rounded-xl object-cover shrink-0 ring-1 ring-neutral-100" />
+                                      <div className="relative shrink-0">
+                                        <img src={produtoImagemUrl(p)} alt="" className="h-24 w-24 rounded-xl object-cover ring-1 ring-neutral-100" />
+                                        {p.estoque <= 0 && (
+                                          <span className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-white px-1 text-center">Esgotado</span>
+                                        )}
+                                      </div>
                                     ) : (
                                       <div className="h-24 w-24 rounded-xl bg-neutral-50 flex items-center justify-center shrink-0 ring-1 ring-neutral-100">
                                         <span className="text-neutral-300 text-xs">Sem foto</span>
@@ -1318,6 +1358,10 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                                           <Plus size={16} />
                                         </button>
                                       </div>
+                                    ) : p.estoque <= 0 ? (
+                                      <button disabled className="w-full py-2.5 rounded-xl bg-neutral-100 text-neutral-400 font-semibold cursor-not-allowed text-sm">
+                                        Produto esgotado
+                                      </button>
                                     ) : (
                                       <button onClick={() => addAoCarrinho(p.id)} className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors flex items-center justify-center gap-2 text-sm">
                                         <Plus size={16} /> Adicionar

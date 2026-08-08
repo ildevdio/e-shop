@@ -276,4 +276,16 @@ namespace Multigrao.Api.DTOs
         public int OpcaoEnqueteId { get; set; }
         public int UsuarioId { get; set; }
     }
+
+    // Estoque
+    public class AjustarEstoqueItemDto
+    {
+        public int ProdutoId { get; set; }
+        public decimal Quantidade { get; set; }
+    }
+
+    public class AjustarEstoqueDto
+    {
+        public List<AjustarEstoqueItemDto> Itens { get; set; } = new();
+    }
 }
