@@ -7,6 +7,7 @@ import { categoriaService } from '../services/categoriaService';
 import { marcaService } from '../services/marcaService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
+import { resizeImage } from '../utils/resizeImage';
 import { buscarCEP } from '../utils/buscarCEP';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
@@ -287,7 +288,7 @@ export default function Catalogo() {
                                     <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                                       <td className="py-2.5 pr-4">
                                         <div className="flex items-center gap-2">
-                                           {produtoImagemUrl(p) && <img src={produtoImagemUrl(p)} alt="" className="h-8 w-8 rounded-lg object-cover" />}
+                                           {produtoImagemUrl(p) && <img src={produtoImagemUrl(p)} alt="" loading="lazy" className="h-8 w-8 rounded-lg object-cover" />}
                                           <span className="font-medium text-gray-900">{p.nome}</span>
                                         </div>
                                       </td>
@@ -577,10 +578,15 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
 
   const validarENumero = (v: any): v is number => typeof v === 'number' && !isNaN(v);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setArquivo(file);
+    e.target.value = '';
+    try {
+      setArquivo(await resizeImage(file));
+    } catch {
+      setArquivo(file);
+    }
   };
 
   const salvar = async () => {

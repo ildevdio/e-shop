@@ -34,6 +34,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpGet("{id}/imagem")]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetMarcaImagem(int id)
         {
             var marca = await _context.Marcas.FindAsync(id);

@@ -58,6 +58,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpGet("{id}/imagem")]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetProdutoImagem(int id)
         {
             var produto = await _context.Produtos.FindAsync(id);
