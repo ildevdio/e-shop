@@ -15,6 +15,8 @@ services:
         value: https://multigraos.vercel.app
       - key: MASTER_PASSWORD
         sync: false
+      - key: DOTNET_USE_POLLING_FILE_WATCHER
+        value: "true"
 
 databases:
   - name: multigrao-db
