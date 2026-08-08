@@ -205,7 +205,7 @@ export default function Configuracoes() {
 
         {senhaMestreModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-serif font-bold text-gray-900">Senha Mestre</h2>
                 <button onClick={() => { setSenhaMestreModal(false); setModalAberto(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
@@ -445,7 +445,7 @@ export default function Configuracoes() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-serif font-bold text-gray-900">{usuarioEditando ? 'Editar Usuário' : 'Novo Usuário'}</h2>
               <button onClick={() => { setIsModalOpen(false); setModalAberto(false); setUsuarioEditando(null); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>

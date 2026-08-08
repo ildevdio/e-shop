@@ -60,6 +60,7 @@ namespace Multigrao.Api.DTOs
         public string? Observacao { get; set; }
         public string TipoEntrega { get; set; } = "Entrega";
         public string? Pagamento { get; set; }
+        public int? PrazoPagamentoDias { get; set; }
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
@@ -80,6 +81,7 @@ namespace Multigrao.Api.DTOs
         public decimal ValorTotal { get; set; }
         public string TipoEntrega { get; set; } = "Entrega";
         public string? Pagamento { get; set; }
+        public int? PrazoPagamentoDias { get; set; }
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
@@ -97,6 +99,7 @@ namespace Multigrao.Api.DTOs
     {
         public string? TipoEntrega { get; set; }
         public string? Pagamento { get; set; }
+        public int? PrazoPagamentoDias { get; set; }
         public string? Cep { get; set; }
         public string? Logradouro { get; set; }
         public string? Numero { get; set; }
@@ -287,5 +290,17 @@ namespace Multigrao.Api.DTOs
     public class AjustarEstoqueDto
     {
         public List<AjustarEstoqueItemDto> Itens { get; set; } = new();
+    }
+
+    // Carrinho do cliente
+    public class CarrinhoItemDto
+    {
+        public int ProdutoId { get; set; }
+        public decimal Quantidade { get; set; }
+    }
+
+    public class SalvarCarrinhoDto
+    {
+        public List<CarrinhoItemDto> Itens { get; set; } = new();
     }
 }

@@ -19,6 +19,8 @@ namespace Multigrao.Api.Data
         public DbSet<Marca> Marcas { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
+        public DbSet<Carrinho> Carrinhos { get; set; }
+        public DbSet<CarrinhoItem> CarrinhoItens { get; set; }
         
         public DbSet<Veiculo> Veiculos { get; set; }
         public DbSet<Rota> Rotas { get; set; }
@@ -102,6 +104,22 @@ namespace Multigrao.Api.Data
                 .WithMany(u => u.ClientesVendedor)
                 .HasForeignKey(c => c.VendedorId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Carrinho>()
+                .HasIndex(c => c.CpfCnpj)
+                .IsUnique();
+
+            modelBuilder.Entity<CarrinhoItem>()
+                .HasOne(ci => ci.Carrinho)
+                .WithMany(c => c.Itens)
+                .HasForeignKey(ci => ci.CarrinhoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CarrinhoItem>()
+                .HasOne(ci => ci.Produto)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProdutoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Seed: Setores
             modelBuilder.Entity<Setor>().HasData(

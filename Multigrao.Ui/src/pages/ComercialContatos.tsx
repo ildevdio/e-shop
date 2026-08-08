@@ -191,7 +191,7 @@ export default function ComercialContatos() {
 
       {modalTipo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={fecharModal}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">
                 {modalTipo === 'criar' ? 'Novo Contato' : modalTipo === 'editar' ? 'Editar Contato' : 'Detalhes do Contato'}

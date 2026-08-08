@@ -54,6 +54,8 @@ namespace Multigrao.Api.Models
         [StringLength(50)]
         public string? Pagamento { get; set; }
 
+        public int? PrazoPagamentoDias { get; set; }
+
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public decimal ValorFinal { get; set; }

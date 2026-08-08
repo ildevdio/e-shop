@@ -18,7 +18,7 @@ const TIPO_COR: Record<string, string> = {
   info: 'bg-gray-500/10 text-gray-600',
 };
 
-export default function NotificationBell() {
+export default function NotificationBell({ className }: { className?: string }) {
   const { usuarioId, setores } = useAuthStore();
   const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
@@ -79,7 +79,7 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setAberto(!aberto)}
-        className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className={`relative flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-muted hover:text-foreground ${className ?? 'text-muted-foreground'}`}
         title="Notificações"
       >
         <Bell className="h-4 w-4" />

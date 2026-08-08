@@ -41,6 +41,7 @@ export interface Pedido {
   status: string;
   tipoEntrega: string;
   pagamento?: string;
+  prazoPagamentoDias?: number | null;
   desconto: number;
   acrescimo: number;
   valorFinal: number;
@@ -58,6 +59,7 @@ export interface CriarPedidoDto {
   observacao?: string;
   tipoEntrega: string;
   pagamento?: string;
+  prazoPagamentoDias?: number;
   desconto: number;
   acrescimo: number;
   itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
@@ -77,6 +79,7 @@ export interface SolicitacaoCatalogoDto {
   valorTotal: number;
   tipoEntrega: string;
   pagamento?: string;
+  prazoPagamentoDias?: number;
   desconto: number;
   acrescimo: number;
   itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
@@ -170,6 +173,7 @@ export const pedidoService = {
   atualizarPedido: async (id: number, dto: {
     tipoEntrega?: string;
     pagamento?: string;
+    prazoPagamentoDias?: number;
     cep?: string;
     logradouro?: string;
     numero?: string;

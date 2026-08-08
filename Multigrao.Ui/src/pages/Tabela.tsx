@@ -1,13 +1,15 @@
 import { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2 } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
+import { carrinhoService } from '../services/carrinhoService';
 import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
+import { formatEstoque } from '../utils/formatEstoque';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
@@ -130,6 +132,11 @@ function CardEcommerce({
           {produto.embalagem && `${produto.embalagem} `}
           {produto.unidadeVenda && `· ${produto.unidadeVenda}`}
         </p>
+        {produto.estoque > 0 && (
+          <p className="text-[10px] font-semibold text-emerald-600 mb-1">
+            Em estoque: {formatEstoque(produto.estoque)}{produto.unidadeVenda ? ` ${produto.unidadeVenda.toLowerCase()}` : ''}
+          </p>
+        )}
         <div className="mt-auto pt-2 pb-3">
           {isAtacado ? (
             <>
@@ -142,7 +149,7 @@ function CardEcommerce({
           )}
         </div>
         {qtd > 0 ? (
-          <CampoQuantidade valor={qtd} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between" />
+          <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between" />
         ) : produto.estoque <= 0 ? (
           <button disabled className="w-full py-2.5 bg-zinc-100 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed">
             Produto esgotado
@@ -192,6 +199,11 @@ function CardCarrossel({
         <button onClick={onAbrir} className="text-left block w-full">
           <h3 className="font-heading font-bold text-white text-xl leading-snug line-clamp-2 hover:underline decoration-white/40 underline-offset-4">{produto.nome}</h3>
         </button>
+        {produto.estoque > 0 && (
+          <p className="text-[10px] font-semibold text-emerald-300 mt-1">
+            Em estoque: {formatEstoque(produto.estoque)}{produto.unidadeVenda ? ` ${produto.unidadeVenda.toLowerCase()}` : ''}
+          </p>
+        )}
         <div className="mt-2.5 flex items-end justify-between gap-3">
           <div className="min-w-0">
             {isAtacado ? (
@@ -204,7 +216,7 @@ function CardCarrossel({
             )}
           </div>
           {qtd > 0 ? (
-            <CampoQuantidade valor={qtd} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-white shrink-0" />
+            <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-white shrink-0" />
           ) : produto.estoque <= 0 ? (
             <button disabled className="px-4 py-2 bg-zinc-200 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed shrink-0">Esgotado</button>
           ) : (
@@ -220,6 +232,7 @@ function CampoQuantidade({
   valor,
   onChange,
   min = 1,
+  max,
   aoRemover,
   grande = false,
   className,
@@ -227,6 +240,7 @@ function CampoQuantidade({
   valor: number;
   onChange: (v: number) => void;
   min?: number;
+  max?: number;
   aoRemover?: () => void;
   grande?: boolean;
   className?: string;
@@ -239,7 +253,8 @@ function CampoQuantidade({
   }, [valor, focado]);
 
   const aoAplicar = (v: number) => {
-    const n = Math.max(min, Math.round(v));
+    const limite = max ?? Infinity;
+    const n = Math.min(limite, Math.max(min, Math.round(v)));
     setTexto(String(n));
     onChange(n);
   };
@@ -256,6 +271,8 @@ function CampoQuantidade({
     const n = parseInt(texto, 10);
     aoAplicar(Number.isNaN(n) ? min : n);
   };
+
+  const noLimite = max !== undefined && valor >= max;
 
   return (
     <div className={`flex items-center rounded-full border border-zinc-900/20 bg-zinc-50 ${grande ? 'p-1.5' : 'p-1'} ${className ?? ''}`}>
@@ -279,7 +296,8 @@ function CampoQuantidade({
       <button
         type="button"
         onClick={() => aoAplicar(valor + 1)}
-        className={`rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-colors ${grande ? 'p-3' : 'p-1.5'}`}
+        disabled={noLimite}
+        className={`rounded-full transition-colors ${noLimite ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed' : 'bg-zinc-900 text-white hover:bg-zinc-800'} ${grande ? 'p-3' : 'p-1.5'}`}
       >
         <Plus size={grande ? 18 : 14} />
       </button>
@@ -342,6 +360,7 @@ export default function Tabela() {
   const [filtro, setFiltro] = useState('');
   const [categoriaAberta, setCategoriaAberta] = useState<number | null>(null);
   const [carrinho, setCarrinho] = useState<Map<number, number>>(new Map());
+  const [abrirExclusao, setAbrirExclusao] = useState<number | null>(null);
   const [solicitante, setSolicitante] = useState({ nome: '', telefone: '', cpfCnpj: '', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' });
   const [tipoEntrega, setTipoEntrega] = useState<'Entrega' | 'Retirada'>('Entrega');
   const [pagamento, setPagamento] = useState('');
@@ -361,7 +380,9 @@ const [clienteAcesso, setClienteAcesso] = useState<Cliente | null>(null);
 const [pedidosAcesso, setPedidosAcesso] = useState<Pedido[]>([]);
 const [buscandoAcesso, setBuscandoAcesso] = useState(false);
 const [erroAcesso, setErroAcesso] = useState('');
-const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
+  const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
+  const [cpfAcessado, setCpfAcessado] = useState('');
+  const salvarCarrinhoRef = useRef<number | null>(null);
   const tickerRef = useRef<HTMLDivElement | null>(null);
 
   const isRestaurant = tema === 'restaurant';
@@ -475,7 +496,11 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
       alert('Este produto está esgotado.');
       return;
     }
-    setCarrinho(prev => new Map(prev).set(produtoId, (prev.get(produtoId) ?? 0) + 1));
+    setCarrinho(prev => {
+      const atual = prev.get(produtoId) ?? 0;
+      const proximo = produto ? Math.min(produto.estoque, atual + 1) : atual + 1;
+      return new Map(prev).set(produtoId, proximo);
+    });
   };
 
   const removeDoCarrinho = (produtoId: number) => {
@@ -498,8 +523,28 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
   };
 
   const qtdNoCarrinho = (produtoId: number) => carrinho.get(produtoId) ?? 0;
-  const totalItensCarrinho = [...carrinho.values()].reduce((a, b) => a + b, 0);
+  const totalItensCarrinho = carrinho.size;
   const limparCarrinho = () => setCarrinho(new Map());
+
+  const produtosCarrinho = useMemo(
+    () => [...carrinho.entries()]
+      .map(([id, quantidade]) => ({
+        produto: categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id),
+        quantidade,
+      }))
+      .filter((i): i is { produto: Produto; quantidade: number } => !!i.produto),
+    [carrinho, categorias]
+  );
+
+  const valorTotalCarrinho = useMemo(
+    () => produtosCarrinho.reduce((acc, i) => acc + precoPorQtd(i.produto, i.quantidade) * i.quantidade, 0) + totalTaxaEmbalagem,
+    [produtosCarrinho, totalTaxaEmbalagem]
+  );
+
+  const pesoTotalCarrinho = useMemo(
+    () => produtosCarrinho.reduce((acc, i) => acc + (i.produto.pesoUnidade ?? 0) * i.quantidade, 0),
+    [produtosCarrinho]
+  );
 
   const marcasSugestao: Sugestao[] = marcas.map(m => ({ rotulo: m.nome, subRotulo: 'Marca' }));
 
@@ -569,17 +614,32 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
       container = container.parentElement;
     }
     if (container) container.style.overscrollBehaviorY = 'contain';
+    const ehScrollavel = (el: Element): boolean => {
+      const oy = window.getComputedStyle(el).overflowY;
+      return (oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1;
+    };
+    const targetEmScrollavelInterno = (alvo: EventTarget | null): boolean => {
+      let el: Element | null = alvo instanceof Element ? alvo : null;
+      while (el && el !== container) {
+        if (ehScrollavel(el)) return true;
+        el = el.parentElement;
+      }
+      return false;
+    };
     let touchInicio: number | null = null;
     const onTouchStart = (e: TouchEvent) => {
       touchInicio = e.touches[0]?.clientY ?? null;
     };
     const onTouchMove = (e: TouchEvent) => {
       if (!container || container.scrollTop > 0 || touchInicio == null) return;
+      if (targetEmScrollavelInterno(e.target)) return;
       const y = e.touches[0]?.clientY ?? 0;
       if (y - touchInicio > 0) e.preventDefault();
     };
     const onWheel = (e: WheelEvent) => {
-      if (container && container.scrollTop <= 0 && e.deltaY < 0) e.preventDefault();
+      if (!container || container.scrollTop > 0 || e.deltaY >= 0) return;
+      if (targetEmScrollavelInterno(e.target)) return;
+      e.preventDefault();
     };
     onScroll();
     container?.addEventListener('scroll', onScroll, { passive: true });
@@ -637,7 +697,11 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
 
   const adicionarDoDetalhe = () => {
     if (!produtoDetalhe || produtoDetalhe.estoque <= 0) return;
-    setCarrinho(prev => new Map(prev).set(produtoDetalhe.id, (prev.get(produtoDetalhe.id) ?? 0) + qtdDetalhe));
+    setCarrinho(prev => {
+      const atual = prev.get(produtoDetalhe.id) ?? 0;
+      const proximo = Math.min(produtoDetalhe.estoque, atual + qtdDetalhe);
+      return new Map(prev).set(produtoDetalhe.id, proximo);
+    });
     setProdutoDetalhe(null);
     setVista('catalogo');
   };
@@ -648,7 +712,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     setEnviando(true);
     const itens = [...carrinho.entries()].map(([produtoId, quantidade]) => {
       const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(p => p.id === produtoId);
-      return { produtoId, quantidade, precoUnitario: produto ? precoPorQtd(produto, quantidade) : 0, pesoUnitario: 0 };
+      return { produtoId, quantidade, precoUnitario: produto ? precoPorQtd(produto, quantidade) : 0, pesoUnitario: produto?.pesoUnidade ?? 0 };
     });
     const valorTotal = itens.reduce((acc, i) => acc + i.precoUnitario * i.quantidade, 0) + totalTaxaEmbalagem;
     await pedidoService.solicitarCatalogo({
@@ -675,6 +739,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     setTipoEntrega('Entrega');
     setPagamento('');
     limparCarrinho();
+    if (cpfAcessado) carrinhoService.limparCarrinho(cpfAcessado);
   };
 
   const solicitanteDeCliente = (c: Cliente | null) => ({
@@ -698,9 +763,10 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     }
     setBuscandoAcesso(true);
     setErroAcesso('');
-    const [cliente, pedidos] = await Promise.all([
+    const [cliente, pedidos, carrinhoSalvo] = await Promise.all([
       clienteService.buscarPorCpfCnpj(cpfAcesso),
       pedidoService.getPedidosPorCpf(cpfAcesso),
+      carrinhoService.getCarrinho(cpfAcesso),
     ]);
     setBuscandoAcesso(false);
     if (!cliente && pedidos.length === 0) {
@@ -711,17 +777,46 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
     setPedidosAcesso(pedidos);
     setPedidoAberto(null);
     setAcessado(true);
+    setCpfAcessado(limpo);
     if (cliente) setSolicitante(solicitanteDeCliente(cliente));
+    if (carrinhoSalvo.length > 0) {
+      const todos = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos));
+      const novo = new Map<number, number>();
+      for (const item of carrinhoSalvo) {
+        const produto = todos.find(p => p.id === item.produtoId);
+        if (!produto) continue;
+        const qtd = Math.min(item.quantidade, Math.max(produto.estoque, 0));
+        if (qtd > 0) novo.set(item.produtoId, qtd);
+      }
+      setCarrinho(novo);
+    }
   };
 
   const sairConta = () => {
+    if (salvarCarrinhoRef.current) clearTimeout(salvarCarrinhoRef.current);
     setClienteAcesso(null);
     setPedidosAcesso([]);
     setCpfAcesso('');
     setErroAcesso('');
     setPedidoAberto(null);
     setAcessado(false);
+    setCpfAcessado('');
+    setCarrinho(new Map());
   };
+
+  useEffect(() => {
+    if (!acessado || !cpfAcessado) return;
+    if (salvarCarrinhoRef.current) clearTimeout(salvarCarrinhoRef.current);
+    salvarCarrinhoRef.current = window.setTimeout(() => {
+      carrinhoService.salvarCarrinho(
+        cpfAcessado,
+        [...carrinho.entries()].map(([produtoId, quantidade]) => ({ produtoId, quantidade }))
+      );
+    }, 600);
+    return () => {
+      if (salvarCarrinhoRef.current) clearTimeout(salvarCarrinhoRef.current);
+    };
+  }, [carrinho, acessado, cpfAcessado]);
 
   return (
     <div className={`min-h-screen ${isRestaurant ? 'bg-neutral-50/50' : 'bg-[#F7F5F2]'}`}>
@@ -902,8 +997,15 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                 </div>
 
                 <div className="mb-6">
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-2">Quantidade</p>
-                  <CampoQuantidade valor={qtdDetalhe} onChange={produtoDetalhe.estoque <= 0 ? () => {} : setQtdDetalhe} grande />
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Quantidade</p>
+                    {produtoDetalhe.estoque > 0 && (
+                      <p className="text-[11px] font-semibold text-emerald-600">
+                        Disponível: {formatEstoque(produtoDetalhe.estoque)}{produtoDetalhe.unidadeVenda ? ` ${produtoDetalhe.unidadeVenda.toLowerCase()}` : ''}
+                      </p>
+                    )}
+                  </div>
+                  <CampoQuantidade valor={qtdDetalhe} max={Math.max(1, produtoDetalhe.estoque)} onChange={produtoDetalhe.estoque <= 0 ? () => {} : setQtdDetalhe} grande />
                 </div>
 
                 {produtoDetalhe.estoque <= 0 ? (
@@ -912,7 +1014,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                   </button>
                 ) : (
                   <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
-                    Adicionar {qtdDetalhe} {qtdDetalhe === 1 ? 'item' : 'itens'} ao carrinho
+                    Adicionar {qtdDetalhe} {produtoDetalhe.unidadeVenda ? produtoDetalhe.unidadeVenda.toLowerCase() : (qtdDetalhe === 1 ? 'item' : 'itens')} ao carrinho
                   </button>
                 )}
 
@@ -936,8 +1038,8 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
           </div>
         </div>
       ) : vista === 'carrinho' ? (
-        <div className={`min-h-screen pb-10 ${isRestaurant ? 'pt-4' : 'pt-36 sm:pt-28'}`}>
-          <div className="max-w-2xl mx-auto px-4 flex items-center gap-3">
+        <div className={`min-h-screen flex flex-col lg:h-screen lg:overflow-hidden ${isRestaurant ? 'pt-4' : 'pt-36 sm:pt-28'}`}>
+          <div className="max-w-6xl mx-auto w-full px-4 flex items-center gap-3 shrink-0">
             <button
               onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
@@ -946,7 +1048,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
             </button>
             <h1 className={`font-bold ${isRestaurant ? 'text-lg text-neutral-900' : 'font-heading text-2xl text-zinc-900'}`}>Seu Pedido</h1>
           </div>
-          <div className="max-w-2xl mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto w-full px-4 py-6 flex-1 min-h-0">
             {pedidoCriado ? (
               <div className="text-center py-16">
                 <div className={`mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 ${isRestaurant ? 'bg-red-50' : 'bg-zinc-900'}`}>
@@ -971,27 +1073,59 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
               </div>
             ) : (
               <>
-                <div className="space-y-5 mb-8">
-                  <div className={`p-4 space-y-3 text-base ${isRestaurant ? 'bg-neutral-50 rounded-2xl border border-neutral-100' : 'bg-[#F7F5F2] rounded-2xl border border-zinc-900/10'}`}>
+                <div className="grid gap-6 lg:grid-cols-2 lg:h-full lg:min-h-0">
+                  {/* Coluna esquerda — produtos e quantidades */}
+                  <div className="flex flex-col lg:min-h-0">
+                    <div className="space-y-3 lg:overflow-y-auto lg:pr-1 lg:flex-1 lg:min-h-0">
                     {[...carrinho.entries()].map(([produtoId, quantidade]) => {
                       const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(p => p.id === produtoId);
                       if (!produto) return null;
                       const preco = precoPorQtd(produto, quantidade);
                       return (
-                        <div key={produtoId}>
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1 min-w-0 mr-3">
-                              <p className={`font-bold truncate ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900 text-sm'}`}>{produto.nome}</p>
+                        <div key={produtoId} className={`relative overflow-hidden rounded-2xl ${isRestaurant ? 'border border-neutral-200' : 'border border-zinc-900/10'}`}>
+                          <button
+                            type="button"
+                            onClick={() => { setQtdCarrinho(produtoId, 0); setAbrirExclusao(null); }}
+                            className="absolute inset-1.5 flex items-center justify-end pr-4 bg-red-600 text-white hover:bg-red-700 transition-colors rounded-2xl"
+                            title="Excluir produto"
+                          >
+                            <span className="flex items-center justify-center h-12 w-12 rounded-full bg-white/15">
+                              <Trash2 size={22} />
+                            </span>
+                          </button>
+                          <div className={`relative bg-white rounded-2xl transition-transform duration-300 ease-out ${abrirExclusao === produtoId ? '-translate-x-16' : ''}`}>
+                            <div className="p-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-[#F7F5F2] border border-zinc-900/10 flex items-center justify-center">
+                              {produtoImagemUrl(produto) ? (
+                                <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-zinc-300 text-[8px] font-bold uppercase tracking-widest text-center">Sem foto</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className={`font-bold truncate ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900 text-sm'}`}>{produto.nome}</p>
+                                <button
+                                  type="button"
+                                  onClick={() => setAbrirExclusao(prev => prev === produtoId ? null : produtoId)}
+                                  className={`transition-colors shrink-0 ${abrirExclusao === produtoId ? 'text-red-600 bg-red-50 rounded-full p-1.5' : 'text-zinc-300 hover:text-red-600'}`}
+                                  title={abrirExclusao === produtoId ? 'Fechar' : 'Remover'}
+                                >
+                                  {abrirExclusao === produtoId ? <ChevronRight size={16} /> : <Trash2 size={16} />}
+                                </button>
+                              </div>
                               <p className={`text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>{formatPreco(preco)} / un.</p>
-                              <div className="mt-2">
+                              <div className="mt-2 flex items-center justify-between gap-2">
                                 <CampoQuantidade
                                   valor={quantidade}
+                                  max={produto.estoque}
                                   onChange={q => setQtdCarrinho(produtoId, q)}
                                   aoRemover={() => setQtdCarrinho(produtoId, 0)}
                                 />
+                                <span className={`font-bold shrink-0 ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900'}`}>{formatPreco(preco * quantidade)}</span>
                               </div>
                             </div>
-                            <span className={`font-bold shrink-0 ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900'}`}>{formatPreco(preco * quantidade)}</span>
                           </div>
                           {temTaxaEmbalagem(produto, quantidade) && (
                             <div className="mt-3 flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
@@ -1009,9 +1143,13 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                               </button>
                             </div>
                           )}
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
+                    </div>
+                    <div className={`p-4 mt-3 space-y-3 text-base shrink-0 ${isRestaurant ? 'bg-neutral-50 rounded-2xl border border-neutral-100' : 'bg-[#F7F5F2] rounded-2xl border border-zinc-900/10'}`}>
                     {totalTaxaEmbalagem > 0 && (
                       <>
                         <div className={`pt-3 mt-3 flex justify-between text-sm ${isRestaurant ? 'border-t border-neutral-200 text-neutral-500' : 'border-t border-zinc-900 text-zinc-500 font-medium'}`}>
@@ -1029,13 +1167,19 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                     )}
                     <div className={`pt-3 mt-3 flex justify-between font-bold text-lg ${isRestaurant ? 'border-t border-neutral-200 text-neutral-900' : 'border-t border-zinc-900 text-zinc-900'}`}>
                       <span>Total</span>
-                      <span>{formatPreco([...carrinho.entries()].reduce((acc, [id, qtd]) => {
-                        const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
-                        return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
-                      }, 0) + totalTaxaEmbalagem)}</span>
+                      <span>{formatPreco(valorTotalCarrinho)}</span>
+                    </div>
+                    {pesoTotalCarrinho > 0 && (
+                      <div className={`pt-2 flex justify-between text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>
+                        <span>Peso total</span>
+                        <span>{pesoTotalCarrinho.toFixed(2)} kg</span>
+                      </div>
+                    )}
                     </div>
                   </div>
 
+                  {/* Coluna direita — informações do pedido */}
+                  <div className="space-y-5 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-1">
                   {/* Dados do solicitante */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
@@ -1081,11 +1225,15 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                       className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`}
                     >
                       <option value="">Selecione na entrega/retirada</option>
-                      <option value="PIX">PIX</option>
-                      <option value="Cartão de Crédito">Cartão de Crédito</option>
-                      <option value="Cartão de Débito">Cartão de Débito</option>
                       <option value="Dinheiro">Dinheiro</option>
+                      <option value="PIX">PIX</option>
+                      <option value="Boleto">Boleto</option>
                     </select>
+                    {pagamento === 'Boleto' && (
+                      <p className="text-xs text-zinc-500 mt-2">
+                        O vencimento do boleto será definido após análise e confirmação do pedido pela nossa equipe.
+                      </p>
+                    )}
                   </div>
 
                   {/* Endereço */}
@@ -1120,10 +1268,11 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                       </div>
                     </div>
                   )}
+                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md ${isRestaurant ? 'rounded-xl' : 'rounded-full'} ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : (isRestaurant ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')}`}>
+                    {enviando ? 'Enviando...' : 'Confirmar Pedido'}
+                  </button>
+                  </div>
                 </div>
-                <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md ${isRestaurant ? 'rounded-xl' : 'rounded-full'} ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : (isRestaurant ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')}`}>
-                  {enviando ? 'Enviando...' : 'Confirmar Pedido'}
-                </button>
               </>
             )}
           </div>
@@ -1331,10 +1480,13 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                                     )}
                                     <div className="flex-1">
                                       <h3 className="font-bold text-neutral-800 leading-tight mb-1">{p.nome}</h3>
-                                      <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
+                                      <p className="text-xs text-neutral-500 line-clamp-2 mb-1">
                                         {p.embalagem && `${p.embalagem} `}
                                         {p.unidadeVenda && `· ${p.unidadeVenda}`}
                                       </p>
+                                      {p.estoque > 0 && (
+                                        <p className="text-[11px] font-semibold text-emerald-600 mb-1">Em estoque: {formatEstoque(p.estoque)}{p.unidadeVenda ? ` ${p.unidadeVenda.toLowerCase()}` : ''}</p>
+                                      )}
                                       <div className="mt-auto">
                                         {isAtacado ? (
                                           <div className="flex items-center gap-2">
@@ -1354,7 +1506,7 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
                                           <Minus size={16} />
                                         </button>
                                         <span className="font-semibold text-neutral-800 w-12 text-center">{qtd}</span>
-                                        <button onClick={() => addAoCarrinho(p.id)} className="p-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">
+                                        <button onClick={() => addAoCarrinho(p.id)} disabled={qtd >= p.estoque} className={`p-2.5 rounded-lg transition-colors ${qtd >= p.estoque ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white shadow-sm'}`}>
                                           <Plus size={16} />
                                         </button>
                                       </div>
@@ -1417,13 +1569,15 @@ const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
             >
               <span className="flex items-center gap-3 min-w-0">
                 <span className="text-sm font-bold truncate">{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</span>
+                {pesoTotalCarrinho > 0 && (
+                  <span className={`text-xs font-semibold whitespace-nowrap ${isRestaurant ? 'text-white/70' : 'text-white/60'}`}>
+                    {pesoTotalCarrinho.toFixed(2)} kg
+                  </span>
+                )}
               </span>
               <span className="flex items-center gap-2 shrink-0">
                 <span className={`text-sm font-bold ${isRestaurant ? 'text-white/90' : 'text-white/80'}`}>
-                  {([...carrinho.entries()].reduce((acc, [id, qtd]) => {
-                    const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
-                    return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
-                  }, 0) + totalTaxaEmbalagem).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  {valorTotalCarrinho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
                 <span className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap ${isRestaurant ? 'bg-white text-red-600 rounded-xl' : 'bg-white text-zinc-900 rounded-full'}`}>
                   <ShoppingBag size={16} /> Finalizar

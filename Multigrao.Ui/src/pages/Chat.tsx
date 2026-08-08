@@ -527,7 +527,7 @@ export default function Chat() {
 
       {showNovoChat && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Nova Conversa</h2>
               <button onClick={() => { setShowNovoChat(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">

@@ -92,7 +92,7 @@ export default function ComercialListaAtendimentos() {
                 <th className="px-6 py-3 font-semibold">Bairro</th>
                 <th className="px-6 py-3 font-semibold">Tipo</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
-                <th className="px-6 py-3 font-semibold">IA</th>
+                <th className="px-6 py-3 font-semibold">Atendente</th>
                 <th className="px-6 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
@@ -149,7 +149,7 @@ export default function ComercialListaAtendimentos() {
 
       {detalhe && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes do Atendimento</h2>
               <button onClick={() => { setDetalhe(null); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">

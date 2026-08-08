@@ -722,7 +722,7 @@ function ConsultasTab() {
 
       {detalhe && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetalhe(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes da Entrega</h2>
               <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
@@ -809,7 +809,7 @@ function ConsultasTab() {
 
       {editando && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditando(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Editar Entrega #{editando.id}</h2>
               <button onClick={() => setEditando(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
@@ -940,7 +940,7 @@ function VeiculosTab() {
 
       {showNovo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Novo Veículo</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Modelo *</label><input type="text" value={novoVeiculo.modelo} onChange={e => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Fiat Fiorino" /></div>

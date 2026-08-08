@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2, ShieldAlert } from 'lucide-react';
+import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2, ShieldAlert, Package, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
@@ -7,7 +7,7 @@ import { clienteService, type Cliente } from '../services/clienteService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
-import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
+import SearchAutocomplete from '../components/SearchAutocomplete';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
 
@@ -49,7 +49,8 @@ export default function ComercialPedidos() {
   const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const isVendedor = setores.some(s => normalize(s) === 'vendedor');
   const [abaAtiva, setAbaAtiva] = useState<AbaPedidos>('pendentes');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cadastrando, setCadastrando] = useState(false);
+  const [abaCadastro, setAbaCadastro] = useState<'produtos' | 'entrega'>('produtos');
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -67,9 +68,14 @@ export default function ComercialPedidos() {
   const [buscandoConsulta, setBuscandoConsulta] = useState(false);
   const [consultaRealizada, setConsultaRealizada] = useState(false);
 
-  const [novoPedido, setNovoPedido] = useState({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
+  const [novoPedido, setNovoPedido] = useState({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', prazoPagamentoDias: '', desconto: '', acrescimo: '' });
   const [itensPedido, setItensPedido] = useState<ItemForm[]>([]);
-  const [buscaProduto, setBuscaProduto] = useState<string[]>([]);
+  const [buscaProduto, setBuscaProduto] = useState('');
+  const [destaqueProduto, setDestaqueProduto] = useState(0);
+  const [selecionadosPedido, setSelecionadosPedido] = useState<Set<number>>(new Set());
+  const [ancoraPedido, setAncoraPedido] = useState<number | null>(null);
+  const [cargaQtd, setCargaQtd] = useState('');
+  const [erroProduto, setErroProduto] = useState('');
   const [davFile, setDavFile] = useState<File | null>(null);
   const davInputRef = useRef<HTMLInputElement>(null);
   const [pedidoPendenteDialog, setPedidoPendenteDialog] = useState<Pedido[] | null>(null);
@@ -82,6 +88,7 @@ export default function ComercialPedidos() {
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
     pagamento: string;
+    prazoPagamentoDias: number | '';
     cep: string;
     logradouro: string;
     numero: string;
@@ -160,6 +167,7 @@ export default function ComercialPedidos() {
     setEditDetalhe({
       tipoEntrega: pedido.tipoEntrega,
       pagamento: pedido.pagamento ?? '',
+      prazoPagamentoDias: pedido.prazoPagamentoDias ?? '',
       cep: pedido.cep ?? '',
       logradouro: pedido.logradouro ?? '',
       numero: pedido.numero ?? '',
@@ -182,9 +190,27 @@ export default function ComercialPedidos() {
     setModalAberto(false);
   };
 
-  const adicionarItem = () => {
-    setItensPedido([...itensPedido, { produtoId: 0, quantidade: 1, precoUnitario: 0 }]);
-    setBuscaProduto([...buscaProduto, '']);
+  const normalizarNome = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const termoProduto = normalizarNome(buscaProduto.trim());
+
+  const sugestoesProdutos = produtos
+    .filter(p => p.ativo && !itensPedido.some(i => i.produtoId === p.id))
+    .filter(p => !termoProduto || normalizarNome(p.nome).includes(termoProduto))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+    .slice(0, 50);
+
+  const adicionarProduto = (p: Produto) => {
+    if (itensPedido.some(i => i.produtoId === p.id)) return;
+    if (p.estoque <= 0) {
+      setErroProduto(`O produto "${p.nome}" está sem estoque para venda.`);
+      return;
+    }
+    setItensPedido([...itensPedido, { produtoId: p.id, produto: p, quantidade: 1, precoUnitario: p.precoVarejo }]);
+    setSelecionadosPedido(new Set([itensPedido.length]));
+    setAncoraPedido(itensPedido.length);
+    setBuscaProduto('');
+    setDestaqueProduto(0);
+    setErroProduto('');
   };
 
   const atualizarItem = (index: number, campo: keyof ItemForm, valor: number) => {
@@ -193,22 +219,91 @@ export default function ComercialPedidos() {
     setItensPedido(atualizados);
   };
 
-  const selecionarProduto = (index: number, produto: Produto) => {
-    if (produto.estoque <= 0) {
-      alert(`O produto "${produto.nome}" está sem estoque para venda.`);
-      return;
-    }
-    const atualizados = [...itensPedido];
-    atualizados[index] = { ...atualizados[index], produtoId: produto.id, produto, quantidade: 1, precoUnitario: produto.precoVarejo };
-    setItensPedido(atualizados);
-    const busca = [...buscaProduto];
-    busca[index] = produto.nome;
-    setBuscaProduto(busca);
+  const removerItem = (index: number) => {
+    setItensPedido(prev => prev.filter((_, i) => i !== index));
+    setSelecionadosPedido(prev => {
+      const next = new Set<number>();
+      prev.forEach(i => {
+        if (i === index) return;
+        next.add(i > index ? i - 1 : i);
+      });
+      return next;
+    });
+    if (ancoraPedido === index) setAncoraPedido(null);
+    else if (ancoraPedido !== null && ancoraPedido > index) setAncoraPedido(ancoraPedido - 1);
   };
 
-  const removerItem = (index: number) => {
-    setItensPedido(itensPedido.filter((_, i) => i !== index));
-    setBuscaProduto(buscaProduto.filter((_, i) => i !== index));
+  const limparLista = () => {
+    setItensPedido([]);
+    setSelecionadosPedido(new Set());
+    setAncoraPedido(null);
+    setErroProduto('');
+  };
+
+  const selecionarUnico = (index: number) => {
+    setSelecionadosPedido(new Set([index]));
+    setAncoraPedido(index);
+  };
+
+  const alternarSelecao = (index: number) => {
+    setSelecionadosPedido(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+    setAncoraPedido(index);
+  };
+
+  const selecionarIntervalo = (index: number) => {
+    if (ancoraPedido === null) {
+      setSelecionadosPedido(new Set([index]));
+      setAncoraPedido(index);
+      return;
+    }
+    const [menor, maior] = ancoraPedido < index ? [ancoraPedido, index] : [index, ancoraPedido];
+    setSelecionadosPedido(new Set(Array.from({ length: maior - menor + 1 }, (_, i) => menor + i)));
+    setAncoraPedido(index);
+  };
+
+  const aoClicarLinha = (e: React.MouseEvent, index: number) => {
+    if (e.shiftKey) selecionarIntervalo(index);
+    else if (e.ctrlKey || e.metaKey) alternarSelecao(index);
+    else selecionarUnico(index);
+  };
+
+  const removerSelecionados = () => {
+    setItensPedido(prev => prev.filter((_, i) => !selecionadosPedido.has(i)));
+    setSelecionadosPedido(new Set());
+    setAncoraPedido(null);
+  };
+
+  const adicionarDestaque = () => {
+    const p = sugestoesProdutos[destaqueProduto] ?? sugestoesProdutos[0];
+    if (p) adicionarProduto(p);
+  };
+
+  const handleBuscaProdutoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setDestaqueProduto(prev => Math.min(prev + 1, sugestoesProdutos.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setDestaqueProduto(prev => Math.max(prev - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      adicionarDestaque();
+    }
+  };
+
+  const aplicarCarga = () => {
+    const valor = parseFloat(cargaQtd.replace(',', '.'));
+    if (isNaN(valor) || valor < 0) {
+      setErroProduto('Informe uma quantidade válida para a carga.');
+      return;
+    }
+    setErroProduto('');
+    setItensPedido(prev => prev.map((item, i) => selecionadosPedido.has(i) ? { ...item, quantidade: valor } : item));
   };
 
   const pesoTotalItens = itensPedido.reduce((acc, item) => acc + (item.produto?.pesoUnidade ?? 0) * item.quantidade, 0);
@@ -223,6 +318,7 @@ export default function ComercialPedidos() {
     if (cliente?.bloqueadoFinanceiro) {
       setClienteBloqueadoSelecionado(cliente);
       setShowBloqueadoDialog(true);
+      setModalAberto(true);
       return;
     }
     const pendentes = pedidos.filter(p =>
@@ -231,6 +327,7 @@ export default function ComercialPedidos() {
     );
     if (pendentes.length > 0) {
       setPedidoPendenteDialog(pendentes);
+      setModalAberto(true);
     } else {
       setNovoPedido({ ...novoPedido, clienteId });
     }
@@ -243,9 +340,11 @@ export default function ComercialPedidos() {
       PENDENTES_STATUSES.includes(p.status)
     );
     setShowBloqueadoDialog(false);
+    setModalAberto(false);
     setClienteBloqueadoSelecionado(null);
     if (pendentes.length > 0) {
       setPedidoPendenteDialog(pendentes);
+      setModalAberto(true);
     } else {
       setNovoPedido({ ...novoPedido, clienteId: String(clienteBloqueadoSelecionado.id) });
     }
@@ -253,6 +352,7 @@ export default function ComercialPedidos() {
 
   const cancelarClienteBloqueado = () => {
     setShowBloqueadoDialog(false);
+    setModalAberto(false);
     setClienteBloqueadoSelecionado(null);
     setBuscaCliente('');
     setNovoPedido({ ...novoPedido, clienteId: '' });
@@ -282,6 +382,7 @@ export default function ComercialPedidos() {
         selecionarCliente(String(cli.id));
       }
       setShowNovoCliente(false);
+      setModalAberto(false);
       setNovoCliente({ razaoSocialNome: '', cpfCnpj: '', telefone: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '' });
     }
   };
@@ -290,6 +391,7 @@ export default function ComercialPedidos() {
     if (pedidoPendenteDialog && pedidoPendenteDialog.length > 0) {
       const pedido = pedidoPendenteDialog[0];
       setPedidoPendenteDialog(null);
+      setModalAberto(false);
       resetModal();
       abrirDetalhe(pedido);
     }
@@ -300,6 +402,7 @@ export default function ComercialPedidos() {
       setNovoPedido({ ...novoPedido, clienteId: String(pedidoPendenteDialog[0].clienteId) });
     }
     setPedidoPendenteDialog(null);
+    setModalAberto(false);
   };
 
   const criarPedido = async () => {
@@ -313,24 +416,37 @@ export default function ComercialPedidos() {
       pesoTotal: pesoTotalItens,
       tipoEntrega: novoPedido.tipoEntrega,
       pagamento: novoPedido.pagamento || undefined,
+      prazoPagamentoDias: novoPedido.pagamento === 'Boleto' && novoPedido.prazoPagamentoDias ? parseInt(novoPedido.prazoPagamentoDias) : undefined,
       desconto,
       acrescimo,
       itens: itensPedido.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade, precoUnitario: i.precoUnitario, pesoUnitario: i.produto?.pesoUnidade ?? 0 })),
     });
     if (!pedido) return;
-    setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
+    setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', prazoPagamentoDias: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
+    setBuscaProduto('');
+    setDestaqueProduto(0);
+    setSelecionadosPedido(new Set());
+    setAncoraPedido(null);
+    setCargaQtd('');
+    setErroProduto('');
     setDavFile(null);
-    setIsModalOpen(false);
+    setCadastrando(false);
     setModalAberto(false);
     await carregar();
   };
 
   const resetModal = () => {
-    setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', desconto: '', acrescimo: '' });
+    setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', prazoPagamentoDias: '', desconto: '', acrescimo: '' });
     setItensPedido([]);
+    setBuscaProduto('');
+    setDestaqueProduto(0);
+    setSelecionadosPedido(new Set());
+    setAncoraPedido(null);
+    setCargaQtd('');
+    setErroProduto('');
     setDavFile(null);
-    setIsModalOpen(false);
+    setCadastrando(false);
     setModalAberto(false);
   };
 
@@ -410,6 +526,341 @@ export default function ComercialPedidos() {
       </div>
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+        {cadastrando ? (
+          <div className="flex flex-col h-full">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button onClick={resetModal} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+                  <ArrowLeft size={20} />
+                </button>
+                <div>
+                  <h2 className="text-lg font-serif font-bold text-gray-900">Novo Pedido</h2>
+                  <p className="text-gray-500 mt-0.5 text-sm">Preencha os dados do pedido e selecione os produtos.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 pt-4 pb-3 flex gap-2">
+              <button
+                onClick={() => setAbaCadastro('produtos')}
+                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${abaCadastro === 'produtos' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+              >
+                <Package size={16} /> Produtos
+              </button>
+              <button
+                onClick={() => setAbaCadastro('entrega')}
+                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${abaCadastro === 'entrega' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+              >
+                <Truck size={16} /> Entrega
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {abaCadastro === 'produtos' ? (
+                <div>
+                  <div className="relative mb-3">
+                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      value={buscaProduto}
+                      onChange={e => { setBuscaProduto(e.target.value); setDestaqueProduto(0); }}
+                      onKeyDown={handleBuscaProdutoKeyDown}
+                      placeholder="Pesquise pelo nome e pressione Enter para adicionar..."
+                      className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-black text-sm"
+                    />
+                    {termoProduto !== '' && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                        {sugestoesProdutos.length === 0 ? (
+                          <p className="px-4 py-3 text-sm text-gray-400">Nenhum produto encontrado.</p>
+                        ) : (
+                          sugestoesProdutos.map((p, i) => (
+                            <div
+                              key={p.id}
+                              onClick={() => setDestaqueProduto(i)}
+                              onDoubleClick={() => adicionarProduto(p)}
+                              className={`px-4 py-2.5 flex items-center justify-between gap-3 text-sm cursor-pointer select-none ${i === destaqueProduto ? 'bg-amber-50' : 'hover:bg-gray-50'}`}
+                            >
+                              <span className="font-medium text-gray-900 truncate">{p.nome}</span>
+                              <span className="text-[11px] text-gray-400 shrink-0">
+                                R$ {p.precoVarejo.toFixed(2)} · Est.: {formatEstoque(p.estoque)}{p.unidadeVenda ? ` ${p.unidadeVenda.toLowerCase()}` : ''}{p.estoque <= 0 ? ' (esgotado)' : ''}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-3 flex items-center gap-2">
+                    <p className="text-xs text-gray-500 flex-1">
+                      {itensPedido.length === 0
+                        ? 'Pesquise um produto acima e pressione Enter (ou dê dois cliques) para adicioná-lo à lista.'
+                        : selecionadosPedido.size === 0
+                          ? 'Selecione um ou mais produtos da lista abaixo (Clique, Ctrl+clique, Shift+clique) para alterações em massa.'
+                          : `Definir quantidade para os ${selecionadosPedido.size} produto${selecionadosPedido.size === 1 ? '' : 's'} selecionado${selecionadosPedido.size === 1 ? '' : 's'}:`}
+                    </p>
+                    {selecionadosPedido.size > 0 && (
+                      <>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={cargaQtd}
+                          onChange={e => setCargaQtd(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') aplicarCarga(); }}
+                          placeholder="Qtd"
+                          className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm text-right"
+                        />
+                        <button onClick={aplicarCarga} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0">
+                          Aplicar
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="border border-gray-100 rounded-xl bg-white">
+                    {itensPedido.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center text-center py-14">
+                        <Package size={32} className="text-gray-300 mb-3" />
+                        <p className="text-sm text-gray-400">A lista está vazia.</p>
+                        <p className="text-[11px] text-gray-300 mt-1">Adicione os produtos desejados pela busca acima.</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
+                          <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                            {itensPedido.length} produto{itensPedido.length === 1 ? '' : 's'} na lista{selecionadosPedido.size > 0 && <span className="text-amber-600"> · {selecionadosPedido.size} selecionado{selecionadosPedido.size === 1 ? '' : 's'}</span>}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            {selecionadosPedido.size > 0 && (
+                              <button onClick={removerSelecionados} className="text-[11px] font-medium text-red-500 hover:text-red-700">
+                                Remover selecionados ({selecionadosPedido.size})
+                              </button>
+                            )}
+                            <button onClick={limparLista} className="text-[11px] font-medium text-gray-500 hover:text-gray-700">Limpar lista</button>
+                          </div>
+                        </div>
+                        {itensPedido.map((item, index) => {
+                          const selecionado = selecionadosPedido.has(index);
+                          return (
+                            <div
+                              key={index}
+                              onClick={e => aoClicarLinha(e, index)}
+                              className={`flex items-center gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer select-none transition-colors ${selecionado ? 'bg-amber-50' : 'hover:bg-gray-50'}`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-medium truncate ${selecionado ? 'text-gray-900' : 'text-gray-700'}`}>{item.produto?.nome}</p>
+                                <p className="text-[11px] text-gray-400 truncate">
+                                  {[item.produto?.categoria?.nome, item.produto?.marca?.nome, item.produto?.embalagem, item.produto?.unidadeVenda].filter(Boolean).join(' · ') || '—'} · Est.: {formatEstoque(item.produto?.estoque ?? 0)}
+                                </p>
+                              </div>
+                              {selecionado && (
+                                <>
+                                  <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={item.quantidade === 0 ? '' : item.quantidade.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                                    onChange={e => atualizarItem(index, 'quantidade', parseFloat(e.target.value.replace(',', '.')) || 0)}
+                                    onClick={e => e.stopPropagation()}
+                                    placeholder="Qtd"
+                                    className="w-20 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-black text-sm text-right shrink-0"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={item.precoUnitario === 0 ? '' : item.precoUnitario.toFixed(2)}
+                                    onChange={e => atualizarItem(index, 'precoUnitario', parseFloat(e.target.value.replace(',', '.')) || 0)}
+                                    onClick={e => e.stopPropagation()}
+                                    placeholder={item.produto?.precoVarejo.toFixed(2) ?? '0,00'}
+                                    className="w-24 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-black text-sm text-right shrink-0"
+                                  />
+                                </>
+                              )}
+                              <button onClick={e => { e.stopPropagation(); removerItem(index); }} className="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0">
+                                <X size={16} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {erroProduto && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5 mt-3">{erroProduto}</p>}
+
+                  {itensPedido.length > 0 && (
+                    <div className="text-xs text-gray-500 mt-2">
+                      Peso total estimado: <strong>{pesoTotalItens.toFixed(2)} kg</strong>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4 max-w-2xl">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <SearchAutocomplete
+                          placeholder="Buscar cliente por nome..."
+                          valor={buscaCliente}
+                          onChange={v => {
+                            setBuscaCliente(v);
+                            if (!v) setNovoPedido({ ...novoPedido, clienteId: '' });
+                          }}
+                          sugestoes={clientes
+                            .filter(c => c.razaoSocialNome.toLowerCase().includes(buscaCliente.toLowerCase()) || c.cpfCnpj.includes(buscaCliente))
+                            .map(c => ({ rotulo: c.razaoSocialNome, subRotulo: c.cpfCnpj || c.telefone || '' }))}
+                          aoSelecionar={s => {
+                            const c = clientes.find(cl => cl.razaoSocialNome === s.rotulo);
+                            if (c) {
+                              setBuscaCliente(c.razaoSocialNome);
+                              selecionarCliente(String(c.id));
+                            }
+                          }}
+                        />
+                      </div>
+                      <button type="button" onClick={() => { setShowNovoCliente(true); setModalAberto(true); }} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors shrink-0 flex items-center gap-1">
+                        <Plus size={16} /> Novo
+                      </button>
+                    </div>
+                    {novoPedido.clienteId && (
+                      <div className="mt-1 space-y-1">
+                        <p className="text-xs text-gray-500">Selecionado: {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.razaoSocialNome}</p>
+                        {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.bloqueadoFinanceiro && (
+                          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <ShieldAlert size={14} className="text-amber-600 shrink-0" />
+                            <span className="text-xs text-amber-700 font-medium">Este cliente está bloqueado pelo setor financeiro. O pedido ficará pendente de liberação.</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Entrega</label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNovoPedido({ ...novoPedido, tipoEntrega: 'Entrega' })}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${novoPedido.tipoEntrega === 'Entrega' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'}`}
+                      >
+                        Entrega
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNovoPedido({ ...novoPedido, tipoEntrega: 'Retirada' })}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${novoPedido.tipoEntrega === 'Retirada' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'}`}
+                      >
+                        Retirada
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
+                    <select
+                      value={novoPedido.pagamento}
+                      onChange={e => setNovoPedido({ ...novoPedido, pagamento: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="PIX">PIX</option>
+                      <option value="Boleto">Boleto</option>
+                      <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      <option value="Cartão de Débito">Cartão de Débito</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Crédito Loja">Crédito Loja</option>
+                      <option value="Fiado">Fiado</option>
+                    </select>
+                    {novoPedido.pagamento === 'Boleto' && (
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Prazo (dias)</label>
+                        <select
+                          value={novoPedido.prazoPagamentoDias}
+                          onChange={e => setNovoPedido({ ...novoPedido, prazoPagamentoDias: e.target.value })}
+                          className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+                        >
+                          <option value="">Selecione...</option>
+                          {[7, 14, 21, 30, 45, 60].map(d => <option key={d} value={d}>{d} dias</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$)</label>
+                      <div className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-700">
+                        R$ {valorTotalCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Desconto (R$)</label>
+                      <input
+                        type="text"
+                        value={novoPedido.desconto}
+                        onChange={e => setNovoPedido({ ...novoPedido, desconto: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Acréscimo (R$)</label>
+                      <input
+                        type="text"
+                        value={novoPedido.acrescimo}
+                        onChange={e => setNovoPedido({ ...novoPedido, acrescimo: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                        placeholder="0,00"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Arquivo DAV (PDF)</label>
+                    <input ref={davInputRef} type="file" accept=".pdf" className="hidden" onChange={handleDavUpload} />
+                    {davFile ? (
+                      <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                        <FileCheck size={20} className="text-emerald-600 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-emerald-900 truncate">{davFile.name}</p>
+                          <p className="text-[11px] text-emerald-600">{(davFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                        <button onClick={() => setDavFile(null)} className="p-1.5 hover:bg-emerald-100 rounded-lg transition-colors text-emerald-600">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => davInputRef.current?.click()}
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-gray-400 cursor-pointer transition-all"
+                      >
+                        <Upload size={24} className="mb-2 text-gray-400" />
+                        <p className="text-sm font-medium">Clique para enviar o PDF do DAV</p>
+                        <p className="text-[11px] text-gray-400 mt-1">Somente arquivos .pdf</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end">
+              <button onClick={resetModal} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">
+                Cancelar
+              </button>
+              <button
+                onClick={criarPedido}
+                disabled={!novoPedido.clienteId || itensPedido.length === 0 || itensPedido.some(i => !i.produtoId)}
+                className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${
+                  novoPedido.clienteId && itensPedido.length > 0 && !itensPedido.some(i => !i.produtoId)
+                    ? 'bg-black text-white hover:bg-gray-800'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Criar Pedido
+              </button>
+            </div>
+          </div>
+        ) : (
+        <div className="flex flex-col h-full min-h-0">
         {abaAtiva === 'pendentes' && (
         <div className="p-6 border-b border-gray-100">
           <div className="flex justify-between items-center gap-4">
@@ -424,7 +875,7 @@ export default function ComercialPedidos() {
               />
             </div>
             <button
-              onClick={() => { setIsModalOpen(true); setModalAberto(true); if (itensPedido.length === 0 && produtos.length > 0) adicionarItem(); }}
+              onClick={() => { setBuscaCliente(''); setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', prazoPagamentoDias: '', desconto: '', acrescimo: '' }); setItensPedido([]); setBuscaProduto(''); setDestaqueProduto(0); setSelecionadosPedido(new Set()); setAncoraPedido(null); setCargaQtd(''); setErroProduto(''); setCadastrando(true); setAbaCadastro('produtos'); }}
               className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
             >
               <Plus size={18} /> Novo Pedido
@@ -651,257 +1102,14 @@ export default function ComercialPedidos() {
               </div>
             )}
         </div>
+        </div>
+        )}
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-serif font-bold text-gray-900">Novo Pedido</h2>
-              <button onClick={resetModal} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            <p className="text-gray-500 mb-6 text-sm">Preencha os dados do pedido e selecione os produtos.</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <SearchAutocomplete
-                      placeholder="Buscar cliente por nome..."
-                      valor={buscaCliente}
-                      onChange={v => {
-                        setBuscaCliente(v);
-                        if (!v) setNovoPedido({ ...novoPedido, clienteId: '' });
-                      }}
-                      sugestoes={clientes
-                        .filter(c => c.razaoSocialNome.toLowerCase().includes(buscaCliente.toLowerCase()) || c.cpfCnpj.includes(buscaCliente))
-                        .map(c => ({ rotulo: c.razaoSocialNome, subRotulo: c.cpfCnpj || c.telefone || '' }))}
-                      aoSelecionar={s => {
-                        const c = clientes.find(cl => cl.razaoSocialNome === s.rotulo);
-                        if (c) {
-                          setBuscaCliente(c.razaoSocialNome);
-                          selecionarCliente(String(c.id));
-                        }
-                      }}
-                    />
-                  </div>
-                  <button type="button" onClick={() => setShowNovoCliente(true)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors shrink-0 flex items-center gap-1">
-                    <Plus size={16} /> Novo
-                  </button>
-                </div>
-                {novoPedido.clienteId && (
-                  <div className="mt-1 space-y-1">
-                    <p className="text-xs text-gray-500">Selecionado: {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.razaoSocialNome}</p>
-                    {clientes.find(c => c.id === parseInt(novoPedido.clienteId))?.bloqueadoFinanceiro && (
-                      <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                        <ShieldAlert size={14} className="text-amber-600 shrink-0" />
-                        <span className="text-xs text-amber-700 font-medium">Este cliente está bloqueado pelo setor financeiro. O pedido ficará pendente de liberação.</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Entrega</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNovoPedido({ ...novoPedido, tipoEntrega: 'Entrega' })}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${novoPedido.tipoEntrega === 'Entrega' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'}`}
-                  >
-                    Entrega
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNovoPedido({ ...novoPedido, tipoEntrega: 'Retirada' })}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${novoPedido.tipoEntrega === 'Retirada' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'}`}
-                  >
-                    Retirada
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
-                <select
-                  value={novoPedido.pagamento}
-                  onChange={e => setNovoPedido({ ...novoPedido, pagamento: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
-                >
-                  <option value="">Selecione...</option>
-                  <option value="PIX">PIX</option>
-                  <option value="Boleto">Boleto</option>
-                  <option value="Cartão de Crédito">Cartão de Crédito</option>
-                  <option value="Cartão de Débito">Cartão de Débito</option>
-                  <option value="Dinheiro">Dinheiro</option>
-                  <option value="Crédito Loja">Crédito Loja</option>
-                  <option value="Fiado">Fiado</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$)</label>
-                  <div className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-700">
-                    R$ {valorTotalCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Desconto (R$)</label>
-                  <input
-                    type="text"
-                    value={novoPedido.desconto}
-                    onChange={e => setNovoPedido({ ...novoPedido, desconto: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
-                    placeholder="0,00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Acréscimo (R$)</label>
-                  <input
-                    type="text"
-                    value={novoPedido.acrescimo}
-                    onChange={e => setNovoPedido({ ...novoPedido, acrescimo: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
-                    placeholder="0,00"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-gray-700">Produtos *</label>
-                  <button
-                    type="button"
-                    onClick={adicionarItem}
-                    className="text-xs text-black font-medium hover:underline flex items-center gap-1"
-                  >
-                    <Plus size={14} /> Adicionar produto
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {itensPedido.map((item, index) => (
-                    <div key={index} className="flex gap-2 items-end border border-gray-200 rounded-lg p-3">
-                      <div className="flex-1">
-                        <label className="text-[10px] text-gray-400 uppercase tracking-wider">Produto</label>
-                        <SearchAutocomplete
-                          placeholder="Buscar produto..."
-                          valor={buscaProduto[index] ?? ''}
-                          onChange={v => {
-                            const busca = [...buscaProduto];
-                            busca[index] = v;
-                            setBuscaProduto(busca);
-                          }}
-                          sugestoes={produtos
-                            .filter(p => p.nome.toLowerCase().includes((buscaProduto[index] ?? '').toLowerCase()))
-                            .map(p => ({ rotulo: p.nome, subRotulo: `R$ ${p.precoVarejo.toFixed(2)} | ${p.pesoUnidade} kg | Est.: ${formatEstoque(p.estoque)}${p.estoque <= 0 ? ' (esgotado)' : ''}` } satisfies Sugestao))}
-                          aoSelecionar={s => {
-                            const produto = produtos.find(p => p.nome === s.rotulo);
-                            if (produto) selecionarProduto(index, produto);
-                          }}
-                          className="mt-0.5"
-                        />
-                        {item.produto && item.produto.estoque > 0 && (
-                          <p className="text-[11px] text-gray-400 mt-1">
-                            Estoque disponível: <span className="font-semibold text-gray-600">{formatEstoque(item.produto.estoque)}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div className="w-24">
-                        <label className="text-[10px] text-gray-400 uppercase tracking-wider">Qtd</label>
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          value={item.quantidade === 0 ? '' : item.quantidade.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
-                          onChange={e => atualizarItem(index, 'quantidade', parseFloat(e.target.value.replace(',', '.')) || 0)}
-                          placeholder="0"
-                          className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
-                        />
-                      </div>
-                      <div className="w-28">
-                        <label className="text-[10px] text-gray-400 uppercase tracking-wider">Preço unit.</label>
-                        <input
-                          type="text"
-                          value={item.precoUnitario === 0 ? '' : item.precoUnitario.toFixed(2)}
-                          onChange={e => {
-                            const val = parseFloat(e.target.value.replace(',', '.')) || 0;
-                            atualizarItem(index, 'precoUnitario', val);
-                          }}
-                          className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5"
-                          placeholder={item.produto?.precoVarejo.toFixed(2) ?? '0,00'}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removerItem(index)}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                {itensPedido.length > 0 && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Peso total estimado: <strong>{pesoTotalItens.toFixed(2)} kg</strong>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Arquivo DAV (PDF)</label>
-                <input ref={davInputRef} type="file" accept=".pdf" className="hidden" onChange={handleDavUpload} />
-                {davFile ? (
-                  <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
-                    <FileCheck size={20} className="text-emerald-600 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-emerald-900 truncate">{davFile.name}</p>
-                      <p className="text-[11px] text-emerald-600">{(davFile.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                    <button onClick={() => setDavFile(null)} className="p-1.5 hover:bg-emerald-100 rounded-lg transition-colors text-emerald-600">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => davInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-gray-400 cursor-pointer transition-all"
-                  >
-                    <Upload size={24} className="mb-2 text-gray-400" />
-                    <p className="text-sm font-medium">Clique para enviar o PDF do DAV</p>
-                    <p className="text-[11px] text-gray-400 mt-1">Somente arquivos .pdf</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end mt-8">
-              <button onClick={resetModal} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">
-                Cancelar
-              </button>
-              <button
-                onClick={criarPedido}
-                disabled={!novoPedido.clienteId || itensPedido.length === 0 || itensPedido.some(i => !i.produtoId)}
-                className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${
-                  novoPedido.clienteId && itensPedido.length > 0 && !itensPedido.some(i => !i.produtoId)
-                    ? 'bg-black text-white hover:bg-gray-800'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                Criar Pedido
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {pedidoPendenteDialog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
                 <span className="text-amber-600 text-lg font-bold">!</span>
@@ -933,7 +1141,7 @@ export default function ComercialPedidos() {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => setPedidoPendenteDialog(null)}
+                onClick={() => { setPedidoPendenteDialog(null); setModalAberto(false); }}
                 className="flex-1 py-2.5 rounded-xl font-medium text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
               >
                 Cancelar
@@ -957,7 +1165,7 @@ export default function ComercialPedidos() {
 
       {detalhe && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={fecharDetalhe}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes do Pedido</h2>
               <button onClick={fecharDetalhe} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
@@ -992,6 +1200,7 @@ export default function ComercialPedidos() {
                         });
                         setBuscaCliente(detalhe.solicitanteNome ?? '');
                         setShowNovoCliente(true);
+                        setModalAberto(true);
                       }}
                       className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded-lg transition-colors"
                     >
@@ -1029,19 +1238,32 @@ export default function ComercialPedidos() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Pagamento</span>
                 {editando ? (
-                  <select value={editDetalhe!.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe!, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
-                    <option value="">Selecione...</option>
-                    <option value="PIX">PIX</option>
-                    <option value="Boleto">Boleto</option>
-                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                    <option value="Cartão de Débito">Cartão de Débito</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Crédito Loja">Crédito Loja</option>
-                    <option value="Fiado">Fiado</option>
-                  </select>
+                  <>
+                    <select value={editDetalhe!.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe!, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                      <option value="">Selecione...</option>
+                      <option value="PIX">PIX</option>
+                      <option value="Boleto">Boleto</option>
+                      <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      <option value="Cartão de Débito">Cartão de Débito</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Crédito Loja">Crédito Loja</option>
+                      <option value="Fiado">Fiado</option>
+                    </select>
+                    {editDetalhe!.pagamento === 'Boleto' && (
+                      <select
+                        value={editDetalhe!.prazoPagamentoDias}
+                        onChange={e => setEditDetalhe({ ...editDetalhe!, prazoPagamentoDias: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                        className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-2"
+                      >
+                        <option value="">Prazo (dias) — Selecione...</option>
+                        {[7, 14, 21, 30, 45, 60].map(d => <option key={d} value={d}>{d} dias</option>)}
+                      </select>
+                    )}
+                  </>
                 ) : (
                   <p className="text-gray-900 font-medium mt-0.5">
                     {detalhe.pagamento || '—'}
+                    {detalhe.pagamento === 'Boleto' && detalhe.prazoPagamentoDias && ` · ${detalhe.prazoPagamentoDias} dias`}
                   </p>
                 )}
               </div>
@@ -1178,6 +1400,7 @@ export default function ComercialPedidos() {
                   const ok = await pedidoService.atualizarPedido(detalhe.id, {
                     tipoEntrega: e.tipoEntrega,
                     pagamento: e.pagamento,
+                    prazoPagamentoDias: e.prazoPagamentoDias === '' ? undefined : e.prazoPagamentoDias,
                     cep: e.cep,
                     logradouro: e.logradouro,
                     numero: e.numero,
@@ -1205,6 +1428,7 @@ export default function ComercialPedidos() {
                     const ok = await pedidoService.atualizarPedido(detalhe.id, {
                       tipoEntrega: editDetalhe.tipoEntrega,
                       pagamento: editDetalhe.pagamento,
+                      prazoPagamentoDias: editDetalhe.prazoPagamentoDias === '' ? undefined : editDetalhe.prazoPagamentoDias,
                       cep: editDetalhe.cep,
                       logradouro: editDetalhe.logradouro,
                       numero: editDetalhe.numero,
@@ -1260,11 +1484,11 @@ export default function ComercialPedidos() {
       )}
 
       {showNovoCliente && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setShowNovoCliente(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => { setShowNovoCliente(false); setModalAberto(false); }}>
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Novo Cliente</h2>
-              <button onClick={() => setShowNovoCliente(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+              <button onClick={() => { setShowNovoCliente(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
             </div>
             <p className="text-gray-500 mb-4 text-sm">Preencha os dados para cadastrar o cliente.</p>
             <div className="space-y-3">
@@ -1315,7 +1539,7 @@ export default function ComercialPedidos() {
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowNovoCliente(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+              <button onClick={() => { setShowNovoCliente(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
               <button onClick={criarCliente} disabled={!novoCliente.razaoSocialNome.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoCliente.razaoSocialNome.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Cadastrar e Selecionar</button>
             </div>
           </div>
@@ -1324,7 +1548,7 @@ export default function ComercialPedidos() {
 
       {showBloqueadoDialog && clienteBloqueadoSelecionado && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                 <ShieldAlert size={22} className="text-amber-500" /> Cliente Bloqueado

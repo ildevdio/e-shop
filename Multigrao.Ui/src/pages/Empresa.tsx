@@ -359,7 +359,7 @@ export default function Empresa() {
 
       {showNovoAviso && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Novo Aviso</h2>
               <button onClick={() => { setShowNovoAviso(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
@@ -406,7 +406,7 @@ export default function Empresa() {
 
       {showNovaEnquete && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Nova Enquete</h2>
               <button onClick={() => { setShowNovaEnquete(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>

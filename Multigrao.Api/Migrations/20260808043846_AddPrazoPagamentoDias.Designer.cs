@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Multigrao.Api.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Multigrao.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808043846_AddPrazoPagamentoDias")]
+    partial class AddPrazoPagamentoDias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,56 +131,6 @@ namespace Multigrao.Api.Migrations
                     b.HasIndex("SetorAlvoId");
 
                     b.ToTable("Avisos");
-                });
-
-            modelBuilder.Entity("Multigrao.Api.Models.Carrinho", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AtualizadoEm")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CpfCnpj")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CpfCnpj")
-                        .IsUnique();
-
-                    b.ToTable("Carrinhos");
-                });
-
-            modelBuilder.Entity("Multigrao.Api.Models.CarrinhoItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CarrinhoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProdutoId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Quantidade")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CarrinhoId");
-
-                    b.HasIndex("ProdutoId");
-
-                    b.ToTable("CarrinhoItens");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Categoria", b =>
@@ -1356,25 +1309,6 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("SetorAlvo");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.CarrinhoItem", b =>
-                {
-                    b.HasOne("Multigrao.Api.Models.Carrinho", "Carrinho")
-                        .WithMany("Itens")
-                        .HasForeignKey("CarrinhoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Multigrao.Api.Models.Produto", "Produto")
-                        .WithMany()
-                        .HasForeignKey("ProdutoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Carrinho");
-
-                    b.Navigation("Produto");
-                });
-
             modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
                 {
                     b.HasOne("Multigrao.Api.Models.Usuario", "Vendedor")
@@ -1588,11 +1522,6 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("OpcaoEnquete");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("Multigrao.Api.Models.Carrinho", b =>
-                {
-                    b.Navigation("Itens");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Categoria", b =>

@@ -175,7 +175,7 @@ namespace Multigrao.Api.Controllers
             if (erroEstoque != null) return BadRequest(new { message = erroEstoque });
 
             var statusInicial = cliente.BloqueadoFinanceiro ? "BloqueadoFinanceiro" : "Pendente";
-            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.Desconto, dto.Acrescimo, status: statusInicial, observacao: dto.Observacao);
+            var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.PrazoPagamentoDias, dto.Desconto, dto.Acrescimo, status: statusInicial, observacao: dto.Observacao);
             
             if (cliente.BloqueadoFinanceiro)
                 await Notificar("Pedido Bloqueado", $"Pedido #{pedido.Id} criado para cliente bloqueado — aguardando liberação do financeiro.", "pedido", "Financeiro");
@@ -225,6 +225,7 @@ namespace Multigrao.Api.Controllers
                 dto.Itens,
                 dto.TipoEntrega,
                 dto.Pagamento,
+                dto.PrazoPagamentoDias,
                 dto.Desconto,
                 dto.Acrescimo,
                 dto.CpfCnpj,
@@ -255,6 +256,8 @@ namespace Multigrao.Api.Controllers
 
             if (dto.TipoEntrega != null) pedido.TipoEntrega = dto.TipoEntrega;
             if (dto.Pagamento != null) pedido.Pagamento = dto.Pagamento;
+            if (dto.Pagamento != null && dto.Pagamento != "Boleto") pedido.PrazoPagamentoDias = null;
+            if (dto.PrazoPagamentoDias.HasValue) pedido.PrazoPagamentoDias = dto.PrazoPagamentoDias.Value;
             if (dto.Cep != null) pedido.Cep = dto.Cep;
             if (dto.Logradouro != null) pedido.Logradouro = dto.Logradouro;
             if (dto.Numero != null) pedido.Numero = dto.Numero;
@@ -333,6 +336,7 @@ namespace Multigrao.Api.Controllers
             List<CriarItemPedidoDto> itensDto,
             string tipoEntrega = "Entrega",
             string? pagamento = null,
+            int? prazoPagamentoDias = null,
             decimal desconto = 0,
             decimal acrescimo = 0,
             string? cpfCnpj = null,
@@ -390,6 +394,7 @@ namespace Multigrao.Api.Controllers
                 Status = status,
                 TipoEntrega = tipoEntrega,
                 Pagamento = pagamento,
+                PrazoPagamentoDias = prazoPagamentoDias,
                 Desconto = desconto,
                 Acrescimo = acrescimo,
                 ValorFinal = valorFinal,

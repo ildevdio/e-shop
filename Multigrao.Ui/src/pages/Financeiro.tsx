@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ShieldCheck, Search, RotateCcw, Unlock, X, Loader2 } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
+import { useUiStore } from '../store/uiStore';
 
 export default function Financeiro() {
+  const { setModalAberto } = useUiStore();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState('');
@@ -13,6 +15,7 @@ export default function Financeiro() {
   const [editDetalhe, setEditDetalhe] = useState<{
     tipoEntrega: string;
     pagamento: string;
+    prazoPagamentoDias: number | '';
     cep: string;
     logradouro: string;
     numero: string;
@@ -42,6 +45,7 @@ export default function Financeiro() {
     const ok = await pedidoService.liberarPedido(id, observacao);
     if (ok) {
       setPedidos(prev => prev.filter(p => p.id !== id));
+      setModalAberto(false);
       setDetalhe(null);
       setEditDetalhe(null);
       setObsLiberacao('');
@@ -55,6 +59,7 @@ export default function Financeiro() {
     const ok = await pedidoService.atualizarPedido(detalhe.id, {
       tipoEntrega: editDetalhe.tipoEntrega,
       pagamento: editDetalhe.pagamento,
+      prazoPagamentoDias: editDetalhe.prazoPagamentoDias === '' ? undefined : editDetalhe.prazoPagamentoDias,
       cep: editDetalhe.cep,
       logradouro: editDetalhe.logradouro,
       numero: editDetalhe.numero,
@@ -80,10 +85,12 @@ export default function Financeiro() {
 
   const abrirDetalhe = (pedido: Pedido) => {
     setDetalhe(pedido);
+    setModalAberto(true);
     setObsLiberacao(pedido.observacao ?? '');
     setEditDetalhe({
       tipoEntrega: pedido.tipoEntrega,
       pagamento: pedido.pagamento ?? '',
+      prazoPagamentoDias: pedido.prazoPagamentoDias ?? '',
       cep: pedido.cep ?? '',
       logradouro: pedido.logradouro ?? '',
       numero: pedido.numero ?? '',
@@ -200,11 +207,11 @@ export default function Financeiro() {
       </div>
 
       {detalhe && editDetalhe && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Pedido #{detalhe.id}</h2>
-              <button onClick={() => { setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
+              <button onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
             </div>
             <div className="space-y-3">
               <div className="bg-gray-50 rounded-xl p-3">
@@ -247,6 +254,16 @@ export default function Financeiro() {
                     <option value="Crédito Loja">Crédito Loja</option>
                     <option value="Fiado">Fiado</option>
                   </select>
+                  {editDetalhe.pagamento === 'Boleto' && (
+                    <select
+                      value={editDetalhe.prazoPagamentoDias}
+                      onChange={e => setEditDetalhe({ ...editDetalhe, prazoPagamentoDias: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                      className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-2"
+                    >
+                      <option value="">Prazo (dias) — Selecione...</option>
+                      {[7, 14, 21, 30, 45, 60].map(d => <option key={d} value={d}>{d} dias</option>)}
+                    </select>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -325,7 +342,7 @@ export default function Financeiro() {
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => { setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Fechar</button>
+              <button onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Fechar</button>
               <button
                 onClick={salvarAlteracoes}
                 disabled={salvando}
