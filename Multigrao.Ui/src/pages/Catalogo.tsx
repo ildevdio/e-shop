@@ -538,11 +538,16 @@ function GerenciarCatalogo({
                     <button onClick={async () => { if (confirm(`Excluir "${p.nome}"?`)) { await produtoService.deletarProduto(p.id); onSalvo(); } }} className="p-2 text-red-400 hover:text-red-600 transition-colors">
                       <Trash2 size={16} />
                     </button>
+                    </div>
                   </div>
                 </div>
               ))
             )}
           </div>
+        )}
+
+        {ajusteEstoqueAberto && (
+          <EstoqueAjuste produtos={produtos} onClose={() => setAjusteEstoqueAberto(false)} onSalvo={onSalvo} />
         )}
 
         {abaGerenciar === 'categorias' && (
@@ -889,69 +894,6 @@ function MarcaForm({ marca, onClose, onSalvo }: {
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function EstoqueList({ produtos, onSalvo }: {
-  produtos: Produto[];
-  onSalvo: () => void;
-}) {
-  const [ajusteAberto, setAjusteAberto] = useState(false);
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-500">
-          {produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'} cadastrados
-        </p>
-        <button
-          onClick={() => setAjusteAberto(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0"
-        >
-          <Pencil size={16} /> Ajuste de estoque
-        </button>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 text-[11px] text-gray-400 uppercase tracking-wider">
-              <th className="text-left py-3 px-4 font-medium">Produto</th>
-              <th className="text-left py-3 px-4 font-medium">Tipo</th>
-              <th className="text-right py-3 px-4 font-medium w-40">Qtd. em estoque</th>
-            </tr>
-          </thead>
-          <tbody>
-            {produtos.map(p => (
-              <tr key={p.id} className="border-b border-gray-50">
-                <td className="py-2.5 px-4">
-                  <span className="font-medium text-gray-900">{p.nome}</span>
-                  {p.categoria?.nome && <span className="text-xs text-gray-400 ml-2">{p.categoria.nome}</span>}
-                </td>
-                <td className="py-2.5 px-4 text-gray-500">
-                  {[p.embalagem, p.unidadeVenda].filter(Boolean).join(' · ') || '—'}
-                </td>
-                <td className="py-2.5 px-4 text-right">
-                  <span className={`inline-flex items-center gap-1.5 font-semibold ${p.estoque <= 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-                    {p.estoque <= 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
-                    {formatEstoque(p.estoque)}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {produtos.length === 0 && (
-              <tr>
-                <td colSpan={3} className="py-8 text-center text-sm text-gray-400">Nenhum produto cadastrado.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {ajusteAberto && (
-        <EstoqueAjuste produtos={produtos} onClose={() => setAjusteAberto(false)} onSalvo={onSalvo} />
-      )}
     </div>
   );
 }
