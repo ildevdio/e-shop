@@ -64,6 +64,7 @@ namespace Multigrao.Api.DTOs
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
+        public int? AtendimentoId { get; set; }
     }
 
     public class SolicitacaoCatalogoDto
@@ -245,12 +246,14 @@ namespace Multigrao.Api.DTOs
         public string? Telefone { get; set; }
         public string? Interesse { get; set; }
         public string? Origem { get; set; }
+        public int? UsuarioId { get; set; }
     }
 
     public class NovaMensagemDto
     {
         public string Text { get; set; } = string.Empty;
         public string Sender { get; set; } = string.Empty;
+        public int? UsuarioId { get; set; }
     }
 
     public class LeadUpdateDto

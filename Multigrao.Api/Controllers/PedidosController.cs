@@ -177,6 +177,17 @@ namespace Multigrao.Api.Controllers
             var statusInicial = cliente.BloqueadoFinanceiro ? "BloqueadoFinanceiro" : "Pendente";
             var pedido = await CriarPedido(dto.ClienteId, null, null, dto.ValorTotal, dto.Itens, dto.TipoEntrega, dto.Pagamento, dto.PrazoPagamentoDias, dto.Desconto, dto.Acrescimo, status: statusInicial, observacao: dto.Observacao);
             
+            if (dto.AtendimentoId.HasValue)
+            {
+                var atendimento = await _context.AtendimentoLeads.FindAsync(dto.AtendimentoId.Value);
+                if (atendimento != null)
+                {
+                    atendimento.PedidoId = pedido.Id;
+                    atendimento.VendaFechada = true;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            
             if (cliente.BloqueadoFinanceiro)
                 await Notificar("Pedido Bloqueado", $"Pedido #{pedido.Id} criado para cliente bloqueado — aguardando liberação do financeiro.", "pedido", "Financeiro");
             else

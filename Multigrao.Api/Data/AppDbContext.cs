@@ -72,6 +72,18 @@ namespace Multigrao.Api.Data
                 .HasForeignKey(m => m.UsuarioRemetenteId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<AtendimentoLead>()
+                .HasOne(a => a.UsuarioAtendente)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioAtendenteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AtendimentoLead>()
+                .HasOne(a => a.Pedido)
+                .WithMany()
+                .HasForeignKey(a => a.PedidoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<Produto>()
                 .HasOne(p => p.Categoria)
                 .WithMany(c => c.Produtos)

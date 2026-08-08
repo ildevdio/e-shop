@@ -44,5 +44,11 @@ namespace Multigrao.Api.Models
         public bool VendaFechada { get; set; } = false;
         
         public bool IAAtiva { get; set; } = true;
+
+        public int? UsuarioAtendenteId { get; set; }
+        public Usuario? UsuarioAtendente { get; set; }
+
+        public int? PedidoId { get; set; }
+        public Pedido? Pedido { get; set; }
     }
 }

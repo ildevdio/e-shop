@@ -55,7 +55,8 @@ namespace Multigrao.Api.Controllers
                 Telefone = dto.Telefone ?? string.Empty,
                 Interesse = dto.Interesse ?? string.Empty,
                 Origem = dto.Origem ?? "Manual",
-                IAAtiva = true
+                IAAtiva = true,
+                UsuarioAtendenteId = dto.UsuarioId
             };
             _context.AtendimentoLeads.Add(atendimento);
             await _context.SaveChangesAsync();
@@ -83,12 +84,16 @@ namespace Multigrao.Api.Controllers
             var atendimentos = await _context.AtendimentoLeads
                 .Include(a => a.Conversa)
                     .ThenInclude(c => c!.Mensagens)
+                        .ThenInclude(m => m.UsuarioRemetente)
+                .Include(a => a.UsuarioAtendente)
+                .Include(a => a.Pedido)
                 .OrderByDescending(a => a.Id)
                 .ToListAsync();
 
             var response = atendimentos.Select(a => new
             {
                 id = a.Id.ToString(),
+                dataInicio = a.Conversa?.DataCriacao ?? a.Pedido?.DataCriacao,
                 lead = new
                 {
                     nome = a.Nome,
@@ -104,11 +109,20 @@ namespace Multigrao.Api.Controllers
                     vendaFechada = a.VendaFechada
                 },
                 iaActive = a.IAAtiva,
+                atendente = a.UsuarioAtendente?.Nome,
+                pedido = a.Pedido != null ? new
+                {
+                    id = a.Pedido.Id,
+                    status = a.Pedido.Status,
+                    valorFinal = a.Pedido.ValorFinal,
+                    dataCriacao = a.Pedido.DataCriacao
+                } : null,
                 messages = a.Conversa != null ? a.Conversa.Mensagens.OrderBy(m => m.DataEnvio).Select(m => new
                 {
                     id = m.Id.ToString(),
                     text = m.Texto,
                     sender = m.UrlAnexo == "bot" ? "bot" : m.UrlAnexo == "user" ? "user" : "agent",
+                    atendente = m.UsuarioRemetente?.Nome,
                     timestamp = m.DataEnvio
                 }) : null
             });
@@ -131,12 +145,17 @@ namespace Multigrao.Api.Controllers
                 ConversaId = atendimento.Conversa.Id,
                 Texto = dto.Text,
                 DataEnvio = DateTime.UtcNow,
-                UrlAnexo = dto.Sender == "bot" ? "bot" : (dto.Sender == "user" ? "user" : "")
+                UrlAnexo = dto.Sender == "bot" ? "bot" : (dto.Sender == "user" ? "user" : ""),
+                UsuarioRemetenteId = dto.Sender == "agent" ? dto.UsuarioId : null
             };
 
             if (dto.Sender == "agent")
             {
                 atendimento.IAAtiva = false;
+                if (atendimento.UsuarioAtendenteId == null && dto.UsuarioId.HasValue)
+                {
+                    atendimento.UsuarioAtendenteId = dto.UsuarioId;
+                }
             }
 
             _context.Mensagens.Add(mensagem);

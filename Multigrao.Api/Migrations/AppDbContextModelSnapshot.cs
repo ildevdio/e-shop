@@ -92,7 +92,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ConversaId");
 
-                    b.ToTable("AtendimentoLeads");
+                    b.ToTable("AtendimentoLeads", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Aviso", b =>
@@ -127,7 +127,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("SetorAlvoId");
 
-                    b.ToTable("Avisos");
+                    b.ToTable("Avisos", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Carrinho", b =>
@@ -151,7 +151,7 @@ namespace Multigrao.Api.Migrations
                     b.HasIndex("CpfCnpj")
                         .IsUnique();
 
-                    b.ToTable("Carrinhos");
+                    b.ToTable("Carrinhos", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.CarrinhoItem", b =>
@@ -177,7 +177,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("CarrinhoItens");
+                    b.ToTable("CarrinhoItens", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Categoria", b =>
@@ -198,7 +198,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categorias");
+                    b.ToTable("Categorias", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
@@ -305,7 +305,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("VendedorId");
 
-                    b.ToTable("Clientes");
+                    b.ToTable("Clientes", (string)null);
 
                     b.HasData(
                         new
@@ -408,7 +408,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("Contatos");
+                    b.ToTable("Contatos", (string)null);
 
                     b.HasData(
                         new
@@ -500,7 +500,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("Conversas");
+                    b.ToTable("Conversas", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
@@ -532,7 +532,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("AutorId");
 
-                    b.ToTable("Enquetes");
+                    b.ToTable("Enquetes", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
@@ -566,7 +566,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("RotaId");
 
-                    b.ToTable("Entregas");
+                    b.ToTable("Entregas", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.EntregaPedido", b =>
@@ -581,7 +581,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("PedidoId");
 
-                    b.ToTable("EntregasPedidos");
+                    b.ToTable("EntregasPedidos", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.ItemPedido", b =>
@@ -626,7 +626,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("SeparadoPorUsuarioId");
 
-                    b.ToTable("ItensPedido");
+                    b.ToTable("ItensPedido", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Marca", b =>
@@ -659,7 +659,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Marcas");
+                    b.ToTable("Marcas", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Mensagem", b =>
@@ -696,7 +696,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("UsuarioRemetenteId");
 
-                    b.ToTable("Mensagens");
+                    b.ToTable("Mensagens", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Notificacao", b =>
@@ -740,7 +740,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notificacoes");
+                    b.ToTable("Notificacoes", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.OpcaoEnquete", b =>
@@ -766,7 +766,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("EnqueteId");
 
-                    b.ToTable("OpcoesEnquete");
+                    b.ToTable("OpcoesEnquete", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
@@ -869,7 +869,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("Pedidos");
+                    b.ToTable("Pedidos", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Produto", b =>
@@ -939,7 +939,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("MarcaId");
 
-                    b.ToTable("Produtos");
+                    b.ToTable("Produtos", (string)null);
 
                     b.HasData(
                         new
@@ -1072,7 +1072,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("VeiculoId");
 
-                    b.ToTable("Rotas");
+                    b.ToTable("Rotas", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Setor", b =>
@@ -1090,7 +1090,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Setores");
+                    b.ToTable("Setores", (string)null);
 
                     b.HasData(
                         new
@@ -1167,7 +1167,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", (string)null);
 
                     b.HasData(
                         new
@@ -1220,7 +1220,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("SetorId");
 
-                    b.ToTable("UsuarioSetores");
+                    b.ToTable("UsuarioSetores", (string)null);
 
                     b.HasData(
                         new
@@ -1278,7 +1278,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Veiculos");
+                    b.ToTable("Veiculos", (string)null);
 
                     b.HasData(
                         new
@@ -1325,7 +1325,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("VotosEnquete");
+                    b.ToTable("VotosEnquete", (string)null);
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.AtendimentoLead", b =>
