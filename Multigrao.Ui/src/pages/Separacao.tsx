@@ -138,7 +138,7 @@ export default function Separacao() {
                 placeholder="Buscar pedido..."
                 value={filtro}
                 onChange={e => setFiltro(e.target.value)}
-                className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+                className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function Separacao() {
                   </div>
                   <button
                     onClick={() => assumirPedido(p)}
-                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide flex items-center gap-2 hover:bg-black shadow-sm transition-all shrink-0"
+                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide flex items-center gap-2 hover:bg-primary/90 shadow-sm transition-all shrink-0"
                   >
                     <Play size={16} /> Assumir
                   </button>
@@ -329,7 +329,7 @@ export default function Separacao() {
               disabled={!todosSeparados}
               className={`w-full py-4 rounded-2xl text-sm font-bold tracking-wide transition-all ${
                 todosSeparados
-                  ? 'bg-primary text-white hover:bg-black shadow-lg shadow-black/10'
+                  ? 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-black/10'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
@@ -360,7 +360,7 @@ export default function Separacao() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => { setPedidoAtivo(null); setStep('fila'); carregar(); }}
-                className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-black transition-all"
+                className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 transition-all"
               >
                 <ArrowLeft size={16} /> Voltar à Fila
               </button>

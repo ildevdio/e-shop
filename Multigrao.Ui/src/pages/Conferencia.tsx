@@ -80,7 +80,7 @@ export default function Conferencia() {
             <input
               type="text"
               placeholder="Buscar pedido..."
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all"
+              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all"
             />
           </div>
         </div>

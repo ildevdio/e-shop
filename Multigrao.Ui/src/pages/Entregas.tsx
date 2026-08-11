@@ -321,8 +321,8 @@ export default function Entregas() {
               className="w-full bg-white text-black p-5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all shadow-lg shadow-black/20"
             >
               <span className="font-bold tracking-wide text-lg">COMEÇAR ENTREGA</span>
-              <div className="bg-black/10 p-2 rounded-xl">
-                <Play size={24} className="text-black" />
+              <div className="bg-primary/10 p-2 rounded-xl">
+                <Play size={24} className="text-primary" />
               </div>
             </button>
           </div>
@@ -448,8 +448,8 @@ export default function Entregas() {
                     className={`w-full bg-white text-black p-5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all shadow-lg shadow-black/20 ${!conferenciaOk() ? 'opacity-50' : ''}`}
                   >
                     <span className="font-bold tracking-wide text-lg">ENTREGA CONCLUÍDA</span>
-                    <div className="bg-black/10 p-2 rounded-xl">
-                      <CheckCircle2 size={24} className="text-black" />
+                    <div className="bg-primary/10 p-2 rounded-xl">
+                      <CheckCircle2 size={24} className="text-primary" />
                     </div>
                   </button>
                 )}

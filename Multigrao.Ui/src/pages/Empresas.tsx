@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Building2, Check, Copy, Edit3, Link2, Loader2, MapPin, RefreshCw, X } from 'lucide-react';
 import { getSlug, tenantHeaders, authHeaders } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
+import { CORES_DISPONIVEIS } from '../services/cores';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -60,6 +61,7 @@ export default function Empresas() {
     cidade: '',
     estado: '',
     videoUrl: '',
+    corPrincipal: '#0a0a0a',
     login: 'admin',
     senha: 'admin123',
   });
@@ -159,6 +161,7 @@ export default function Empresas() {
           cidade: form.cidade,
           estado: form.estado,
           videoUrl: form.videoUrl,
+          corPrincipal: form.corPrincipal,
           login: form.login,
           senha: form.senha,
         }),
@@ -172,7 +175,7 @@ export default function Empresas() {
 
       const data = await response.json();
       setCriada(data);
-      setForm({ nomeEmpresa: '', cnpj: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', videoUrl: '', login: 'admin', senha: 'admin123' });
+      setForm({ nomeEmpresa: '', cnpj: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', videoUrl: '', corPrincipal: '#0a0a0a', login: 'admin', senha: 'admin123' });
       carregarEmpresas();
     } catch {
       setErro('Falha de conexão com o servidor.');
@@ -245,7 +248,7 @@ export default function Empresas() {
     );
   }
 
-  const inputCls = 'w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm';
+  const inputCls = 'w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm';
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
@@ -356,6 +359,31 @@ export default function Empresas() {
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Vídeo / Foto de Fundo (login)</label>
           <input value={form.videoUrl} onChange={set('videoUrl')} placeholder="URL do vídeo (mp4/webm) ou foto (png/jpg)" className={inputCls} />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Cor principal</label>
+          <div className="flex flex-wrap gap-2">
+            {CORES_DISPONIVEIS.map(({ cor, nome }) => (
+              <button
+                key={cor}
+                type="button"
+                onClick={() => { setForm((f) => ({ ...f, corPrincipal: cor })); setErro(''); }}
+                className={`w-9 h-9 rounded-xl transition-all hover:scale-110 ${form.corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                style={{ backgroundColor: cor }}
+                title={nome}
+              />
+            ))}
+            <div className="relative">
+              <input
+                type="color"
+                value={form.corPrincipal}
+                onChange={(e) => { setForm((f) => ({ ...f, corPrincipal: e.target.value })); setErro(''); }}
+                className="w-9 h-9 rounded-xl cursor-pointer border border-gray-200 bg-white p-0"
+                title="Cor personalizada"
+              />
+            </div>
+          </div>
         </div>
 
         {erro && <p className="rounded-lg border border-red-200 bg-red-50 p-2.5 text-sm text-red-600">{erro}</p>}
@@ -514,19 +542,32 @@ export default function Empresas() {
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cor principal</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={formEdicao.corPrincipal}
-                    onChange={(e) => setFormEdicao((f) => ({ ...f, corPrincipal: e.target.value }))}
-                    className="h-10 w-12 cursor-pointer rounded-lg border border-gray-300 p-1"
-                  />
-                  <input
-                    value={formEdicao.corPrincipal}
-                    onChange={(e) => setFormEdicao((f) => ({ ...f, corPrincipal: e.target.value }))}
-                    className={inputCls}
-                  />
+                <div className="flex flex-wrap gap-2">
+                  {CORES_DISPONIVEIS.map(({ cor, nome }) => (
+                    <button
+                      key={cor}
+                      type="button"
+                      onClick={() => setFormEdicao((f) => ({ ...f, corPrincipal: cor }))}
+                      className={`h-9 w-9 rounded-xl transition-all hover:scale-110 ${formEdicao.corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                      style={{ backgroundColor: cor }}
+                      title={nome}
+                    />
+                  ))}
+                  <div className="relative">
+                    <input
+                      type="color"
+                      value={formEdicao.corPrincipal}
+                      onChange={(e) => setFormEdicao((f) => ({ ...f, corPrincipal: e.target.value }))}
+                      className="h-9 w-9 rounded-xl cursor-pointer border border-gray-200 bg-white p-0"
+                      title="Cor personalizada"
+                    />
+                  </div>
                 </div>
+                <input
+                  value={formEdicao.corPrincipal}
+                  onChange={(e) => setFormEdicao((f) => ({ ...f, corPrincipal: e.target.value }))}
+                  className={inputCls}
+                />
               </div>
 
               <div>

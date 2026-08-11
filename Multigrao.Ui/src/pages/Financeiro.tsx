@@ -142,7 +142,7 @@ export default function Financeiro() {
             placeholder="Buscar por #pedido, cliente, CPF/CNPJ..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+            className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
           />
         </div>
       </div>
@@ -237,14 +237,14 @@ export default function Financeiro() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
-                  <select value={editDetalhe.tipoEntrega} onChange={e => setEditDetalhe({ ...editDetalhe, tipoEntrega: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                  <select value={editDetalhe.tipoEntrega} onChange={e => setEditDetalhe({ ...editDetalhe, tipoEntrega: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5">
                     <option value="Entrega">Entrega</option>
                     <option value="Retirada">Retirada</option>
                   </select>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Pagamento</span>
-                  <select value={editDetalhe.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                  <select value={editDetalhe.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5">
                     <option value="">Selecione...</option>
                     <option value="PIX">PIX</option>
                     <option value="Boleto">Boleto</option>
@@ -258,7 +258,7 @@ export default function Financeiro() {
                     <select
                       value={editDetalhe.prazoPagamentoDias}
                       onChange={e => setEditDetalhe({ ...editDetalhe, prazoPagamentoDias: e.target.value === '' ? '' : parseInt(e.target.value) })}
-                      className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-2"
+                      className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-2"
                     >
                       <option value="">Prazo (dias) — Selecione...</option>
                       {[7, 14, 21, 30, 45, 60].map(d => <option key={d} value={d}>{d} dias</option>)}
@@ -281,11 +281,11 @@ export default function Financeiro() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
-                  <input type="text" value={editDetalhe.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                  <input type="text" value={editDetalhe.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Acréscimo</span>
-                  <input type="text" value={editDetalhe.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                  <input type="text" value={editDetalhe.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
@@ -298,17 +298,17 @@ export default function Financeiro() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Endereço</span>
                 <div className="space-y-2 mt-1">
                   <div className="flex gap-2">
-                    <input type="text" value={editDetalhe.logradouro} onChange={e => setEditDetalhe({ ...editDetalhe, logradouro: e.target.value })} placeholder="Logradouro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
-                    <input type="text" value={editDetalhe.numero} onChange={e => setEditDetalhe({ ...editDetalhe, numero: e.target.value })} placeholder="Nº" className="w-20 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    <input type="text" value={editDetalhe.logradouro} onChange={e => setEditDetalhe({ ...editDetalhe, logradouro: e.target.value })} placeholder="Logradouro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
+                    <input type="text" value={editDetalhe.numero} onChange={e => setEditDetalhe({ ...editDetalhe, numero: e.target.value })} placeholder="Nº" className="w-20 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                   </div>
-                  <input type="text" value={editDetalhe.complemento} onChange={e => setEditDetalhe({ ...editDetalhe, complemento: e.target.value })} placeholder="Complemento" className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                  <input type="text" value={editDetalhe.complemento} onChange={e => setEditDetalhe({ ...editDetalhe, complemento: e.target.value })} placeholder="Complemento" className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                   <div className="flex gap-2">
-                    <input type="text" value={editDetalhe.bairro} onChange={e => setEditDetalhe({ ...editDetalhe, bairro: e.target.value })} placeholder="Bairro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
-                    <input type="text" value={editDetalhe.cidade} onChange={e => setEditDetalhe({ ...editDetalhe, cidade: e.target.value })} placeholder="Cidade" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    <input type="text" value={editDetalhe.bairro} onChange={e => setEditDetalhe({ ...editDetalhe, bairro: e.target.value })} placeholder="Bairro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
+                    <input type="text" value={editDetalhe.cidade} onChange={e => setEditDetalhe({ ...editDetalhe, cidade: e.target.value })} placeholder="Cidade" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                   </div>
                   <div className="flex gap-2">
-                    <input type="text" value={editDetalhe.estado} onChange={e => setEditDetalhe({ ...editDetalhe, estado: e.target.value })} placeholder="UF" maxLength={2} className="w-16 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
-                    <input type="text" value={editDetalhe.cep} onChange={e => setEditDetalhe({ ...editDetalhe, cep: e.target.value })} placeholder="CEP" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    <input type="text" value={editDetalhe.estado} onChange={e => setEditDetalhe({ ...editDetalhe, estado: e.target.value })} placeholder="UF" maxLength={2} className="w-16 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
+                    <input type="text" value={editDetalhe.cep} onChange={e => setEditDetalhe({ ...editDetalhe, cep: e.target.value })} placeholder="CEP" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                   </div>
                 </div>
               </div>
@@ -320,9 +320,9 @@ export default function Financeiro() {
                       <div key={item.id} className="flex justify-between items-center text-sm gap-2">
                         <span className="min-w-0 flex-1">{item.produto?.nome ?? `Produto #${item.produtoId}`}</span>
                         <div className="flex items-center gap-1 shrink-0">
-                          <input type="text" inputMode="decimal" value={(editDetalhe.itens[idx]?.quantidade ?? item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} onChange={e => { const itens = [...editDetalhe.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value.replace(',', '.')) || 0 }; setEditDetalhe({ ...editDetalhe, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-center" />
+                          <input type="text" inputMode="decimal" value={(editDetalhe.itens[idx]?.quantidade ?? item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} onChange={e => { const itens = [...editDetalhe.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value.replace(',', '.')) || 0 }; setEditDetalhe({ ...editDetalhe, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-primary text-xs text-center" />
                           <span className="text-gray-400">x</span>
-                          <input type="text" value={(editDetalhe.itens[idx]?.precoUnitario ?? item.precoUnitario).toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; const itens = [...editDetalhe.itens]; itens[idx] = { ...itens[idx], precoUnitario: v }; setEditDetalhe({ ...editDetalhe, itens }); }} className="w-20 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-right" />
+                          <input type="text" value={(editDetalhe.itens[idx]?.precoUnitario ?? item.precoUnitario).toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; const itens = [...editDetalhe.itens]; itens[idx] = { ...itens[idx], precoUnitario: v }; setEditDetalhe({ ...editDetalhe, itens }); }} className="w-20 border border-gray-300 rounded-lg p-1 outline-none focus:border-primary text-xs text-right" />
                         </div>
                       </div>
                     ))}
@@ -337,7 +337,7 @@ export default function Financeiro() {
                   placeholder="Observações sobre o pedido..."
                   rows={3}
                   maxLength={500}
-                  className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-1 resize-none"
+                  className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-1 resize-none"
                 />
               </div>
             </div>

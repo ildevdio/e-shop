@@ -157,7 +157,7 @@ function NavGroup({ label, items, isActive, className }: {
                 }`}
               >
                 <span className={`flex h-5 w-1 shrink-0 rounded-full transition-all duration-300 ${
-                  active ? 'bg-white' : 'bg-transparent'
+                  active ? 'bg-primary-foreground' : 'bg-transparent'
                 }`} />
                 <Icon className="h-4 w-4 shrink-0" />
                 <span className="truncate">{item.label}</span>

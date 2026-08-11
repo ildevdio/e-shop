@@ -597,7 +597,7 @@ function ConsultasTab() {
               value={busca}
               onChange={e => setBusca(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') buscar(); }}
-              className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+              className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
             />
           </div>
           <button
@@ -633,13 +633,13 @@ function ConsultasTab() {
               <div className="relative">
                 <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                 <input type="date" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black" />
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary" />
               </div>
               <span className="text-gray-400 text-xs">até</span>
               <div className="relative">
                 <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                 <input type="date" value={filtroDataFim} onChange={e => setFiltroDataFim(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black" />
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary" />
               </div>
             </div>
           </div>
@@ -821,11 +821,11 @@ function ConsultasTab() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Ordem na Rota</label>
-                <input type="number" min={1} value={editForm.ordem} onChange={e => setEditForm({ ...editForm, ordem: Number(e.target.value) })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1" />
+                <input type="number" min={1} value={editForm.ordem} onChange={e => setEditForm({ ...editForm, ordem: Number(e.target.value) })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary text-sm mt-1" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Status</label>
-                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1">
+                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary text-sm mt-1">
                   {Object.entries(ENTREGA_STATUS_LABELS).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
@@ -833,7 +833,7 @@ function ConsultasTab() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Observação</label>
-                <textarea value={editForm.observacao} onChange={e => setEditForm({ ...editForm, observacao: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black text-sm mt-1 resize-none" placeholder="Observações sobre a entrega..." />
+                <textarea value={editForm.observacao} onChange={e => setEditForm({ ...editForm, observacao: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary text-sm mt-1 resize-none" placeholder="Observações sobre a entrega..." />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
@@ -899,7 +899,7 @@ function VeiculosTab() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input type="text" placeholder="Buscar veículo..." value={busca} onChange={e => setBusca(e.target.value)}
-            className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
+            className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all" />
         </div>
         <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
           <Plus size={18} /> Novo Veículo
@@ -943,9 +943,9 @@ function VeiculosTab() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Novo Veículo</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Modelo *</label><input type="text" value={novoVeiculo.modelo} onChange={e => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Fiat Fiorino" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Placa</label><input type="text" value={novoVeiculo.placa} onChange={e => setNovoVeiculo({ ...novoVeiculo, placa: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="ABC-1234" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Peso Máximo (kg)</label><input type="text" value={novoVeiculo.pesoMaximo} onChange={e => setNovoVeiculo({ ...novoVeiculo, pesoMaximo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="800" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Modelo *</label><input type="text" value={novoVeiculo.modelo} onChange={e => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Fiat Fiorino" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Placa</label><input type="text" value={novoVeiculo.placa} onChange={e => setNovoVeiculo({ ...novoVeiculo, placa: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="ABC-1234" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Peso Máximo (kg)</label><input type="text" value={novoVeiculo.pesoMaximo} onChange={e => setNovoVeiculo({ ...novoVeiculo, pesoMaximo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="800" /></div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>

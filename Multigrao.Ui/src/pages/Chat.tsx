@@ -326,7 +326,7 @@ export default function Chat() {
             <input
               type="text"
               placeholder="Buscar canal..."
-              className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+              className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
             />
           </div>
         </div>
@@ -543,7 +543,7 @@ export default function Chat() {
                 placeholder="Buscar por nome ou setor..."
                 value={buscaPessoa}
                 onChange={e => setBuscaPessoa(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm"
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
               />
             </div>
             <div className="space-y-2 max-h-64 overflow-y-auto">

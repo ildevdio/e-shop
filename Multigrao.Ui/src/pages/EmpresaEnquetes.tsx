@@ -92,7 +92,7 @@ export default function EmpresaEnquetes() {
               placeholder="Buscar enquetes..."
               value={filtro}
               onChange={e => setFiltro(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all"
+              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all"
             />
           </div>
           <button onClick={() => { setShowNova(true); setModalAberto(true); }} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
@@ -158,13 +158,13 @@ export default function EmpresaEnquetes() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Nova Enquete</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Pergunta *</label><input type="text" value={novaEnquete.titulo} onChange={e => setNovaEnquete({ ...novaEnquete, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Qual melhor horário?" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Pergunta *</label><input type="text" value={novaEnquete.titulo} onChange={e => setNovaEnquete({ ...novaEnquete, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Qual melhor horário?" /></div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Opções</label>
                 <div className="space-y-2">
                   {novaEnquete.opcoes.map((op, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <input type="text" value={op} onChange={e => { const novas = [...novaEnquete.opcoes]; novas[idx] = e.target.value; setNovaEnquete({ ...novaEnquete, opcoes: novas }); }} className="flex-1 border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder={`Opção ${idx + 1}`} />
+                      <input type="text" value={op} onChange={e => { const novas = [...novaEnquete.opcoes]; novas[idx] = e.target.value; setNovaEnquete({ ...novaEnquete, opcoes: novas }); }} className="flex-1 border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder={`Opção ${idx + 1}`} />
                       {novaEnquete.opcoes.length > 2 && <button onClick={() => removerOpcao(idx)} className="text-gray-400 hover:text-gray-900 transition-colors"><Trash2 size={18} /></button>}
                     </div>
                   ))}

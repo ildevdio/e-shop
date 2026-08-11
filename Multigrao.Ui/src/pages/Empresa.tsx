@@ -368,16 +368,16 @@ export default function Empresa() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
-                <input type="text" value={novoAviso.titulo} onChange={e => setNovoAviso({ ...novoAviso, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Reunião Sexta-feira" />
+                <input type="text" value={novoAviso.titulo} onChange={e => setNovoAviso({ ...novoAviso, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Reunião Sexta-feira" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Conteúdo *</label>
-                <textarea value={novoAviso.conteudo} onChange={e => setNovoAviso({ ...novoAviso, conteudo: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm resize-none" placeholder="Descreva o aviso..." />
+                <textarea value={novoAviso.conteudo} onChange={e => setNovoAviso({ ...novoAviso, conteudo: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm resize-none" placeholder="Descreva o aviso..." />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                  <select value={novoAviso.tipo} onChange={e => setNovoAviso({ ...novoAviso, tipo: e.target.value as any })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm">
+                  <select value={novoAviso.tipo} onChange={e => setNovoAviso({ ...novoAviso, tipo: e.target.value as any })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
                     <option value="comunicado">Comunicado</option>
                     <option value="aviso">Aviso</option>
                     <option value="meta">Meta</option>
@@ -386,7 +386,7 @@ export default function Empresa() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Setor Destino (opcional)</label>
-                  <select value={novoAviso.setorDestino} onChange={e => setNovoAviso({ ...novoAviso, setorDestino: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm">
+                  <select value={novoAviso.setorDestino} onChange={e => setNovoAviso({ ...novoAviso, setorDestino: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
                     <option value="">Todos os setores</option>
                     <option value="Comercial">Comercial</option>
                     <option value="Logística">Logística</option>
@@ -415,14 +415,14 @@ export default function Empresa() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Pergunta *</label>
-                <input type="text" value={novaEnquete.titulo} onChange={e => setNovaEnquete({ ...novaEnquete, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Melhor horário para reunião?" />
+                <input type="text" value={novaEnquete.titulo} onChange={e => setNovaEnquete({ ...novaEnquete, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Melhor horário para reunião?" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Opções *</label>
                 <div className="space-y-2">
                   {novaEnquete.opcoes.map((opcao, i) => (
                     <div key={i} className="flex gap-2">
-                      <input type="text" value={opcao} onChange={e => { const novas = [...novaEnquete.opcoes]; novas[i] = e.target.value; setNovaEnquete({ ...novaEnquete, opcoes: novas }); }} className="flex-1 border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder={`Opção ${i + 1}`} />
+                      <input type="text" value={opcao} onChange={e => { const novas = [...novaEnquete.opcoes]; novas[i] = e.target.value; setNovaEnquete({ ...novaEnquete, opcoes: novas }); }} className="flex-1 border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder={`Opção ${i + 1}`} />
                       {novaEnquete.opcoes.length > 2 && (
                         <button onClick={() => setNovaEnquete({ ...novaEnquete, opcoes: novaEnquete.opcoes.filter((_, j) => j !== i) })} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"><X size={16} /></button>
                       )}

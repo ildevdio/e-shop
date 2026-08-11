@@ -512,7 +512,7 @@ export default function OmnichannelChat() {
               <input
                 type="text" placeholder="Buscar cliente ou produto..."
                 value={chatSearchTerm} onChange={(e) => setChatSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all shadow-sm"
+                className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all shadow-sm"
               />
             </div>
           </div>
@@ -521,7 +521,7 @@ export default function OmnichannelChat() {
             {(['abertos', 'fechados', 'todos'] as const).map(f => (
               <button key={f} onClick={() => setChatFilter(f)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
-                  chatFilter === f ? 'bg-primary text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                  chatFilter === f ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
                 }`}>
                 {f === 'abertos' ? 'Em Aberto' : f === 'fechados' ? 'Fechados' : 'Todos'}
               </button>
@@ -851,19 +851,19 @@ export default function OmnichannelChat() {
                 <div className="space-y-2">
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 mb-1">Nome / Razão Social</label>
-                    <input type="text" value={activeChat.lead.nome} onChange={(e) => updateActiveLead({ nome: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10" />
+                    <input type="text" value={activeChat.lead.nome} onChange={(e) => updateActiveLead({ nome: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 mb-1">Telefone</label>
-                    <input type="text" value={activeChat.lead.telefone} onChange={(e) => updateActiveLead({ telefone: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10" />
+                    <input type="text" value={activeChat.lead.telefone} onChange={(e) => updateActiveLead({ telefone: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 mb-1">Bairro de Entrega *</label>
-                    <input type="text" value={activeChat.lead.bairro || ''} onChange={(e) => updateActiveLead({ bairro: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10" />
+                    <input type="text" value={activeChat.lead.bairro || ''} onChange={(e) => updateActiveLead({ bairro: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 mb-1">Tipo de Cliente *</label>
-                    <select value={activeChat.lead.tipoCliente || ''} onChange={(e) => updateActiveLead({ tipoCliente: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10">
+                    <select value={activeChat.lead.tipoCliente || ''} onChange={(e) => updateActiveLead({ tipoCliente: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10">
                       <option value="">Selecione...</option>
                       <option value="Varejo">Varejo</option>
                       <option value="Empório">Empório / Produtos Naturais</option>
@@ -877,16 +877,16 @@ export default function OmnichannelChat() {
                 <div className="space-y-2">
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 mb-1">Produtos de Interesse *</label>
-                    <input type="text" value={activeChat.lead.interesse} onChange={(e) => updateActiveLead({ interesse: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10" />
+                    <input type="text" value={activeChat.lead.interesse} onChange={(e) => updateActiveLead({ interesse: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 mb-1">Quantidade *</label>
-                      <input type="text" value={activeChat.lead.quantidade || ''} onChange={(e) => updateActiveLead({ quantidade: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10" placeholder="kg" />
+                      <input type="text" value={activeChat.lead.quantidade || ''} onChange={(e) => updateActiveLead({ quantidade: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10" placeholder="kg" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 mb-1">Pagamento *</label>
-                      <select value={activeChat.lead.pagamento || ''} onChange={(e) => updateActiveLead({ pagamento: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10">
+                      <select value={activeChat.lead.pagamento || ''} onChange={(e) => updateActiveLead({ pagamento: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10">
                         <option value="">Selecione</option>
                         <option value="PIX">PIX</option>
                         <option value="Boleto">Boleto</option>
@@ -895,7 +895,7 @@ export default function OmnichannelChat() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-400 mb-1">Embalagem *</label>
-                    <select value={activeChat.lead.embalagem || ''} onChange={(e) => updateActiveLead({ embalagem: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-black focus:ring-1 focus:ring-black/10">
+                    <select value={activeChat.lead.embalagem || ''} onChange={(e) => updateActiveLead({ embalagem: e.target.value })} className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10">
                       <option value="">Selecione...</option>
                       <option value="Granel">A Granel (20kg)</option>
                       <option value="Fracionado">Pacotes 1kg</option>
@@ -961,7 +961,7 @@ export default function OmnichannelChat() {
                       <input
                         type="text" placeholder="Buscar por nome, telefone ou cliente..."
                         value={contatoSearch} onChange={(e) => setContatoSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/15 focus:border-black text-sm transition-all"
+                        className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary text-sm transition-all"
                         autoFocus
                       />
                     </div>
@@ -1030,21 +1030,21 @@ export default function OmnichannelChat() {
                       <label className="block text-[11px] font-bold text-gray-500 mb-1">Nome / Razão Social *</label>
                       <input type="text" value={novoAtendimento.nome} onChange={(e) => setNovoAtendimento(p => ({ ...p, nome: e.target.value }))}
                         placeholder="Ex: Mercearia São Jorge"
-                        className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black/10 transition-all" autoFocus />
+                        className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10 transition-all" autoFocus />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-gray-500 mb-1">Telefone</label>
                       <input type="text" value={novoAtendimento.telefone} onChange={(e) => setNovoAtendimento(p => ({ ...p, telefone: e.target.value }))}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCriarAtendimento(); }}
                         placeholder="(11) 99999-0000"
-                        className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black/10 transition-all" />
+                        className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10 transition-all" />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-gray-500 mb-1">Interesse</label>
                       <input type="text" value={novoAtendimento.interesse} onChange={(e) => setNovoAtendimento(p => ({ ...p, interesse: e.target.value }))}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCriarAtendimento(); }}
                         placeholder="Ex: Castanha de Caju, Chia Orgânica"
-                        className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black/10 transition-all" />
+                        className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/10 transition-all" />
                     </div>
                   </div>
 

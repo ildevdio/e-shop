@@ -5,6 +5,7 @@ import { useUiStore } from '../store/uiStore';
 import { useSistemaStore } from '../store/sistemaStore';
 import { tenantHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
+import { CORES_DISPONIVEIS } from '../services/cores';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -335,7 +336,7 @@ export default function Configuracoes() {
                 value={senhaMestreInput}
                 onChange={(e) => setSenhaMestreInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && validarSenhaMestre()}
-                className="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm tracking-widest text-center"
+                className="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm tracking-widest text-center"
                 placeholder="••••••"
                 autoFocus
               />
@@ -504,15 +505,15 @@ export default function Configuracoes() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Empresa *</label>
-                  <input type="text" value={formEmpresa.nomeEmpresa} onChange={e => setFormEmpresa({ ...formEmpresa, nomeEmpresa: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="Nome da empresa exibido no sistema" />
+                  <input type="text" value={formEmpresa.nomeEmpresa} onChange={e => setFormEmpresa({ ...formEmpresa, nomeEmpresa: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Nome da empresa exibido no sistema" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
-                  <input type="text" value={formEmpresa.cnpj} onChange={e => setFormEmpresa({ ...formEmpresa, cnpj: mascaraCnpj(e.target.value) })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="00.000.000/0000-00" />
+                  <input type="text" value={formEmpresa.cnpj} onChange={e => setFormEmpresa({ ...formEmpresa, cnpj: mascaraCnpj(e.target.value) })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="00.000.000/0000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Slogan / Subtítulo</label>
-                  <input type="text" value={formEmpresa.slogan} onChange={e => setFormEmpresa({ ...formEmpresa, slogan: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="Ex.: Amendoim & Especiarias" />
+                  <input type="text" value={formEmpresa.slogan} onChange={e => setFormEmpresa({ ...formEmpresa, slogan: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Ex.: Amendoim & Especiarias" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
@@ -521,7 +522,7 @@ export default function Configuracoes() {
                       <div className="sm:col-span-2">
                         <label className="mb-1 block text-xs font-medium text-gray-500">CEP</label>
                         <div className="flex gap-2">
-                          <input type="text" value={formEmpresa.cep} onChange={e => setFormEmpresa({ ...formEmpresa, cep: mascaraCep(e.target.value) })} placeholder="00000-000" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                          <input type="text" value={formEmpresa.cep} onChange={e => setFormEmpresa({ ...formEmpresa, cep: mascaraCep(e.target.value) })} placeholder="00000-000" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                           <button type="button" onClick={buscarCepConfig} disabled={buscandoCep} className="shrink-0 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50">
                             {buscandoCep ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Buscar CEP'}
                           </button>
@@ -529,23 +530,23 @@ export default function Configuracoes() {
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-gray-500">Número</label>
-                        <input type="text" value={formEmpresa.numero} onChange={e => setFormEmpresa({ ...formEmpresa, numero: e.target.value })} placeholder="123" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                        <input type="text" value={formEmpresa.numero} onChange={e => setFormEmpresa({ ...formEmpresa, numero: e.target.value })} placeholder="123" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-gray-500">Estado (UF)</label>
-                        <input type="text" value={formEmpresa.estado} onChange={e => setFormEmpresa({ ...formEmpresa, estado: e.target.value })} maxLength={2} placeholder="PE" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                        <input type="text" value={formEmpresa.estado} onChange={e => setFormEmpresa({ ...formEmpresa, estado: e.target.value })} maxLength={2} placeholder="PE" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                       </div>
                       <div className="sm:col-span-3">
                         <label className="mb-1 block text-xs font-medium text-gray-500">Logradouro</label>
-                        <input type="text" value={formEmpresa.logradouro} onChange={e => setFormEmpresa({ ...formEmpresa, logradouro: e.target.value })} placeholder="Rua, avenida..." className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                        <input type="text" value={formEmpresa.logradouro} onChange={e => setFormEmpresa({ ...formEmpresa, logradouro: e.target.value })} placeholder="Rua, avenida..." className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-gray-500">Bairro</label>
-                        <input type="text" value={formEmpresa.bairro} onChange={e => setFormEmpresa({ ...formEmpresa, bairro: e.target.value })} placeholder="Centro" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                        <input type="text" value={formEmpresa.bairro} onChange={e => setFormEmpresa({ ...formEmpresa, bairro: e.target.value })} placeholder="Centro" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-gray-500">Cidade</label>
-                        <input type="text" value={formEmpresa.cidade} onChange={e => setFormEmpresa({ ...formEmpresa, cidade: e.target.value })} placeholder="Paulista" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                        <input type="text" value={formEmpresa.cidade} onChange={e => setFormEmpresa({ ...formEmpresa, cidade: e.target.value })} placeholder="Paulista" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                       </div>
                     </div>
                   </div>
@@ -582,12 +583,12 @@ export default function Configuracoes() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cor Principal</label>
-                  <div className="flex gap-3 items-center">
-                    {[{ cor: '#0a0a0a', nome: 'Preto' }, { cor: '#2563eb', nome: 'Blue' }, { cor: '#7c3aed', nome: 'Purple' }, { cor: '#d97706', nome: 'Amber' }, { cor: '#dc2626', nome: 'Red' }].map(({ cor, nome }) => (
+                  <div className="flex flex-wrap gap-2">
+                    {CORES_DISPONIVEIS.map(({ cor, nome }) => (
                       <button
                         key={cor}
                         onClick={() => { setCorPrincipal(cor); atualizarConfig({ corPrincipal: cor }); }}
-                        className={`w-10 h-10 rounded-xl transition-all hover:scale-110 ${corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                        className={`w-9 h-9 rounded-xl transition-all hover:scale-110 ${corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
                         style={{ backgroundColor: cor }}
                         title={nome}
                       />
@@ -597,7 +598,7 @@ export default function Configuracoes() {
                         type="color"
                         value={corPrincipal}
                         onChange={e => { setCorPrincipal(e.target.value); atualizarConfig({ corPrincipal: e.target.value }); }}
-                        className="w-10 h-10 rounded-xl cursor-pointer border border-gray-200 bg-white p-0"
+                        className="w-9 h-9 rounded-xl cursor-pointer border border-gray-200 bg-white p-0"
                         title="Cor personalizada"
                       />
                     </div>
@@ -632,7 +633,7 @@ export default function Configuracoes() {
                     </div>
                   </div>
                   <div className="mt-3">
-                    <input type="text" value={formEmpresa.videoUrl} onChange={e => setFormEmpresa({ ...formEmpresa, videoUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="Ou cole a URL do vídeo/foto" />
+                    <input type="text" value={formEmpresa.videoUrl} onChange={e => setFormEmpresa({ ...formEmpresa, videoUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Ou cole a URL do vídeo/foto" />
                   </div>
                 </div>
               </div>
@@ -664,11 +665,11 @@ export default function Configuracoes() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Máx. Setores por Usuário</label>
-                  <input type="number" value={setoresConfig.maxPorUsuario} onChange={e => setSetoresConfig({ ...setoresConfig, maxPorUsuario: parseInt(e.target.value) || 1 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                  <input type="number" value={setoresConfig.maxPorUsuario} onChange={e => setSetoresConfig({ ...setoresConfig, maxPorUsuario: parseInt(e.target.value) || 1 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Timeout de Sessão (min)</label>
-                  <input type="number" value={setoresConfig.timeoutSessao} onChange={e => setSetoresConfig({ ...setoresConfig, timeoutSessao: parseInt(e.target.value) || 0 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                  <input type="number" value={setoresConfig.timeoutSessao} onChange={e => setSetoresConfig({ ...setoresConfig, timeoutSessao: parseInt(e.target.value) || 0 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
                 </div>
               </div>
             </div>
@@ -692,19 +693,19 @@ export default function Configuracoes() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
-                <input type="text" value={formNovoUsuario.nome} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, nome: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Digite o nome..." />
+                <input type="text" value={formNovoUsuario.nome} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, nome: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Digite o nome..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Usuário *</label>
-                <input type="text" value={formNovoUsuario.usuarioLogin} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, usuarioLogin: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Nome de usuário para login..." />
+                <input type="text" value={formNovoUsuario.usuarioLogin} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, usuarioLogin: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Nome de usuário para login..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{usuarioEditando ? 'Nova Senha (deixe vazio para manter)' : 'Senha *'}</label>
-                <input type="password" value={formNovoUsuario.senha} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, senha: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="••••••••" />
+                <input type="password" value={formNovoUsuario.senha} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, senha: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="••••••••" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Perfil de Acesso</label>
-                <select value={formNovoUsuario.perfil} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, perfil: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm">
+                <select value={formNovoUsuario.perfil} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, perfil: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
                   {perfis.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>

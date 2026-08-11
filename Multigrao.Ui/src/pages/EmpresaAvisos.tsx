@@ -78,7 +78,7 @@ export default function EmpresaAvisos() {
               placeholder="Buscar avisos..."
               value={filtro}
               onChange={e => setFiltro(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all"
+              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all"
             />
           </div>
           <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
@@ -124,8 +124,8 @@ export default function EmpresaAvisos() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Novo Aviso</h2>
             <div className="space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Título *</label><input type="text" value={novoAviso.titulo} onChange={e => setNovoAviso({ ...novoAviso, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm" placeholder="Ex: Meta de Vendas" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Mensagem *</label><textarea value={novoAviso.mensagem} onChange={e => setNovoAviso({ ...novoAviso, mensagem: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm h-24 resize-none" placeholder="Detalhes do aviso..." /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Título *</label><input type="text" value={novoAviso.titulo} onChange={e => setNovoAviso({ ...novoAviso, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Meta de Vendas" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Mensagem *</label><textarea value={novoAviso.mensagem} onChange={e => setNovoAviso({ ...novoAviso, mensagem: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm h-24 resize-none" placeholder="Detalhes do aviso..." /></div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>

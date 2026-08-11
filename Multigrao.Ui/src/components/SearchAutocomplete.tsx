@@ -86,7 +86,7 @@ export default function SearchAutocomplete({ placeholder, valor, onChange, suges
         onChange={e => { onChange(e.target.value); setAberto(true); setFocoIndex(-1); }}
         onFocus={() => setAberto(true)}
         onKeyDown={handleKeyDown}
-        className={classNameInput ?? 'w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all'}
+        className={classNameInput ?? 'w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all'}
       />
       {aberto && filtradas.length > 0 && (
         <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">

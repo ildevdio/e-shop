@@ -48,6 +48,26 @@ function luminancia(hex: string): number {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
 
+function rgb(hex: string): [number, number, number] {
+  const m = hex.replace('#', '').trim();
+  const v = parseInt(m.length === 3 ? m.split('').map(c => c + c).join('') : m, 16);
+  if (Number.isNaN(v)) return [0, 0, 0];
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+
+function rgba(hex: string, alpha: number): string {
+  const [r, g, b] = rgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function shade(hex: string, fator: number): string {
+  const [r, g, b] = rgb(hex).map(c => {
+    const v = Math.round(c + 255 * fator);
+    return Math.max(0, Math.min(255, v));
+  });
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 interface SistemaStore {
   config: ConfiguracaoSistema;
   carregada: boolean;
@@ -153,11 +173,20 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
   aplicarTema: (corPrincipal) => {
     const cor = corPrincipal ?? get().config.corPrincipal;
     const foreground = luminancia(cor) > 0.55 ? '#0a0a0a' : '#fafafa';
+    const active = shade(cor, luminancia(cor) > 0.55 ? -0.14 : 0.16);
+    const border = rgba(foreground, 0.14);
+    const muted = rgba(foreground, 0.6);
     const root = document.documentElement;
     root.style.setProperty('--color-primary', cor);
     root.style.setProperty('--color-primary-foreground', foreground);
     root.style.setProperty('--color-accent', cor);
     root.style.setProperty('--color-accent-foreground', foreground);
     root.style.setProperty('--color-ring', cor);
+    root.style.setProperty('--color-sidebar', cor);
+    root.style.setProperty('--color-sidebar-foreground', foreground);
+    root.style.setProperty('--color-sidebar-active', active);
+    root.style.setProperty('--color-sidebar-border', border);
+    root.style.setProperty('--color-sidebar-muted', muted);
+    root.style.setProperty('--color-sidebar-accent', foreground);
   },
 }));

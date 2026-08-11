@@ -381,15 +381,15 @@ export default function Catalogo() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-2">
                   <label className="text-sm font-medium text-gray-700">Nome completo *</label>
-                  <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Seu nome" />
+                  <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Seu nome" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">CPF / CNPJ *</label>
-                  <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="000.000.000-00" />
+                  <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Telefone</label>
-                  <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="(81) 99999-9999" />
+                  <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="(81) 99999-9999" />
                 </div>
               </div>
 
@@ -397,34 +397,34 @@ export default function Catalogo() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-2">
                   <label className="text-xs text-gray-500">Logradouro</label>
-                  <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Rua, Avenida..." />
+                  <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Rua, Avenida..." />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Número</label>
-                  <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="123" />
+                  <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="123" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Complemento</label>
-                  <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Apto, Bloco..." />
+                  <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Apto, Bloco..." />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Bairro</label>
-                  <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Bairro" />
+                  <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Bairro" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">CEP</label>
                   <div className="relative">
-                    <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5 ${buscandoCEP ? 'pr-9' : ''}`} placeholder="00000-000" />
+                    <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5 ${buscandoCEP ? 'pr-9' : ''}`} placeholder="00000-000" />
                     {buscandoCEP && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
                   </div>
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Cidade</label>
-                  <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Cidade" />
+                  <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Cidade" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500">Estado</label>
-                  <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="PE" maxLength={2} />
+                  <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="PE" maxLength={2} />
                 </div>
               </div>
             </div>
@@ -663,19 +663,19 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
         <div className="space-y-3">
           <div>
             <label className="text-sm font-medium text-gray-700">Nome *</label>
-            <input value={form.nome ?? ''} onChange={e => setForm({ ...form, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+            <input value={form.nome ?? ''} onChange={e => setForm({ ...form, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700">Categoria</label>
-              <select value={form.categoriaId ?? ''} onChange={e => setForm({ ...form, categoriaId: e.target.value ? parseInt(e.target.value) : null })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5">
+              <select value={form.categoriaId ?? ''} onChange={e => setForm({ ...form, categoriaId: e.target.value ? parseInt(e.target.value) : null })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
                 <option value="">Sem categoria</option>
                 {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Marca</label>
-              <select value={form.marcaId ?? ''} onChange={e => setForm({ ...form, marcaId: e.target.value ? parseInt(e.target.value) : null })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5">
+              <select value={form.marcaId ?? ''} onChange={e => setForm({ ...form, marcaId: e.target.value ? parseInt(e.target.value) : null })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
                 <option value="">Sem marca</option>
                 {marcas.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
               </select>
@@ -684,21 +684,21 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
           <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium text-gray-700">Preço Varejo</label>
-                <input type="number" step={0.01} value={form.precoVarejo ?? ''} onChange={e => { const val = e.target.value; setForm({ ...form, precoVarejo: val === '' ? undefined : parseFloat(val) }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+                <input type="number" step={0.01} value={form.precoVarejo ?? ''} onChange={e => { const val = e.target.value; setForm({ ...form, precoVarejo: val === '' ? undefined : parseFloat(val) }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Preço Atacado</label>
-                <input type="number" step={0.01} value={form.precoAtacado ?? ''} onChange={e => { const val = e.target.value; setForm({ ...form, precoAtacado: val === '' ? undefined : parseFloat(val) }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+                <input type="number" step={0.01} value={form.precoAtacado ?? ''} onChange={e => { const val = e.target.value; setForm({ ...form, precoAtacado: val === '' ? undefined : parseFloat(val) }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
               </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700">Embalagem</label>
-              <input value={form.embalagem ?? ''} onChange={e => setForm({ ...form, embalagem: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Ex: 12· DZ" />
+              <input value={form.embalagem ?? ''} onChange={e => setForm({ ...form, embalagem: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Ex: 12· DZ" />
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Unid. Venda</label>
-              <select value={form.unidadeVenda ?? ''} onChange={e => setForm({ ...form, unidadeVenda: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5">
+              <select value={form.unidadeVenda ?? ''} onChange={e => setForm({ ...form, unidadeVenda: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
                 <option value="">Selecione...</option>
                 <option value="UND">UND</option>
                 <option value="KG">KG</option>
@@ -708,17 +708,17 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700">Peso Unidade (kg)</label>
-              <input type="number" step={0.01} value={form.pesoUnidade ?? 0} onChange={e => setForm({ ...form, pesoUnidade: parseFloat(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+              <input type="number" step={0.01} value={form.pesoUnidade ?? 0} onChange={e => setForm({ ...form, pesoUnidade: parseFloat(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Código ERP</label>
-              <input value={form.codigoERP ?? ''} onChange={e => setForm({ ...form, codigoERP: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+              <input value={form.codigoERP ?? ''} onChange={e => setForm({ ...form, codigoERP: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
             </div>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Imagem do Produto</label>
             <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" onChange={handleFile} className="hidden" />
-            <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
+            <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors text-sm text-gray-500 mt-0.5">
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
             {(arquivo ? URL.createObjectURL(arquivo) : produtoImagemUrl(form)) && <img src={arquivo ? URL.createObjectURL(arquivo) : produtoImagemUrl(form)} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
@@ -784,7 +784,7 @@ function CategoriasList({ categorias, onSalvo }: {
           onChange={e => setNova(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') criarNova(); }}
           placeholder="Nova categoria..."
-          className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+          className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm"
         />
         <button onClick={criarNova} disabled={!nova.trim() || salvando === 'nova'} className="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
           {salvando === 'nova' ? '...' : 'Adicionar'}
@@ -798,7 +798,7 @@ function CategoriasList({ categorias, onSalvo }: {
                 value={editando[c.id]}
                 onChange={e => setEditando({ ...editando, [c.id]: e.target.value })}
                 onKeyDown={e => { if (e.key === 'Enter') salvarExistente(c); if (e.key === 'Escape') setEditando(prev => { const next = { ...prev }; delete next[c.id]; return next; }); }}
-                className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm"
+                className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm"
                 autoFocus
               />
               <button onClick={() => salvarExistente(c)} disabled={salvando === c.id} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
@@ -874,19 +874,19 @@ function MarcaForm({ marca, onClose, onSalvo }: {
         <div className="space-y-3">
           <div>
             <label className="text-sm font-medium text-gray-700">Nome *</label>
-            <input value={form.nome ?? ''} onChange={e => setForm({ ...form, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+            <input value={form.nome ?? ''} onChange={e => setForm({ ...form, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Cor da Marca</label>
             <div className="flex items-center gap-2 mt-0.5">
               <input type="color" value={form.cor || '#000000'} onChange={e => setForm({ ...form, cor: e.target.value })} className="h-10 w-10 rounded border border-gray-300 cursor-pointer" />
-              <input value={form.cor || ''} onChange={e => setForm({ ...form, cor: e.target.value })} className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm" placeholder="#000000" />
+              <input value={form.cor || ''} onChange={e => setForm({ ...form, cor: e.target.value })} className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm" placeholder="#000000" />
             </div>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Logo da Marca</label>
             <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" onChange={handleFile} className="hidden" />
-            <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-black transition-colors text-sm text-gray-500 mt-0.5">
+            <div onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors text-sm text-gray-500 mt-0.5">
               {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
             </div>
             <p className="text-[11px] text-gray-400 mt-1 italic">A logo deve conter o nome da marca. O nome da marca não será exibido como texto.</p>
@@ -1077,7 +1077,7 @@ function AjusteEstoque({ produtos, onSalvo, onVoltar }: {
           onChange={e => { setBusca(e.target.value); setDestaque(0); }}
           onKeyDown={handleKeyDown}
           placeholder="Pesquise pelo nome e pressione Enter para adicionar..."
-          className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-black text-sm"
+          className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-primary text-sm"
         />
         {termo !== '' && (
           <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
@@ -1119,7 +1119,7 @@ function AjusteEstoque({ produtos, onSalvo, onVoltar }: {
               onChange={e => setCarga(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') aplicarCarga(); }}
               placeholder="Qtd"
-              className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm text-right"
+              className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm text-right"
             />
             <button onClick={aplicarCarga} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors shrink-0">
               Aplicar
@@ -1174,7 +1174,7 @@ function AjusteEstoque({ produtos, onSalvo, onVoltar }: {
                       onChange={e => setQuantidades(prev => ({ ...prev, [id]: e.target.value }))}
                       onClick={e => e.stopPropagation()}
                       placeholder="Qtd"
-                      className="w-24 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-black text-sm text-right shrink-0"
+                      className="w-24 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-primary text-sm text-right shrink-0"
                     />
                   )}
                   <button onClick={e => { e.stopPropagation(); removerProduto(id); }} className="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0">

@@ -566,7 +566,7 @@ export default function ComercialPedidos() {
                       onChange={e => { setBuscaProduto(e.target.value); setDestaqueProduto(0); }}
                       onKeyDown={handleBuscaProdutoKeyDown}
                       placeholder="Pesquise pelo nome e pressione Enter para adicionar..."
-                      className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-black text-sm"
+                      className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-primary text-sm"
                     />
                     {termoProduto !== '' && (
                       <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
@@ -608,7 +608,7 @@ export default function ComercialPedidos() {
                           onChange={e => setCargaQtd(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') aplicarCarga(); }}
                           placeholder="Qtd"
-                          className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm text-right"
+                          className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm text-right"
                         />
                         <button onClick={aplicarCarga} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors shrink-0">
                           Aplicar
@@ -662,7 +662,7 @@ export default function ComercialPedidos() {
                                     onChange={e => atualizarItem(index, 'quantidade', parseFloat(e.target.value.replace(',', '.')) || 0)}
                                     onClick={e => e.stopPropagation()}
                                     placeholder="Qtd"
-                                    className="w-20 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-black text-sm text-right shrink-0"
+                                    className="w-20 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-primary text-sm text-right shrink-0"
                                   />
                                   <input
                                     type="text"
@@ -670,7 +670,7 @@ export default function ComercialPedidos() {
                                     onChange={e => atualizarItem(index, 'precoUnitario', parseFloat(e.target.value.replace(',', '.')) || 0)}
                                     onClick={e => e.stopPropagation()}
                                     placeholder={item.produto?.precoVarejo.toFixed(2) ?? '0,00'}
-                                    className="w-24 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-black text-sm text-right shrink-0"
+                                    className="w-24 border border-amber-300 bg-white rounded-lg p-2 outline-none focus:border-primary text-sm text-right shrink-0"
                                   />
                                 </>
                               )}
@@ -759,7 +759,7 @@ export default function ComercialPedidos() {
                     <select
                       value={novoPedido.pagamento}
                       onChange={e => setNovoPedido({ ...novoPedido, pagamento: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+                      className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm"
                     >
                       <option value="">Selecione...</option>
                       <option value="PIX">PIX</option>
@@ -776,7 +776,7 @@ export default function ComercialPedidos() {
                         <select
                           value={novoPedido.prazoPagamentoDias}
                           onChange={e => setNovoPedido({ ...novoPedido, prazoPagamentoDias: e.target.value })}
-                          className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
+                          className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm"
                         >
                           <option value="">Selecione...</option>
                           {[7, 14, 21, 30, 45, 60].map(d => <option key={d} value={d}>{d} dias</option>)}
@@ -798,7 +798,7 @@ export default function ComercialPedidos() {
                         type="text"
                         value={novoPedido.desconto}
                         onChange={e => setNovoPedido({ ...novoPedido, desconto: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
                         placeholder="0,00"
                       />
                     </div>
@@ -808,7 +808,7 @@ export default function ComercialPedidos() {
                         type="text"
                         value={novoPedido.acrescimo}
                         onChange={e => setNovoPedido({ ...novoPedido, acrescimo: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
                         placeholder="0,00"
                       />
                     </div>
@@ -872,7 +872,7 @@ export default function ComercialPedidos() {
                 placeholder="Buscar por #ID, cliente, CPF/CNPJ..."
                 value={buscaPendentes}
                 onChange={e => setBuscaPendentes(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
               />
             </div>
             <button
@@ -897,7 +897,7 @@ export default function ComercialPedidos() {
             </div>
             <div className="flex items-center gap-3">
               {temFiltroAtivoConsulta && (
-                <button onClick={limparFiltros} className="text-xs text-gray-500 hover:text-black flex items-center gap-1 transition-colors">
+                <button onClick={limparFiltros} className="text-xs text-gray-500 hover:text-primary flex items-center gap-1 transition-colors">
                   <RotateCcw size={12} /> Limpar filtros
                 </button>
               )}
@@ -919,7 +919,7 @@ export default function ComercialPedidos() {
               value={buscaConsulta}
               onChange={e => setBuscaConsulta(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') buscarConsulta(); }}
-              className="flex-1 px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm transition-all"
+              className="flex-1 px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
             />
           </div>
 
@@ -972,7 +972,7 @@ export default function ComercialPedidos() {
                   type="date"
                   value={filtroDataInicio}
                   onChange={e => setFiltroDataInicio(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black"
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
               <span className="text-gray-400 text-xs">até</span>
@@ -982,7 +982,7 @@ export default function ComercialPedidos() {
                   type="date"
                   value={filtroDataFim}
                   onChange={e => setFiltroDataFim(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black/20 focus:border-black"
+                  className="pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
             </div>
@@ -1224,7 +1224,7 @@ export default function ComercialPedidos() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
                 {editando ? (
-                  <select value={editDetalhe!.tipoEntrega} onChange={e => setEditDetalhe({ ...editDetalhe!, tipoEntrega: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                  <select value={editDetalhe!.tipoEntrega} onChange={e => setEditDetalhe({ ...editDetalhe!, tipoEntrega: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5">
                     <option value="Entrega">Entrega</option>
                     <option value="Retirada">Retirada</option>
                   </select>
@@ -1240,7 +1240,7 @@ export default function ComercialPedidos() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Pagamento</span>
                 {editando ? (
                   <>
-                    <select value={editDetalhe!.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe!, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5">
+                    <select value={editDetalhe!.pagamento} onChange={e => setEditDetalhe({ ...editDetalhe!, pagamento: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5">
                       <option value="">Selecione...</option>
                       <option value="PIX">PIX</option>
                       <option value="Boleto">Boleto</option>
@@ -1254,7 +1254,7 @@ export default function ComercialPedidos() {
                       <select
                         value={editDetalhe!.prazoPagamentoDias}
                         onChange={e => setEditDetalhe({ ...editDetalhe!, prazoPagamentoDias: e.target.value === '' ? '' : parseInt(e.target.value) })}
-                        className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-2"
+                        className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-2"
                       >
                         <option value="">Prazo (dias) — Selecione...</option>
                         {[7, 14, 21, 30, 45, 60].map(d => <option key={d} value={d}>{d} dias</option>)}
@@ -1280,7 +1280,7 @@ export default function ComercialPedidos() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
                 {editando ? (
-                  <input type="text" value={editDetalhe!.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                  <input type="text" value={editDetalhe!.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
                 ) : detalhe.desconto > 0 ? (
                   <p className="text-red-600 font-medium mt-0.5">- R$ {detalhe.desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 ) : (
@@ -1290,7 +1290,7 @@ export default function ComercialPedidos() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Acréscimo</span>
                 {editando ? (
-                  <input type="text" value={editDetalhe!.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-0.5" />
+                  <input type="text" value={editDetalhe!.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
                 ) : detalhe.acrescimo > 0 ? (
                   <p className="text-amber-600 font-medium mt-0.5">+ R$ {detalhe.acrescimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 ) : (
@@ -1319,18 +1319,18 @@ export default function ComercialPedidos() {
                 {editando ? (
                   <div className="space-y-2 mt-1">
                     <div className="flex gap-2">
-                      <input type="text" value={editDetalhe!.logradouro} onChange={e => setEditDetalhe({ ...editDetalhe!, logradouro: e.target.value })} placeholder="Logradouro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
-                      <input type="text" value={editDetalhe!.numero} onChange={e => setEditDetalhe({ ...editDetalhe!, numero: e.target.value })} placeholder="Nº" className="w-20 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <input type="text" value={editDetalhe!.logradouro} onChange={e => setEditDetalhe({ ...editDetalhe!, logradouro: e.target.value })} placeholder="Logradouro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
+                      <input type="text" value={editDetalhe!.numero} onChange={e => setEditDetalhe({ ...editDetalhe!, numero: e.target.value })} placeholder="Nº" className="w-20 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                     </div>
-                    <input type="text" value={editDetalhe!.complemento} onChange={e => setEditDetalhe({ ...editDetalhe!, complemento: e.target.value })} placeholder="Complemento" className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                    <input type="text" value={editDetalhe!.complemento} onChange={e => setEditDetalhe({ ...editDetalhe!, complemento: e.target.value })} placeholder="Complemento" className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                     <div className="flex gap-2">
-                      <input type="text" value={editDetalhe!.bairro} onChange={e => setEditDetalhe({ ...editDetalhe!, bairro: e.target.value })} placeholder="Bairro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
-                      <input type="text" value={editDetalhe!.cidade} onChange={e => setEditDetalhe({ ...editDetalhe!, cidade: e.target.value })} placeholder="Cidade" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <input type="text" value={editDetalhe!.bairro} onChange={e => setEditDetalhe({ ...editDetalhe!, bairro: e.target.value })} placeholder="Bairro" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
+                      <input type="text" value={editDetalhe!.cidade} onChange={e => setEditDetalhe({ ...editDetalhe!, cidade: e.target.value })} placeholder="Cidade" className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                     </div>
                     <div className="flex gap-2">
-                      <input type="text" value={editDetalhe!.estado} onChange={e => setEditDetalhe({ ...editDetalhe!, estado: e.target.value })} placeholder="UF" maxLength={2} className="w-16 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm" />
+                      <input type="text" value={editDetalhe!.estado} onChange={e => setEditDetalhe({ ...editDetalhe!, estado: e.target.value })} placeholder="UF" maxLength={2} className="w-16 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm" />
                       <div className="relative flex-1">
-                        <input type="text" value={editDetalhe!.cep} onChange={e => setEditDetalhe({ ...editDetalhe!, cep: e.target.value })} onBlur={handleBuscarCEPEdit} placeholder="CEP" className={`w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm ${buscandoCEP === 'edit' ? 'pr-8' : ''}`} />
+                        <input type="text" value={editDetalhe!.cep} onChange={e => setEditDetalhe({ ...editDetalhe!, cep: e.target.value })} onBlur={handleBuscarCEPEdit} placeholder="CEP" className={`w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm ${buscandoCEP === 'edit' ? 'pr-8' : ''}`} />
                         {buscandoCEP === 'edit' && <Loader2 size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
                       </div>
                     </div>
@@ -1360,7 +1360,7 @@ export default function ComercialPedidos() {
                     placeholder="Observações sobre o pedido..."
                     rows={3}
                     maxLength={500}
-                    className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm mt-1 resize-none"
+                    className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-1 resize-none"
                   />
                 ) : detalhe.observacao ? (
                   <p className="text-gray-900 text-sm mt-1 whitespace-pre-wrap">{detalhe.observacao}</p>
@@ -1377,9 +1377,9 @@ export default function ComercialPedidos() {
                         <span className="min-w-0 flex-1">{item.produto?.nome ?? `Produto #${item.produtoId}`}</span>
                         {editando ? (
                           <div className="flex items-center gap-1 shrink-0">
-                            <input type="text" inputMode="decimal" value={(editDetalhe!.itens[idx]?.quantidade ?? item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} onChange={e => { const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value.replace(',', '.')) || 0 }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-center" />
+                            <input type="text" inputMode="decimal" value={(editDetalhe!.itens[idx]?.quantidade ?? item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} onChange={e => { const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], quantidade: parseFloat(e.target.value.replace(',', '.')) || 0 }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-16 border border-gray-300 rounded-lg p-1 outline-none focus:border-primary text-xs text-center" />
                             <span className="text-gray-400">x</span>
-                            <input type="text" value={(editDetalhe!.itens[idx]?.precoUnitario ?? item.precoUnitario).toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], precoUnitario: v }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-20 border border-gray-300 rounded-lg p-1 outline-none focus:border-black text-xs text-right" />
+                            <input type="text" value={(editDetalhe!.itens[idx]?.precoUnitario ?? item.precoUnitario).toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; const itens = [...editDetalhe!.itens]; itens[idx] = { ...itens[idx], precoUnitario: v }; setEditDetalhe({ ...editDetalhe!, itens }); }} className="w-20 border border-gray-300 rounded-lg p-1 outline-none focus:border-primary text-xs text-right" />
                           </div>
                         ) : (
                           <span className="text-gray-500 shrink-0">
@@ -1495,48 +1495,48 @@ export default function ComercialPedidos() {
             <div className="space-y-3">
               <div>
                 <label className="text-sm font-medium text-gray-700">Nome / Razão Social *</label>
-                <input value={novoCliente.razaoSocialNome} onChange={e => setNovoCliente({ ...novoCliente, razaoSocialNome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Nome completo ou razão social" />
+                <input value={novoCliente.razaoSocialNome} onChange={e => setNovoCliente({ ...novoCliente, razaoSocialNome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Nome completo ou razão social" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">CPF / CNPJ</label>
-                  <input value={novoCliente.cpfCnpj} onChange={e => setNovoCliente({ ...novoCliente, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="000.000.000-00" />
+                  <input value={novoCliente.cpfCnpj} onChange={e => setNovoCliente({ ...novoCliente, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Telefone</label>
-                  <input value={novoCliente.telefone} onChange={e => setNovoCliente({ ...novoCliente, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="(00) 00000-0000" />
+                  <input value={novoCliente.telefone} onChange={e => setNovoCliente({ ...novoCliente, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="(00) 00000-0000" />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">CEP</label>
                   <div className="relative">
-                    <input value={novoCliente.cep} onChange={e => setNovoCliente({ ...novoCliente, cep: e.target.value })} onBlur={handleBuscarCEPNovo} className={`w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5 ${buscandoCEP === 'novo' ? 'pr-9' : ''}`} placeholder="00000-000" />
+                    <input value={novoCliente.cep} onChange={e => setNovoCliente({ ...novoCliente, cep: e.target.value })} onBlur={handleBuscarCEPNovo} className={`w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5 ${buscandoCEP === 'novo' ? 'pr-9' : ''}`} placeholder="00000-000" />
                     {buscandoCEP === 'novo' && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
                   </div>
                 </div>
                 <div className="col-span-2">
                   <label className="text-sm font-medium text-gray-700">Logradouro</label>
-                  <input value={novoCliente.logradouro} onChange={e => setNovoCliente({ ...novoCliente, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="Rua, Avenida..." />
+                  <input value={novoCliente.logradouro} onChange={e => setNovoCliente({ ...novoCliente, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Rua, Avenida..." />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Número</label>
-                  <input value={novoCliente.numero} onChange={e => setNovoCliente({ ...novoCliente, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="123" />
+                  <input value={novoCliente.numero} onChange={e => setNovoCliente({ ...novoCliente, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="123" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Bairro</label>
-                  <input value={novoCliente.bairro} onChange={e => setNovoCliente({ ...novoCliente, bairro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+                  <input value={novoCliente.bairro} onChange={e => setNovoCliente({ ...novoCliente, bairro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">UF</label>
-                  <input value={novoCliente.estado} onChange={e => setNovoCliente({ ...novoCliente, estado: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" placeholder="SP" maxLength={2} />
+                  <input value={novoCliente.estado} onChange={e => setNovoCliente({ ...novoCliente, estado: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="SP" maxLength={2} />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Cidade</label>
-                <input value={novoCliente.cidade} onChange={e => setNovoCliente({ ...novoCliente, cidade: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm mt-0.5" />
+                <input value={novoCliente.cidade} onChange={e => setNovoCliente({ ...novoCliente, cidade: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">

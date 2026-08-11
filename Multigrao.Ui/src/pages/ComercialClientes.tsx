@@ -166,7 +166,7 @@ export default function ComercialClientes() {
     }
   };
 
-  const inputClass = "w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black focus:ring-1 focus:ring-black text-sm";
+  const inputClass = "w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   const renderFormulario = () => {
@@ -182,11 +182,11 @@ export default function ComercialClientes() {
           <label className={labelClass}>Tipo de Pessoa</label>
           <div className="flex gap-2">
             <button type="button" onClick={() => { setForm(f => ({ ...f, tipoPessoa: 'PJ', cpfCnpj: '' })); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PJ' ? 'bg-primary text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PJ' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
               Pessoa Jurídica (CNPJ)
             </button>
             <button type="button" onClick={() => { setForm(f => ({ ...f, tipoPessoa: 'PF', cpfCnpj: '' })); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PF' ? 'bg-primary text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PF' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
               Pessoa Física (CPF)
             </button>
           </div>
