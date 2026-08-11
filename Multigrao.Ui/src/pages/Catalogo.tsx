@@ -10,6 +10,7 @@ import { pedidoService } from '../services/pedidoService';
 import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
 import { resizeImage } from '../utils/resizeImage';
 import { formatEstoque } from '../utils/formatEstoque';
+import { getSlug } from '../services/tenantSetup';
 import { buscarCEP } from '../utils/buscarCEP';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
@@ -67,7 +68,7 @@ export default function Catalogo() {
   };
 
   const copiarLinkTabela = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/tabela`);
+    navigator.clipboard.writeText(`${window.location.origin}/${getSlug()}/commerce`);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2500);
   };
@@ -494,7 +495,7 @@ function GerenciarCatalogo({
                 aoSelecionar={s => setFiltroProdutos(s.rotulo)}
                 className="flex-1"
               />
-              <button onClick={() => { setEditandoProduto({ nome: '', ativo: true }); setModalAberto(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0">
+              <button onClick={() => { setEditandoProduto({ nome: '', ativo: true }); setModalAberto(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors shrink-0">
                 <Plus size={16} /> Novo
               </button>
               <button onClick={() => setEmAjusteEstoque(true)} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shrink-0">
@@ -741,7 +742,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
         {erro && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5">{erro}</p>}
         <div className="flex gap-3 justify-end mt-6">
           <button onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-          <button onClick={salvar} disabled={!form.nome?.trim() || (form.precoVarejo == null && form.precoAtacado == null)} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && (form.precoVarejo != null || form.precoAtacado != null) ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+          <button onClick={salvar} disabled={!form.nome?.trim() || (form.precoVarejo == null && form.precoAtacado == null)} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && (form.precoVarejo != null || form.precoAtacado != null) ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
             {form.id ? 'Salvar' : 'Criar'}
           </button>
         </div>
@@ -785,7 +786,7 @@ function CategoriasList({ categorias, onSalvo }: {
           placeholder="Nova categoria..."
           className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black text-sm"
         />
-        <button onClick={criarNova} disabled={!nova.trim() || salvando === 'nova'} className="px-4 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
+        <button onClick={criarNova} disabled={!nova.trim() || salvando === 'nova'} className="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
           {salvando === 'nova' ? '...' : 'Adicionar'}
         </button>
       </div>
@@ -895,7 +896,7 @@ function MarcaForm({ marca, onClose, onSalvo }: {
         </div>
         <div className="flex gap-3 justify-end mt-6">
           <button onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-          <button onClick={salvando} disabled={!form.nome?.trim() || uploading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && !uploading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+          <button onClick={salvando} disabled={!form.nome?.trim() || uploading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && !uploading ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
             {uploading ? 'Salvando...' : form.id ? 'Salvar' : 'Criar'}
           </button>
         </div>
@@ -1120,7 +1121,7 @@ function AjusteEstoque({ produtos, onSalvo, onVoltar }: {
               placeholder="Qtd"
               className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm text-right"
             />
-            <button onClick={aplicarCarga} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0">
+            <button onClick={aplicarCarga} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors shrink-0">
               Aplicar
             </button>
           </>
@@ -1193,7 +1194,7 @@ function AjusteEstoque({ produtos, onSalvo, onVoltar }: {
         <button
           onClick={salvar}
           disabled={salvando || adicionados.length === 0}
-          className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${salvando || adicionados.length === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
+          className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${salvando || adicionados.length === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary'}`}
         >
           {salvando ? 'Salvando...' : 'Salvar ajuste'}
         </button>

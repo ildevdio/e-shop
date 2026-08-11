@@ -149,14 +149,14 @@ export default function Conferencia() {
                         {pedido.status === 'ProntoRetirada' && pedido.tipoEntrega === 'Retirada' ? (
                           <button
                             onClick={() => confirmarRetirada(pedido.id)}
-                            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
+                            className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-primary transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
                           >
                             <Hand size={14} /> Confirmar Retirada
                           </button>
                         ) : (
                           <button
                             onClick={() => iniciarConferencia(pedido)}
-                            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
+                            className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-primary transition-colors flex items-center gap-1.5 ml-auto shadow-sm"
                           >
                             <QrCode size={14} /> {pedido.status === 'EmConferencia' ? 'Continuar' : 'Iniciar Conferência'}
                           </button>
@@ -195,7 +195,7 @@ export default function Conferencia() {
           </div>
           <button
             onClick={() => setTelaAtiva('leitura-qr')}
-            className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
+            className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary transition-colors flex items-center gap-2 shadow-sm"
           >
             <QrCode size={18} /> Bipar Nota Fiscal
           </button>
@@ -229,7 +229,7 @@ export default function Conferencia() {
               >
                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
                   item.conferido
-                    ? 'bg-black text-white shadow-sm shadow-black/30'
+                    ? 'bg-primary text-white shadow-sm shadow-black/30'
                     : 'border-2 border-gray-300 bg-white'
                 }`}>
                   {item.conferido && <CheckCircle2 size={16} strokeWidth={3} />}
@@ -254,7 +254,7 @@ export default function Conferencia() {
           disabled={itensConferidos < totalItens}
           className={`w-full py-4 rounded-2xl text-sm font-bold tracking-wide transition-all ${
             itensConferidos >= totalItens
-              ? 'bg-black text-white hover:bg-gray-800 shadow-lg shadow-black/20'
+              ? 'bg-primary text-white hover:bg-primary shadow-lg shadow-black/20'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
         >
@@ -285,7 +285,7 @@ export default function Conferencia() {
             <QrCode size={64} className="text-black/20" />
             <div className="absolute top-0 w-full h-1 bg-gray-600 animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_15px_#555]"></div>
           </div>
-          <button onClick={() => setTelaAtiva('resultado')} className="w-full max-w-[320px] bg-gradient-to-r from-gray-900 to-gray-700 text-white font-bold text-lg py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-black/30 tracking-wide">
+          <button onClick={() => setTelaAtiva('resultado')} className="w-full max-w-[320px] bg-gradient-to-r from-primary to-primary text-white font-bold text-lg py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-black/30 tracking-wide">
             SIMULAR LEITURA
           </button>
         </div>
@@ -303,14 +303,14 @@ export default function Conferencia() {
           <h1 className="text-lg font-bold tracking-wide">Nota Fiscal Conferida</h1>
         </div>
         <div className="flex-1 p-6 overflow-y-auto flex flex-col items-center justify-center text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-gray-900 to-gray-700 text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/50">
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/50">
             <CheckCircle2 size={40} />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Nota Fiscal Bipada com Sucesso!</h2>
           <p className="text-gray-400 mb-8 max-w-sm">
             Pedido #{pedidoSelecionado?.id} foi verificado e está apto para expedição.
           </p>
-          <button onClick={() => setTelaAtiva('conferencia')} className="w-full max-w-[320px] bg-gradient-to-r from-gray-900 to-gray-700 text-white font-bold text-lg py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-black/30 tracking-wide">
+          <button onClick={() => setTelaAtiva('conferencia')} className="w-full max-w-[320px] bg-gradient-to-r from-primary to-primary text-white font-bold text-lg py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-black/30 tracking-wide">
             VOLTAR À CONFERÊNCIA
           </button>
         </div>

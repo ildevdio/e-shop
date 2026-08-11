@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, ArrowLeft, Phone, X, Pencil, Trash2, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getSlug } from '../services/tenantSetup';
 import { contatoService, type Contato, type CriarContatoDto } from '../services/contatoService';
 import { clienteService, type Cliente } from '../services/clienteService';
 import { useUiStore } from '../store/uiStore';
@@ -127,7 +128,7 @@ export default function ComercialContatos() {
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center gap-4">
-        <Link to="/comercial" className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>
@@ -143,7 +144,7 @@ export default function ComercialContatos() {
             <input type="text" placeholder="Buscar contato ou cliente..." value={busca} onChange={e => setBusca(e.target.value)}
               className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
           </div>
-          <button onClick={abrirCriar} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+          <button onClick={abrirCriar} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Novo Contato
           </button>
         </div>
@@ -205,14 +206,14 @@ export default function ComercialContatos() {
               <div className="flex gap-3 justify-end mt-8">
                 <button onClick={fecharModal} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
                 <button onClick={salvar} disabled={!form.nome.trim() || !form.telefone.trim() || salvando}
-                  className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome.trim() && form.telefone.trim() && !salvando ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                  className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome.trim() && form.telefone.trim() && !salvando ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                   {salvando ? 'Salvando...' : modalTipo === 'criar' ? 'Cadastrar Contato' : 'Salvar Alterações'}
                 </button>
               </div>
             )}
             {modalTipo === 'detalhe' && (
               <div className="flex gap-3 justify-end mt-8">
-                <button onClick={() => { const c = selecionado; fecharModal(); if (c) abrirEditar(c); }} className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm flex items-center gap-2">
+                <button onClick={() => { const c = selecionado; fecharModal(); if (c) abrirEditar(c); }} className="px-5 py-2.5 bg-primary text-white hover:bg-primary rounded-xl font-medium transition-colors text-sm flex items-center gap-2">
                   <Pencil size={14} /> Editar
                 </button>
               </div>

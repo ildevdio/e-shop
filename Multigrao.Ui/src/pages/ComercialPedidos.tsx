@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2, ShieldAlert, Package, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getSlug } from '../services/tenantSetup';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
@@ -504,7 +505,7 @@ export default function ComercialPedidos() {
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center gap-4">
-        <Link to="/comercial" className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>
@@ -543,13 +544,13 @@ export default function ComercialPedidos() {
             <div className="px-6 pt-4 pb-3 flex gap-2">
               <button
                 onClick={() => setAbaCadastro('produtos')}
-                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${abaCadastro === 'produtos' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${abaCadastro === 'produtos' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                 <Package size={16} /> Produtos
               </button>
               <button
                 onClick={() => setAbaCadastro('entrega')}
-                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${abaCadastro === 'entrega' ? 'bg-black text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${abaCadastro === 'entrega' ? 'bg-primary text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                 <Truck size={16} /> Entrega
               </button>
@@ -609,7 +610,7 @@ export default function ComercialPedidos() {
                           placeholder="Qtd"
                           className="w-28 border border-gray-300 rounded-lg p-2 outline-none focus:border-black text-sm text-right"
                         />
-                        <button onClick={aplicarCarga} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shrink-0">
+                        <button onClick={aplicarCarga} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors shrink-0">
                           Aplicar
                         </button>
                       </>
@@ -851,7 +852,7 @@ export default function ComercialPedidos() {
                 disabled={!novoPedido.clienteId || itensPedido.length === 0 || itensPedido.some(i => !i.produtoId)}
                 className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${
                   novoPedido.clienteId && itensPedido.length > 0 && !itensPedido.some(i => !i.produtoId)
-                    ? 'bg-black text-white hover:bg-gray-800'
+                    ? 'bg-primary text-white hover:bg-primary'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
@@ -876,7 +877,7 @@ export default function ComercialPedidos() {
             </div>
             <button
               onClick={() => { setBuscaCliente(''); setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', prazoPagamentoDias: '', desconto: '', acrescimo: '' }); setItensPedido([]); setBuscaProduto(''); setDestaqueProduto(0); setSelecionadosPedido(new Set()); setAncoraPedido(null); setCargaQtd(''); setErroProduto(''); setCadastrando(true); setAbaCadastro('produtos'); }}
-              className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
+              className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
             >
               <Plus size={18} /> Novo Pedido
             </button>
@@ -891,7 +892,7 @@ export default function ComercialPedidos() {
               <Filter size={16} className="text-gray-500" />
               <span className="text-sm font-semibold text-gray-700">Filtros de Consulta</span>
               {temFiltroAtivoConsulta && (
-                <span className="ml-1 w-2 h-2 rounded-full bg-black" />
+                <span className="ml-1 w-2 h-2 rounded-full bg-primary" />
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -903,7 +904,7 @@ export default function ComercialPedidos() {
               <button
                 onClick={() => buscarConsulta()}
                 disabled={buscandoConsulta}
-                className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20 disabled:opacity-50"
+                className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20 disabled:opacity-50"
               >
                 <Search size={18} /> {buscandoConsulta ? 'Buscando...' : 'Buscar'}
               </button>
@@ -932,7 +933,7 @@ export default function ComercialPedidos() {
                     onClick={() => setFiltroStatusConsulta(grupo)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       filtroStatusConsulta === grupo
-                        ? 'bg-black text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -951,7 +952,7 @@ export default function ComercialPedidos() {
                     onClick={() => setFiltroTipoConsulta(tipo)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       filtroTipoConsulta === tipo
-                        ? 'bg-black text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -1148,7 +1149,7 @@ export default function ComercialPedidos() {
               </button>
               <button
                 onClick={handleNovoPedido}
-                className="flex-1 py-2.5 rounded-xl font-medium text-sm bg-black text-white hover:bg-gray-800 transition-colors"
+                className="flex-1 py-2.5 rounded-xl font-medium text-sm bg-primary text-white hover:bg-primary transition-colors"
               >
                 Novo Pedido
               </button>
@@ -1416,7 +1417,7 @@ export default function ComercialPedidos() {
                   });
                   if (ok) { fecharDetalhe(); await carregar(); }
                 }}
-                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-black text-white hover:bg-gray-800 transition-colors"
+                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-primary text-white hover:bg-primary transition-colors"
               >
                 Salvar Alterações
               </button>
@@ -1540,7 +1541,7 @@ export default function ComercialPedidos() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovoCliente(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={criarCliente} disabled={!novoCliente.razaoSocialNome.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoCliente.razaoSocialNome.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Cadastrar e Selecionar</button>
+              <button onClick={criarCliente} disabled={!novoCliente.razaoSocialNome.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoCliente.razaoSocialNome.trim() ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Cadastrar e Selecionar</button>
             </div>
           </div>
         </div>

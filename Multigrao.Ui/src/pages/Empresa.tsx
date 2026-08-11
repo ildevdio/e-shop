@@ -6,6 +6,7 @@ import { useUiStore } from '../store/uiStore';
 import { avisoService, type Aviso as AvisoApi } from '../services/avisoService';
 import { enqueteService, type Enquete as EnqueteApi, type OpcaoEnquete } from '../services/enqueteService';
 import { atendimentoService } from '../services/atendimentoService';
+import { getSlug } from '../services/tenantSetup';
 
 interface AvisoUI {
   id: number;
@@ -61,7 +62,7 @@ export default function Empresa() {
 
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl((import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/hubs/app')
+      .withUrl((import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + `/hubs/app?slug=${getSlug()}`)
       .withAutomaticReconnect()
       .build();
     setConnection(newConnection);
@@ -219,7 +220,7 @@ export default function Empresa() {
           </button>
           <button
             onClick={() => { setShowNovoAviso(true); setModalAberto(true); }}
-            className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
+            className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
           >
             <Plus size={18} /> Novo Aviso
           </button>
@@ -398,7 +399,7 @@ export default function Empresa() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovoAviso(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={publicarAviso} disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoAviso.titulo.trim() && novoAviso.conteudo.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar</button>
+              <button onClick={publicarAviso} disabled={!novoAviso.titulo.trim() || !novoAviso.conteudo.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoAviso.titulo.trim() && novoAviso.conteudo.trim() ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar</button>
             </div>
           </div>
         </div>
@@ -435,7 +436,7 @@ export default function Empresa() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovaEnquete(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={publicarEnquete} disabled={!novaEnquete.titulo.trim() || novaEnquete.opcoes.filter(o => o.trim()).length < 2} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novaEnquete.titulo.trim() && novaEnquete.opcoes.filter(o => o.trim()).length >= 2 ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar Enquete</button>
+              <button onClick={publicarEnquete} disabled={!novaEnquete.titulo.trim() || novaEnquete.opcoes.filter(o => o.trim()).length < 2} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novaEnquete.titulo.trim() && novaEnquete.opcoes.filter(o => o.trim()).length >= 2 ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar Enquete</button>
             </div>
           </div>
         </div>

@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Multigrao.Api.Models
 {
-    public class Cliente
+    public class Cliente : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         [Required]
         [StringLength(255)]

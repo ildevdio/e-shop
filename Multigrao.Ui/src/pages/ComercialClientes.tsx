@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, X, Phone, Pencil, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import SearchAutocomplete from '../components/SearchAutocomplete';
 import { Link } from 'react-router-dom';
+import { getSlug } from '../services/tenantSetup';
 import { ArrowLeft } from 'lucide-react';
 import { clienteService, type Cliente, type CriarClienteDto } from '../services/clienteService';
 import { useUiStore } from '../store/uiStore';
@@ -181,11 +182,11 @@ export default function ComercialClientes() {
           <label className={labelClass}>Tipo de Pessoa</label>
           <div className="flex gap-2">
             <button type="button" onClick={() => { setForm(f => ({ ...f, tipoPessoa: 'PJ', cpfCnpj: '' })); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PJ' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PJ' ? 'bg-primary text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
               Pessoa Jurídica (CNPJ)
             </button>
             <button type="button" onClick={() => { setForm(f => ({ ...f, tipoPessoa: 'PF', cpfCnpj: '' })); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PF' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all border ${form.tipoPessoa === 'PF' ? 'bg-primary text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
               Pessoa Física (CPF)
             </button>
           </div>
@@ -340,7 +341,7 @@ export default function ComercialClientes() {
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center gap-4">
-        <Link to="/comercial" className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>
@@ -359,7 +360,7 @@ export default function ComercialClientes() {
             aoSelecionar={(s) => setBusca(s.rotulo)}
             className="flex-1 min-w-0"
           />
-          <button onClick={abrirCriar} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+          <button onClick={abrirCriar} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Novo Cliente
           </button>
         </div>
@@ -454,14 +455,14 @@ export default function ComercialClientes() {
               <div className="flex gap-3 justify-end mt-8">
                 <button onClick={fecharModal} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
                 <button onClick={salvar} disabled={!form.razaoSocialNome.trim() || !form.cpfCnpj.trim() || salvando}
-                  className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.razaoSocialNome.trim() && form.cpfCnpj.trim() && !salvando ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                  className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.razaoSocialNome.trim() && form.cpfCnpj.trim() && !salvando ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                   {salvando ? 'Salvando...' : modalTipo === 'criar' ? 'Cadastrar Cliente' : 'Salvar Alterações'}
                 </button>
               </div>
             )}
             {modalTipo === 'detalhe' && (
               <div className="flex gap-3 justify-end mt-8">
-                <button onClick={() => { const c = selecionado; fecharModal(); if (c) abrirEditar(c); }} className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm flex items-center gap-2">
+                <button onClick={() => { const c = selecionado; fecharModal(); if (c) abrirEditar(c); }} className="px-5 py-2.5 bg-primary text-white hover:bg-primary rounded-xl font-medium transition-colors text-sm flex items-center gap-2">
                   <Pencil size={14} /> Editar
                 </button>
               </div>

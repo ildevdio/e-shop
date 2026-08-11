@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Eye, EyeOff, KeyRound, Loader2, Wheat } from 'lucide-react';
 import GrainPattern from '../components/GrainPattern';
 import FloatingProducts from '../components/FloatingProducts';
+import { useSistemaStore } from '../store/sistemaStore';
+import { getSlug, tenantHeaders } from '../services/tenantSetup';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -16,6 +18,13 @@ export default function Login() {
   const [modoSuporte, setModoSuporte] = useState(false);
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const config = useSistemaStore((state) => state.config);
+
+  useEffect(() => {
+    if (getSlug()) useSistemaStore.getState().carregar();
+  }, []);
+
+  const ehImagemFundo = config.videoUrl ? /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(config.videoUrl) : false;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,13 +35,13 @@ export default function Login() {
       if (modoSuporte) {
         response = await fetch(`${API_URL}/Auth/validar-senha-mestre`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
           body: JSON.stringify({ senha })
         });
       } else {
         response = await fetch(`${API_URL}/Auth/login`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
           body: JSON.stringify({ usuario, senha })
         });
       }
@@ -44,7 +53,7 @@ export default function Login() {
       }
       const data = await response.json();
       setAuth(data.token, data.nome, data.role, data.usuarioId, data.setores);
-      navigate('/');
+      navigate(`/${getSlug()}`);
     } catch {
       setErro('Erro de comunicação com o servidor.');
       setLoading(false);
@@ -53,9 +62,17 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 relative overflow-hidden">
-      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover z-0">
-        <source src="/multigraosvid.mp4" type="video/mp4" />
-      </video>
+      {config.videoUrl && !ehImagemFundo ? (
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover z-0" key={config.videoUrl}>
+          <source src={config.videoUrl} />
+        </video>
+      ) : config.videoUrl && ehImagemFundo ? (
+        <img src={config.videoUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+      ) : (
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover z-0">
+          <source src="/multigraosvid.mp4" type="video/mp4" />
+        </video>
+      )}
       <div className="absolute inset-0 bg-black/60 z-[1]" />
       <GrainPattern opacity={0.10} color="#525252" className="inset-0 w-full h-full z-[2]" animated />
       <FloatingProducts className="z-[2]" />
@@ -66,11 +83,11 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-sm anim-fade-in-up">
         <div className="mb-8 flex flex-col items-center text-center anim-fade-in-up">
-          <img src="/multigraos-logo.png" alt="Multigrãos" className="h-28 w-28 object-contain" />
+          <img src={config.logoUrl} alt={config.nomeEmpresa} className="h-28 w-28 object-contain" />
           <div className="flex items-center gap-2 mt-3">
             <Wheat size={12} className="text-white/30" />
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
-              Amendoim & Especiarias
+              {config.slogan}
             </p>
             <Wheat size={12} className="text-white/30" />
           </div>
@@ -154,7 +171,7 @@ export default function Login() {
         </form>
 
         <p className="mt-6 text-center text-[10px] text-white/20 uppercase tracking-[0.2em] anim-fade-in anim-delay-6">
-          Multigrãos © 2026 — Acesso restrito
+          {config.nomeEmpresa} © {new Date().getFullYear()} — Acesso restrito
         </p>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { chatService, type MensagemChat } from '../services/chatService';
 import { atendimentoService } from '../services/atendimentoService';
+import { getSlug } from '../services/tenantSetup';
 
 interface CanalUI {
   id: string;
@@ -68,7 +69,7 @@ export default function Chat() {
 
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl((import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/hubs/app')
+      .withUrl((import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + `/hubs/app?slug=${getSlug()}`)
       .withAutomaticReconnect()
       .build();
     setConnection(newConnection);
@@ -277,7 +278,7 @@ export default function Chat() {
     setShowAnexos(false);
     const pedidoId = prompt('Número do pedido:');
     if (!pedidoId) return;
-    const url = `${window.location.origin}/pedidos/${pedidoId}`;
+    const url = `${window.location.origin}/${getSlug()}/pedidos/${pedidoId}`;
     await chatService.enviarMensagemHttp(canalAtual.conversaId, usuarioId, `📦 Pedido #${pedidoId}\n${url}`);
   };
 
@@ -350,7 +351,7 @@ export default function Chat() {
                 }`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  canalAtivo === canal.id ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
+                  canalAtivo === canal.id ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'
                 }`}>
                   {canal.tipo === 'direto' ? <Users size={18} /> : <Hash size={18} />}
                 </div>
@@ -377,7 +378,7 @@ export default function Chat() {
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold ${
-                    canalAtivo === canal.id ? 'bg-black text-white' : 'bg-gray-200 text-gray-600'
+                    canalAtivo === canal.id ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {canal.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
                   </div>
@@ -394,7 +395,7 @@ export default function Chat() {
       <div className="flex-1 flex flex-col min-w-0">
         <div className="h-[72px] border-b border-gray-100 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center">
               {canalAtual?.tipo === 'setor' ? <Hash size={18} /> : <Users size={18} />}
             </div>
             <div>
@@ -422,7 +423,7 @@ export default function Chat() {
               return (
                 <div key={msg.id} className={`flex gap-3 ${isMinhaMsg ? 'flex-row-reverse' : ''}`}>
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
-                    isMinhaMsg ? 'bg-black text-white' : 'bg-gray-200 text-gray-600'
+                    isMinhaMsg ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {msg.avatar}
                   </div>
@@ -440,7 +441,7 @@ export default function Chat() {
                     </div>
                     <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed text-left ${
                       isMinhaMsg
-                        ? 'bg-black text-white rounded-tr-sm'
+                        ? 'bg-primary text-white rounded-tr-sm'
                         : 'bg-gray-100 text-gray-800 rounded-tl-sm'
                     }`}>
                       {msg.conteudo.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) =>
@@ -515,7 +516,7 @@ export default function Chat() {
               disabled={!mensagem.trim() || !canalAtual?.conversaId}
               className={`p-3 rounded-xl transition-all ${
                 mensagem.trim() && canalAtual?.conversaId
-                  ? 'bg-black text-white hover:bg-gray-800 shadow-sm'
+                  ? 'bg-primary text-white hover:bg-primary shadow-sm'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >

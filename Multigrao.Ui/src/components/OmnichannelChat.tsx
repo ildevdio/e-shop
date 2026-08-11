@@ -503,7 +503,7 @@ export default function OmnichannelChat() {
           <div className="absolute left-4 right-4 z-[61] bg-[#f8fafc] pb-4" style={{ top: '22px' }}>
             <h2 className="text-xl font-serif font-bold text-gray-900 mb-4 pl-12 tracking-wide flex items-center justify-between">
               Atendimentos
-              <button onClick={handleNovoAtendimento} className="p-2 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors shadow-sm" title="Novo atendimento">
+              <button onClick={handleNovoAtendimento} className="p-2 bg-primary text-white rounded-xl hover:bg-primary transition-colors shadow-sm" title="Novo atendimento">
                 <Plus size={16} />
               </button>
             </h2>
@@ -521,7 +521,7 @@ export default function OmnichannelChat() {
             {(['abertos', 'fechados', 'todos'] as const).map(f => (
               <button key={f} onClick={() => setChatFilter(f)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
-                  chatFilter === f ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                  chatFilter === f ? 'bg-primary text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
                 }`}>
                 {f === 'abertos' ? 'Em Aberto' : f === 'fechados' ? 'Fechados' : 'Todos'}
               </button>
@@ -546,10 +546,10 @@ export default function OmnichannelChat() {
                       activeChatId === chat.id ? 'bg-white shadow-sm ring-1 ring-gray-200/50 text-gray-900' : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
                     }`}>
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-xs font-bold">
+                      <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center text-xs font-bold">
                         {chat.lead.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </div>
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#f8fafc] ${chat.iaActive ? 'bg-black' : 'bg-gray-400'}`} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#f8fafc] ${chat.iaActive ? 'bg-primary' : 'bg-gray-400'}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -589,10 +589,10 @@ export default function OmnichannelChat() {
                   <Menu size={20} />
                 </button>
                 <div className="relative">
-                  <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-sm font-bold">
+                  <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center text-sm font-bold">
                     {activeChat.lead.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                   </div>
-                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${activeChat.iaActive ? 'bg-black' : 'bg-gray-400'}`} />
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${activeChat.iaActive ? 'bg-primary' : 'bg-gray-400'}`} />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900">{activeChat.lead.nome}</h3>
@@ -607,7 +607,7 @@ export default function OmnichannelChat() {
               <div className="flex items-center gap-2">
                 {activeChat.iaActive ? (
                   <>
-                    <button onClick={handleAssumir} className="bg-black text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-800 transition-colors">
+                    <button onClick={handleAssumir} className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-primary transition-colors">
                       Assumir Atendimento
                     </button>
                     <button onClick={simulateAIInteraction} className="bg-gray-100 text-black border border-gray-200 px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors">
@@ -641,7 +641,7 @@ export default function OmnichannelChat() {
                       <Bot size={16} />
                       <span>IA</span>
                       <button onClick={() => updateActiveChat({ iaActive: !activeChat.iaActive })}
-                        className={`w-10 h-5 rounded-full relative transition-colors ${activeChat.iaActive ? 'bg-black' : 'bg-gray-300'}`}>
+                        className={`w-10 h-5 rounded-full relative transition-colors ${activeChat.iaActive ? 'bg-primary' : 'bg-gray-300'}`}>
                         <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-all ${activeChat.iaActive ? 'left-[22px]' : 'left-[3px]'}`} />
                       </button>
                     </div>
@@ -669,7 +669,7 @@ export default function OmnichannelChat() {
                     <div key={msg.id} className={`flex gap-3 ${isUser ? '' : 'flex-row-reverse'}`}
                       onContextMenu={(e) => handleContextMenu(e, msg)}>
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
-                        isUser ? 'bg-gray-200 text-gray-600' : 'bg-black text-white'
+                        isUser ? 'bg-gray-200 text-gray-600' : 'bg-primary text-white'
                       }`}>
                         {isUser ? 'CL' : msg.sender === 'bot' ? <Bot size={16} /> : 'AT'}
                       </div>
@@ -686,7 +686,7 @@ export default function OmnichannelChat() {
                           </button>
                         </div>
                         <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed group relative ${
-                          isUser ? 'bg-gray-100 text-gray-800 rounded-tl-sm' : 'bg-black text-white rounded-tr-sm'
+                          isUser ? 'bg-gray-100 text-gray-800 rounded-tl-sm' : 'bg-primary text-white rounded-tr-sm'
                         }`}>
                           {isEditing ? (
                             <div className="flex flex-col gap-2">
@@ -756,7 +756,7 @@ export default function OmnichannelChat() {
                       Cancelar
                     </button>
                     <button onClick={() => handleDeleteMessage(deleteConfirmId)}
-                      className="flex-1 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-colors">
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary transition-colors">
                       Excluir
                     </button>
                   </div>
@@ -776,7 +776,7 @@ export default function OmnichannelChat() {
                   <button onClick={cancelRecording} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500" title="Cancelar">
                     <X size={20} />
                   </button>
-                  <button onClick={stopRecording} className="p-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors shadow-sm" title="Enviar">
+                  <button onClick={stopRecording} className="p-3 bg-primary text-white rounded-xl hover:bg-primary transition-colors shadow-sm" title="Enviar">
                     <Send size={18} />
                   </button>
                 </div>
@@ -800,7 +800,7 @@ export default function OmnichannelChat() {
                   />
                   <button onClick={handleSend} disabled={activeChat.iaActive || !inputValue.trim()}
                     className={`p-3 rounded-xl transition-all ${
-                      inputValue.trim() && !activeChat.iaActive ? 'bg-black text-white hover:bg-gray-800 shadow-sm' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      inputValue.trim() && !activeChat.iaActive ? 'bg-primary text-white hover:bg-primary shadow-sm' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}>
                     <Send size={18} />
                   </button>
@@ -820,7 +820,7 @@ export default function OmnichannelChat() {
                   </button>
                   <button onClick={() => { fileInputRef.current?.click(); setIsAttachMenuOpen(false); }}
                     className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center"><FileText size={18} /></div>
+                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center"><FileText size={18} /></div>
                     <span className="text-sm font-medium text-gray-700">Documento</span>
                   </button>
                 </div>
@@ -926,7 +926,7 @@ export default function OmnichannelChat() {
                 {activeChat.lead.vendaFechada ? 'Venda Registrada' : 'Confirmar Pedido'}
               </button>
               <button onClick={handleFinalizarAtendimento} disabled={activeChat.lead.vendaFechada}
-                className="w-full bg-black text-white py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-800 transition-all disabled:opacity-50">
+                className="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-primary transition-all disabled:opacity-50">
                 {activeChat.lead.vendaFechada ? 'Atendimento Finalizado' : 'Finalizar Atendimento'}
               </button>
             </div>
@@ -982,7 +982,7 @@ export default function OmnichannelChat() {
                         {contatosFiltrados.map(c => (
                           <button key={c.id} onClick={() => handleSelectContato(c)}
                             className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors text-left group">
-                            <div className="w-9 h-9 bg-black text-white rounded-xl flex items-center justify-center text-xs font-bold shrink-0 group-hover:bg-gray-800 transition-colors">
+                            <div className="w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center text-xs font-bold shrink-0 group-hover:bg-primary transition-colors">
                               {c.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1013,7 +1013,7 @@ export default function OmnichannelChat() {
                   <div className="px-6 py-5 space-y-3">
                     {novoAtendimento.nome && (
                       <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 mb-1">
-                        <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">
                           {novoAtendimento.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1055,7 +1055,7 @@ export default function OmnichannelChat() {
                       Voltar
                     </button>
                     <button onClick={handleCriarAtendimento} disabled={!novoAtendimento.nome.trim()}
-                      className="flex-1 py-2.5 rounded-xl bg-black text-white text-sm font-bold shadow-sm hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                       Iniciar Atendimento
                     </button>
                   </div>

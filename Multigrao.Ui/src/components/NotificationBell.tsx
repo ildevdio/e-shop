@@ -3,6 +3,7 @@ import { Bell, Check, ShoppingCart, Info, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { notificacaoService, type Notificacao } from '../services/notificacaoService';
+import { getSlug } from '../services/tenantSetup';
 
 const TIPO_ICONE: Record<string, typeof Info> = {
   pedido: ShoppingCart,
@@ -54,7 +55,7 @@ export default function NotificationBell({ className }: { className?: string }) 
     await notificacaoService.marcarLida(n.id);
     setNotificacoes(prev => prev.map(x => x.id === n.id ? { ...x, lida: true } : x));
     setCount(prev => Math.max(0, prev - 1));
-    if (n.link) { setAberto(false); navigate(n.link); }
+    if (n.link) { setAberto(false); navigate(`/${getSlug()}${n.link}`); }
   };
 
   const marcarTodasLidas = async () => {

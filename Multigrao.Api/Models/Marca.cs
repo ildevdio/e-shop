@@ -3,10 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace Multigrao.Api.Models
 {
-    public class Marca
+    public class Marca : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         [Required]
         [StringLength(100)]

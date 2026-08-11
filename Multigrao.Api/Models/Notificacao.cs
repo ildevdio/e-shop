@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Multigrao.Api.Models
 {
-    public class Notificacao
+    public class Notificacao : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public int? UsuarioDestinoId { get; set; }
 

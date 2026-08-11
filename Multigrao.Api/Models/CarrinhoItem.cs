@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Multigrao.Api.Models
 {
-    public class CarrinhoItem
+    public class CarrinhoItem : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public int CarrinhoId { get; set; }
         public Carrinho? Carrinho { get; set; }

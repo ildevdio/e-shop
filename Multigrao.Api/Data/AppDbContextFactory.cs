@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Multigrao.Api.Services;
 
 namespace Multigrao.Api.Data
 {
@@ -20,7 +21,7 @@ namespace Multigrao.Api.Data
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
             optionsBuilder.UseNpgsql(connectionString);
 
-            return new AppDbContext(optionsBuilder.Options);
+            return new AppDbContext(optionsBuilder.Options, new TenantContext());
         }
     }
 }

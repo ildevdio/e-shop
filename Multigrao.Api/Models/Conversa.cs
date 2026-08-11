@@ -9,10 +9,11 @@ namespace Multigrao.Api.Models
         ChatInterno = 1
     }
 
-    public class Conversa
+    public class Conversa : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 

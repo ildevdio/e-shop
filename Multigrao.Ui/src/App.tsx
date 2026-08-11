@@ -1,9 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import Layout from './components/Layout';
 import LayoutPublico from './components/LayoutPublico';
 import WakeUpBanner from './components/WakeUpBanner';
 import Login from './pages/Login';
+import LoginEmpresa from './pages/LoginEmpresa';
 import Dashboard from './pages/Dashboard';
+import Empresas from './pages/Empresas';
 import Configuracoes from './pages/Configuracoes';
 import Chat from './pages/Chat';
 import Empresa from './pages/Empresa';
@@ -22,22 +25,69 @@ import Entregas from './pages/Entregas';
 import Conferencia from './pages/Conferencia';
 import Financeiro from './pages/Financeiro';
 import { useAuthStore } from './store/authStore';
+import { useSistemaStore } from './store/sistemaStore';
+import { isShopDomain } from './services/tenantSetup';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((state) => state.token);
-  if (!token) return <Navigate to="/login" replace />;
+  const { slug } = useParams();
+  if (!token) {
+    if (isShopDomain()) return <Navigate to="/login" replace />;
+    return <Navigate to={`/${slug ?? ''}/login`} replace />;
+  }
+  return <>{children}</>;
+}
+
+function TenantLoginRoute() {
+  const { slug } = useParams();
+  if (slug === 'login') return <Navigate to="/" replace />;
+  return <Login />;
+}
+
+function HomeRoute() {
+  const { slug } = useParams();
+  if (isShopDomain()) return <Navigate to="/login" replace />;
+  return <Navigate to={slug ? `/${slug}` : '/multigraos'} replace />;
+}
+
+function IndexRoute() {
+  const { slug } = useParams();
+  if (slug === 'focus') return <Navigate to={`/focus/empresas`} replace />;
+  return <Dashboard />;
+}
+
+function CommerceRoute({ children }: { children: React.ReactNode }) {
+  const { slug } = useParams();
+  if (slug === 'focus') return <Navigate to={`/${slug ?? ''}`} replace />;
   return <>{children}</>;
 }
 
 function App() {
+  const nomeEmpresa = useSistemaStore((state) => state.config.nomeEmpresa);
+  const logoUrl = useSistemaStore((state) => state.config.logoUrl);
+
+  useEffect(() => {
+    document.title = `${nomeEmpresa} - Sistema de Gestão`;
+  }, [nomeEmpresa]);
+
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (link && logoUrl) link.href = logoUrl;
+  }, [logoUrl]);
+
   return (
     <BrowserRouter>
       <WakeUpBanner />
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<HomeRoute />} />
+
+        <Route path="/login" element={<LoginEmpresa />} />
+
+        <Route path="/:slug/login" element={<TenantLoginRoute />} />
         
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Dashboard />} />
+        <Route path="/:slug" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<IndexRoute />} />
+          <Route path="empresas" element={<Empresas />} />
           <Route path="configuracoes" element={<Configuracoes />} />
           <Route path="chat" element={<Chat />} />
 
@@ -61,10 +111,9 @@ function App() {
           <Route path="financeiro" element={<Financeiro />} />
         </Route>
 
-        <Route path="/multigraos-portal" element={<LayoutPublico />}>
+        <Route path="/:slug/commerce" element={<CommerceRoute><LayoutPublico /></CommerceRoute>}>
           <Route index element={<Tabela />} />
         </Route>
-        <Route path="/tabela" element={<Navigate to="/multigraos-portal" replace />} />
       </Routes>
     </BrowserRouter>
   );

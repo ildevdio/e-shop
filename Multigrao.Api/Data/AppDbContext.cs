@@ -1,11 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Models;
+using Multigrao.Api.Services;
 
 namespace Multigrao.Api.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        private readonly ITenantContext _tenant;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ITenantContext tenant) : base(options)
+        {
+            _tenant = tenant;
+        }
 
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Setor> Setores { get; set; }
@@ -37,9 +43,58 @@ namespace Multigrao.Api.Data
         public DbSet<VotoEnquete> VotosEnquete { get; set; }
         public DbSet<Notificacao> Notificacoes { get; set; }
 
+        public DbSet<ConfiguracaoSistema> ConfiguracoesSistema { get; set; }
+
+        public override int SaveChanges()
+        {
+            AplicarEmpresa();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            AplicarEmpresa();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void AplicarEmpresa()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.State == EntityState.Added && entry.Entity is IEmpresa empresa && empresa.EmpresaId == 0)
+                    empresa.EmpresaId = _tenant.EmpresaId;
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Filtros globais de multi-tenancy
+            modelBuilder.Entity<ConfiguracaoSistema>()
+                .HasQueryFilter(c => c.Id == _tenant.EmpresaId);
+
+            modelBuilder.Entity<Usuario>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Cliente>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Contato>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Produto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Categoria>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Marca>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Pedido>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<ItemPedido>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Carrinho>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<CarrinhoItem>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Veiculo>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Rota>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Entrega>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Conversa>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Mensagem>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Aviso>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<AtendimentoLead>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Enquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<OpcaoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<VotoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Notificacao>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });
@@ -118,7 +173,7 @@ namespace Multigrao.Api.Data
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Carrinho>()
-                .HasIndex(c => c.CpfCnpj)
+                .HasIndex(c => new { c.EmpresaId, c.CpfCnpj })
                 .IsUnique();
 
             modelBuilder.Entity<CarrinhoItem>()
@@ -148,10 +203,11 @@ namespace Multigrao.Api.Data
             // Seed: Usuários
             const string hash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq";
             modelBuilder.Entity<Usuario>().HasData(
-                new Usuario { Id = 1, Nome = "Admin Multigrãos", UsuarioLogin = "admin", SenhaHash = hash, Role = "AdminMaster", Ativo = true },
-                new Usuario { Id = 2, Nome = "João Comercial", UsuarioLogin = "joao", SenhaHash = hash, Role = "Comum", Ativo = true },
-                new Usuario { Id = 3, Nome = "Ana Separação", UsuarioLogin = "ana", SenhaHash = hash, Role = "Comum", Ativo = true },
-                new Usuario { Id = 4, Nome = "Pedro Motorista", UsuarioLogin = "pedro", SenhaHash = hash, Role = "Comum", Ativo = true }
+                new Usuario { Id = 1, EmpresaId = 1, Nome = "Admin Multigrãos", UsuarioLogin = "admin", SenhaHash = hash, Role = "AdminMaster", Ativo = true },
+                new Usuario { Id = 2, EmpresaId = 1, Nome = "João Comercial", UsuarioLogin = "joao", SenhaHash = hash, Role = "Comum", Ativo = true },
+                new Usuario { Id = 3, EmpresaId = 1, Nome = "Ana Separação", UsuarioLogin = "ana", SenhaHash = hash, Role = "Comum", Ativo = true },
+                new Usuario { Id = 4, EmpresaId = 1, Nome = "Pedro Motorista", UsuarioLogin = "pedro", SenhaHash = hash, Role = "Comum", Ativo = true },
+                new Usuario { Id = 5, EmpresaId = 2, Nome = "Admin Focus", UsuarioLogin = "focus", SenhaHash = "$2a$11$8txlZeWbLmAkE.FUvRPhj.P6VzpU7K2GVhfVMWMJKqVldAuGhvEXC", Role = "AdminMaster", Ativo = true }
             );
 
             // Seed: UsuárioSetores
@@ -166,38 +222,83 @@ namespace Multigrao.Api.Data
 
             // Seed: Produtos
             modelBuilder.Entity<Produto>().HasData(
-                new Produto { Id = 1, Nome = "Castanha do Pará", PesoUnidade = 0.5m, CodigoERP = "CAS001" },
-                new Produto { Id = 2, Nome = "Chia (1kg)", PesoUnidade = 1m, CodigoERP = "CHI001" },
-                new Produto { Id = 3, Nome = "Aveia em Flocos", PesoUnidade = 0.5m, CodigoERP = "AVE001" },
-                new Produto { Id = 4, Nome = "Quinoa (500g)", PesoUnidade = 0.5m, CodigoERP = "QUI001" },
-                new Produto { Id = 5, Nome = "Linhaça Dourada", PesoUnidade = 0.25m, CodigoERP = "LIN001" },
-                new Produto { Id = 6, Nome = "Nozes (500g)", PesoUnidade = 0.5m, CodigoERP = "NOZ001" },
-                new Produto { Id = 7, Nome = "Amêndoas (250g)", PesoUnidade = 0.25m, CodigoERP = "AME001" },
-                new Produto { Id = 8, Nome = "Cacau em Pó", PesoUnidade = 0.3m, CodigoERP = "CAC001" }
+                new Produto { Id = 1, EmpresaId = 1, Nome = "Castanha do Pará", PesoUnidade = 0.5m, CodigoERP = "CAS001" },
+                new Produto { Id = 2, EmpresaId = 1, Nome = "Chia (1kg)", PesoUnidade = 1m, CodigoERP = "CHI001" },
+                new Produto { Id = 3, EmpresaId = 1, Nome = "Aveia em Flocos", PesoUnidade = 0.5m, CodigoERP = "AVE001" },
+                new Produto { Id = 4, EmpresaId = 1, Nome = "Quinoa (500g)", PesoUnidade = 0.5m, CodigoERP = "QUI001" },
+                new Produto { Id = 5, EmpresaId = 1, Nome = "Linhaça Dourada", PesoUnidade = 0.25m, CodigoERP = "LIN001" },
+                new Produto { Id = 6, EmpresaId = 1, Nome = "Nozes (500g)", PesoUnidade = 0.5m, CodigoERP = "NOZ001" },
+                new Produto { Id = 7, EmpresaId = 1, Nome = "Amêndoas (250g)", PesoUnidade = 0.25m, CodigoERP = "AME001" },
+                new Produto { Id = 8, EmpresaId = 1, Nome = "Cacau em Pó", PesoUnidade = 0.3m, CodigoERP = "CAC001" }
             );
 
             // Seed: Clientes
             modelBuilder.Entity<Cliente>().HasData(
-                new Cliente { Id = 1, RazaoSocialNome = "Padaria Pão Dourado", CpfCnpj = "12.345.678/0001-90", TipoPessoa = "PJ", Bairro = "Boa Viagem", Cidade = "Recife", Estado = "PE", Telefone = "(81) 3333-4444", Email = "contato@paodourado.com.br" },
-                new Cliente { Id = 2, RazaoSocialNome = "Supermercado Fresh", CpfCnpj = "98.765.432/0001-10", TipoPessoa = "PJ", Bairro = "Casa Forte", Cidade = "Recife", Estado = "PE", Telefone = "(81) 3333-5555", Email = "compras@fresh.com.br" },
-                new Cliente { Id = 3, RazaoSocialNome = "Loja Naturalzinha", CpfCnpj = "11.222.333/0001-44", TipoPessoa = "PJ", Bairro = "Aflitos", Cidade = "Recife", Estado = "PE", Telefone = "(81) 3333-6666", Email = "vendas@naturalzinha.com.br" }
+                new Cliente { Id = 1, EmpresaId = 1, RazaoSocialNome = "Padaria Pão Dourado", CpfCnpj = "12.345.678/0001-90", TipoPessoa = "PJ", Bairro = "Boa Viagem", Cidade = "Recife", Estado = "PE", Telefone = "(81) 3333-4444", Email = "contato@paodourado.com.br" },
+                new Cliente { Id = 2, EmpresaId = 1, RazaoSocialNome = "Supermercado Fresh", CpfCnpj = "98.765.432/0001-10", TipoPessoa = "PJ", Bairro = "Casa Forte", Cidade = "Recife", Estado = "PE", Telefone = "(81) 3333-5555", Email = "compras@fresh.com.br" },
+                new Cliente { Id = 3, EmpresaId = 1, RazaoSocialNome = "Loja Naturalzinha", CpfCnpj = "11.222.333/0001-44", TipoPessoa = "PJ", Bairro = "Aflitos", Cidade = "Recife", Estado = "PE", Telefone = "(81) 3333-6666", Email = "vendas@naturalzinha.com.br" }
             );
 
             // Seed: Veículos
             modelBuilder.Entity<Veiculo>().HasData(
-                new Veiculo { Id = 1, Modelo = "Fiorino", Placa = "ABC-1234", PesoMaximo = 800m },
-                new Veiculo { Id = 2, Modelo = "Van Master", Placa = "DEF-5678", PesoMaximo = 1500m }
+                new Veiculo { Id = 1, EmpresaId = 1, Modelo = "Fiorino", Placa = "ABC-1234", PesoMaximo = 800m },
+                new Veiculo { Id = 2, EmpresaId = 1, Modelo = "Van Master", Placa = "DEF-5678", PesoMaximo = 1500m }
             );
 
             // Seed: Contatos
             modelBuilder.Entity<Contato>().HasData(
-                new Contato { Id = 1, Nome = "Carlos Eduardo", Telefone = "(81) 99812-3344", ClienteId = 1 },
-                new Contato { Id = 2, Nome = "Fernanda Lima", Telefone = "(81) 99766-5588", ClienteId = 1 },
-                new Contato { Id = 3, Nome = "Roberto Alves", Telefone = "(81) 99234-1122", ClienteId = 2 },
-                new Contato { Id = 4, Nome = "Mariana Costa", Telefone = "(81) 99100-2233", ClienteId = 2 },
-                new Contato { Id = 5, Nome = "Pedro Henrique", Telefone = "(81) 98877-6655", ClienteId = 3 },
-                new Contato { Id = 6, Nome = "Ana Beatriz", Telefone = "(81) 98543-2211", ClienteId = null },
-                new Contato { Id = 7, Nome = "Lucas Nascimento", Telefone = "(81) 98432-1100", ClienteId = null }
+                new Contato { Id = 1, EmpresaId = 1, Nome = "Carlos Eduardo", Telefone = "(81) 99812-3344", ClienteId = 1 },
+                new Contato { Id = 2, EmpresaId = 1, Nome = "Fernanda Lima", Telefone = "(81) 99766-5588", ClienteId = 1 },
+                new Contato { Id = 3, EmpresaId = 1, Nome = "Roberto Alves", Telefone = "(81) 99234-1122", ClienteId = 2 },
+                new Contato { Id = 4, EmpresaId = 1, Nome = "Mariana Costa", Telefone = "(81) 99100-2233", ClienteId = 2 },
+                new Contato { Id = 5, EmpresaId = 1, Nome = "Pedro Henrique", Telefone = "(81) 98877-6655", ClienteId = 3 },
+                new Contato { Id = 6, EmpresaId = 1, Nome = "Ana Beatriz", Telefone = "(81) 98543-2211", ClienteId = null },
+                new Contato { Id = 7, EmpresaId = 1, Nome = "Lucas Nascimento", Telefone = "(81) 98432-1100", ClienteId = null }
+            );
+
+            // Seed: Configuração do Sistema
+            modelBuilder.Entity<ConfiguracaoSistema>().HasData(
+                new ConfiguracaoSistema
+                {
+                    Id = 1,
+                    NomeEmpresa = "Multigrãos",
+                    Slug = "multigraos",
+                    Cnpj = "26.277.355/0001-70",
+                    Slogan = "Amendoim & Especiarias",
+                    Endereco = "Centro — Paulista — PE",
+                    Cep = null,
+                    Logradouro = null,
+                    Numero = null,
+                    Bairro = "Centro",
+                    Cidade = "Paulista",
+                    Estado = "PE",
+                    LogoUrl = "/multigraos-logo.png",
+                    VideoUrl = "/multigraosvid.mp4",
+                    CorPrincipal = "#0a0a0a",
+                    Ativo = true
+                }
+            );
+
+            modelBuilder.Entity<ConfiguracaoSistema>().HasData(
+                new ConfiguracaoSistema
+                {
+                    Id = 2,
+                    NomeEmpresa = "Focus Solutions",
+                    Slug = "focus",
+                    Cnpj = "00.000.000/0000-00",
+                    Slogan = "Plataforma de Gestão",
+                    Endereco = "Paulista — PE",
+                    Cep = null,
+                    Logradouro = null,
+                    Numero = null,
+                    Bairro = null,
+                    Cidade = "Paulista",
+                    Estado = "PE",
+                    LogoUrl = "/multigraos-logo.png",
+                    VideoUrl = null,
+                    CorPrincipal = "#111827",
+                    Ativo = true
+                }
             );
         }
     }

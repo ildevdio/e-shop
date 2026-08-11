@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, ArrowLeft, Eye, CheckCircle, Bot, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getSlug, tenantHeaders } from '../services/tenantSetup';
 import { useUiStore } from '../store/uiStore';
 
 interface Atendimento {
@@ -41,7 +42,7 @@ export default function ComercialListaAtendimentos() {
 
   const carregarAtendimentos = async () => {
     try {
-      const res = await fetch(`${API_URL}/Atendimento`);
+      const res = await fetch(`${API_URL}/Atendimento`, { headers: tenantHeaders() });
       if (!res.ok) return;
       setAtendimentos(await res.json());
     } catch {
@@ -59,7 +60,7 @@ export default function ComercialListaAtendimentos() {
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center gap-4">
-        <Link to="/comercial" className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>
@@ -204,7 +205,7 @@ export default function ComercialListaAtendimentos() {
                     {detalhe.messages.map(m => (
                       <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-start' : 'justify-end'}`}>
                         <div className={`px-3 py-2 rounded-xl text-sm max-w-[80%] ${
-                          m.sender === 'user' ? 'bg-gray-100 text-gray-700' : 'bg-black text-white'
+                          m.sender === 'user' ? 'bg-gray-100 text-gray-700' : 'bg-primary text-white'
                         }`}>
                           {m.text}
                         </div>

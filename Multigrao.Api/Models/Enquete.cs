@@ -2,9 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Multigrao.Api.Models
 {
-    public class Enquete
+    public class Enquete : IEmpresa
     {
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         [Required, MaxLength(200)]
         public string Titulo { get; set; } = string.Empty;
@@ -22,9 +23,10 @@ namespace Multigrao.Api.Models
         public ICollection<VotoEnquete> Votos { get; set; } = new List<VotoEnquete>();
     }
 
-    public class OpcaoEnquete
+    public class OpcaoEnquete : IEmpresa
     {
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public int EnqueteId { get; set; }
         public Enquete? Enquete { get; set; }
@@ -35,9 +37,10 @@ namespace Multigrao.Api.Models
         public int Ordem { get; set; }
     }
 
-    public class VotoEnquete
+    public class VotoEnquete : IEmpresa
     {
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public int EnqueteId { get; set; }
         public Enquete? Enquete { get; set; }

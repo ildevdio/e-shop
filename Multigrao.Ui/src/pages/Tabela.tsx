@@ -10,6 +10,7 @@ import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
+import { useSistemaStore } from '../store/sistemaStore';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
@@ -387,6 +388,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
   const isRestaurant = tema === 'restaurant';
   const carrosselRef = useRef<HTMLDivElement>(null);
+  const config = useSistemaStore((state) => state.config);
   
   // Theme Variables
   const primaryBg = isRestaurant ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-white';
@@ -868,7 +870,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     <span className="max-w-28 truncate">{categoriaFiltradaNome ?? 'Categorias'}</span>
                   </button>
                 </div>
-                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">Multigrãos</h1>
+                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
                 <div className="flex-1 flex items-center justify-end gap-2">
                   <button
                     onClick={() => setTema('restaurant')}
@@ -1288,8 +1290,8 @@ const [erroAcesso, setErroAcesso] = useState('');
 
         <div className={`relative z-10 px-4 h-full flex flex-col ${isRestaurant ? 'items-center text-center py-12 md:py-20' : 'items-start text-left justify-end pb-16 md:pb-24 md:pl-16 lg:pl-24'}`}>
           <img
-            src="/multigraos-logo.png"
-            alt="Multigrãos"
+            src={config.logoUrl}
+            alt={config.nomeEmpresa}
             className={`h-auto object-contain mb-8 brightness-110 ${isRestaurant ? 'w-56 md:w-72' : 'w-[9.4rem] md:w-[11.4rem]'}`}
           />
             <h1 className={`${isRestaurant ? 'font-heading text-3xl md:text-5xl tracking-wide font-bold' : 'font-heading text-2xl md:text-3xl font-bold tracking-wide'} text-white drop-shadow-md`}>
@@ -1302,7 +1304,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className={`flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-sm text-white/90 font-medium ${isRestaurant ? 'justify-center' : 'justify-start'}`}>
             <span className="flex items-center gap-2">
               <MapPin size={16} className="text-white/70" />
-              Centro — Paulista — PE
+              {config.endereco}
             </span>
             <a href="https://wa.me/5581988593757" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors">
               <Phone size={16} className="text-white/70" />
@@ -1321,11 +1323,11 @@ const [erroAcesso, setErroAcesso] = useState('');
       {!isRestaurant && (
         <div ref={tickerRef} className="bg-zinc-900 text-white">
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]">
-            <span>Multigrãos</span>
+            <span>{config.nomeEmpresa}</span>
             <span className="text-orange-500">●</span>
             <span>Varejo & Atacado</span>
             <span className="text-orange-500">●</span>
-            <span>Centro — Paulista — PE</span>
+            <span>{config.endereco}</span>
             <span className="text-orange-500">●</span>
             <span>(81) 98859-3757</span>
           </div>

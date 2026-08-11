@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, Plus, Search, Calendar, Target, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getSlug } from '../services/tenantSetup';
 import { ArrowLeft } from 'lucide-react';
 import { avisoService, type Aviso } from '../services/avisoService';
 import { useAuthStore } from '../store/authStore';
@@ -59,7 +60,7 @@ export default function EmpresaAvisos() {
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center gap-4">
-        <Link to="/empresa" className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
+        <Link to={`/${getSlug()}/empresa`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>
@@ -80,7 +81,7 @@ export default function EmpresaAvisos() {
               className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all"
             />
           </div>
-          <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+          <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
             <Plus size={18} /> Novo Aviso
           </button>
         </div>
@@ -128,7 +129,7 @@ export default function EmpresaAvisos() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={adicionarAviso} disabled={!novoAviso.titulo.trim() || !novoAviso.mensagem.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoAviso.titulo.trim() && novoAviso.mensagem.trim() ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar</button>
+              <button onClick={adicionarAviso} disabled={!novoAviso.titulo.trim() || !novoAviso.mensagem.trim()} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoAviso.titulo.trim() && novoAviso.mensagem.trim() ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>Publicar</button>
             </div>
           </div>
         </div>

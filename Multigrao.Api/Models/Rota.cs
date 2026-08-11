@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Multigrao.Api.Models
 {
-    public class Rota
+    public class Rota : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public DateTime Data { get; set; } = DateTime.UtcNow;
 

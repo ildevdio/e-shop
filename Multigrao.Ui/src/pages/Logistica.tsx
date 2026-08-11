@@ -160,12 +160,12 @@ function RoteirizacaoTab() {
     <div className="p-6 h-full min-h-0 flex flex-col">
       <div className="flex items-center gap-4 mb-6 shrink-0">
         <button onClick={() => setEtapa('selecionar')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${etapa === 'selecionar' ? 'bg-gray-100 text-gray-800 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${etapa === 'selecionar' ? 'bg-black text-white' : 'bg-gray-300 text-white'}`}>1</span>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${etapa === 'selecionar' ? 'bg-primary text-white' : 'bg-gray-300 text-white'}`}>1</span>
           Selecionar Pedidos
         </button>
         <ArrowRight size={16} className="text-gray-300" />
         <button onClick={() => etapa === 'selecionar' && selecionados.length > 0 && setEtapa('rota')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${etapa === 'rota' ? 'bg-gray-100 text-gray-800 ring-1 ring-gray-300' : 'bg-gray-100 text-gray-500'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${etapa === 'rota' ? 'bg-black text-white' : 'bg-gray-300 text-white'}`}>2</span>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${etapa === 'rota' ? 'bg-primary text-white' : 'bg-gray-300 text-white'}`}>2</span>
           Montar Rota
         </button>
       </div>
@@ -185,7 +185,7 @@ function RoteirizacaoTab() {
                 pedido.selecionado ? 'bg-gray-100/80 border-gray-700 shadow-sm shadow-black/5' : 'bg-gray-50/50 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}>
                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 ${
-                  pedido.selecionado ? 'bg-black text-white shadow-sm' : 'border-2 border-gray-300 bg-white'
+                  pedido.selecionado ? 'bg-primary text-white shadow-sm' : 'border-2 border-gray-300 bg-white'
                 }`}>
                   {pedido.selecionado && <CheckCircle2 size={16} strokeWidth={3} />}
                 </div>
@@ -207,7 +207,7 @@ function RoteirizacaoTab() {
           </div>
 
           <button onClick={() => setEtapa('rota')} disabled={selecionados.length === 0} className={`mt-4 w-full py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
-            selecionados.length > 0 ? 'bg-black text-white hover:bg-gray-800 shadow-sm shadow-black/20' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            selecionados.length > 0 ? 'bg-primary text-white hover:bg-primary shadow-sm shadow-black/20' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}>
             <Navigation size={18} /> AVANÇAR PARA MONTAGEM DE ROTA ({selecionados.length} pedidos)
           </button>
@@ -262,7 +262,7 @@ function RoteirizacaoTab() {
                     <div key={veiculo.id} onClick={() => setVeiculoSelecionado(veiculo.id)} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${
                       veiculoSelecionado === veiculo.id ? 'bg-gray-100/80 border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}>
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${veiculoSelecionado === veiculo.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${veiculoSelecionado === veiculo.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'}`}>
                         <Truck size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -283,7 +283,7 @@ function RoteirizacaoTab() {
                     <div key={motorista.id} onClick={() => setMotoristaSelecionado(motorista.id)} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${
                       motoristaSelecionado === motorista.id ? 'bg-gray-100/80 border-gray-700' : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}>
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${motoristaSelecionado === motorista.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${motoristaSelecionado === motorista.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'}`}>
                         <User size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -313,7 +313,7 @@ function RoteirizacaoTab() {
               </button>
 
               <button onClick={finalizarRota} disabled={!rotaOtimizada || !veiculoSelecionado || !motoristaSelecionado} className={`w-full py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 ${
-                rotaOtimizada && veiculoSelecionado && motoristaSelecionado ? 'bg-black text-white hover:bg-gray-800 shadow-sm shadow-black/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                rotaOtimizada && veiculoSelecionado && motoristaSelecionado ? 'bg-primary text-white hover:bg-primary shadow-sm shadow-black/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}>
                 <CheckCircle2 size={18} /> FINALIZAR E GERAR ENTREGA
               </button>
@@ -391,7 +391,7 @@ function EmEntregaTab() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">
                         <Truck size={20} />
                       </div>
                       <div>
@@ -602,7 +602,7 @@ function ConsultasTab() {
           </div>
           <button
             onClick={buscar}
-            className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
+            className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
           >
             <Search size={16} /> Buscar
           </button>
@@ -618,7 +618,7 @@ function ConsultasTab() {
                   onClick={() => setFiltroStatus(status)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     filtroStatus === status
-                      ? 'bg-black text-white'
+                      ? 'bg-primary text-white'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -838,7 +838,7 @@ function ConsultasTab() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setEditando(null)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={salvarEdicao} className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm">Salvar</button>
+              <button onClick={salvarEdicao} className="px-5 py-2.5 bg-primary text-white hover:bg-primary rounded-xl font-medium transition-colors text-sm">Salvar</button>
             </div>
           </div>
         </div>
@@ -901,7 +901,7 @@ function VeiculosTab() {
           <input type="text" placeholder="Buscar veículo..." value={busca} onChange={e => setBusca(e.target.value)}
             className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black text-sm flex-1 min-w-0 transition-all" />
         </div>
-        <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
+        <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
           <Plus size={18} /> Novo Veículo
         </button>
       </div>
@@ -949,7 +949,7 @@ function VeiculosTab() {
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => { setShowNovo(false); setModalAberto(false); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim() || isSaving} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() && !isSaving ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>{isSaving ? 'Salvando...' : 'Adicionar'}</button>
+              <button onClick={adicionarVeiculo} disabled={!novoVeiculo.modelo.trim() || isSaving} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${novoVeiculo.modelo.trim() && !isSaving ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>{isSaving ? 'Salvando...' : 'Adicionar'}</button>
             </div>
           </div>
         </div>

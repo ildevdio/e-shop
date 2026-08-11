@@ -70,6 +70,9 @@ namespace Multigrao.Api.Controllers
             {
                 ".jpg" or ".jpeg" => "image/jpeg",
                 ".png" => "image/png",
+                ".mp4" => "video/mp4",
+                ".webm" => "video/webm",
+                ".mov" => "video/quicktime",
                 _ => "application/octet-stream",
             };
 

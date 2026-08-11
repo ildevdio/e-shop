@@ -12,6 +12,13 @@ namespace Multigrao.Api.DTOs
         public string Senha { get; set; } = string.Empty;
     }
 
+    public class LoginEmpresaDto
+    {
+        public string Cnpj { get; set; } = string.Empty;
+        public string Usuario { get; set; } = string.Empty;
+        public string Senha { get; set; } = string.Empty;
+    }
+
     public class LoginResponseDto
     {
         public string Token { get; set; } = string.Empty;
@@ -305,5 +312,66 @@ namespace Multigrao.Api.DTOs
     public class SalvarCarrinhoDto
     {
         public List<CarrinhoItemDto> Itens { get; set; } = new();
+    }
+
+    // Configuração do Sistema
+    public class ConfiguracaoSistemaDto
+    {
+        public string NomeEmpresa { get; set; } = "Multigrãos";
+        public string? Cnpj { get; set; }
+        public string? Slogan { get; set; }
+        public string? Endereco { get; set; }
+        public string? Cep { get; set; }
+        public string? Logradouro { get; set; }
+        public string? Numero { get; set; }
+        public string? Bairro { get; set; }
+        public string? Cidade { get; set; }
+        public string? Estado { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? VideoUrl { get; set; }
+        public string CorPrincipal { get; set; } = "#0a0a0a";
+    }
+
+    public class CriarEmpresaDto
+    {
+        public string NomeEmpresa { get; set; } = string.Empty;
+        public string? Cnpj { get; set; }
+        public string? Slogan { get; set; }
+        public string? Endereco { get; set; }
+        public string? Cep { get; set; }
+        public string? Logradouro { get; set; }
+        public string? Numero { get; set; }
+        public string? Bairro { get; set; }
+        public string? Cidade { get; set; }
+        public string? Estado { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? VideoUrl { get; set; }
+        public string? CorPrincipal { get; set; }
+        public string? Login { get; set; }
+        public string? Senha { get; set; }
+    }
+
+    public class AtualizarEmpresaDto
+    {
+        public string? NomeEmpresa { get; set; }
+        public string? Cnpj { get; set; }
+        public string? Slogan { get; set; }
+        public string? Endereco { get; set; }
+        public string? Cep { get; set; }
+        public string? Logradouro { get; set; }
+        public string? Numero { get; set; }
+        public string? Bairro { get; set; }
+        public string? Cidade { get; set; }
+        public string? Estado { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? VideoUrl { get; set; }
+        public string? CorPrincipal { get; set; }
+        public string? Slug { get; set; }
+        public bool? Ativo { get; set; }
+    }
+
+    public class ResolverCnpjDto
+    {
+        public string? Cnpj { get; set; }
     }
 }

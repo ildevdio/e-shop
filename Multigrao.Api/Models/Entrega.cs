@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Multigrao.Api.Models
 {
-    public class Entrega
+    public class Entrega : IEmpresa
     {
         [Key]
         public int Id { get; set; }
+        public int EmpresaId { get; set; } = 0;
 
         public int RotaId { get; set; }
         public Rota? Rota { get; set; }

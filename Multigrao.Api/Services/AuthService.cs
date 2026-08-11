@@ -36,7 +36,8 @@ namespace Multigrao.Api.Services
                 new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, usuario.UsuarioLogin),
                 new Claim(ClaimTypes.Name, usuario.Nome),
-                new Claim(ClaimTypes.Role, usuario.Role)
+                new Claim(ClaimTypes.Role, usuario.Role),
+                new Claim("EmpresaId", usuario.EmpresaId.ToString())
             };
 
             var token = new JwtSecurityToken(

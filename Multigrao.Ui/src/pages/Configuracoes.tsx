@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, UploadCloud, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
+import { useSistemaStore } from '../store/sistemaStore';
+import { tenantHeaders, getSlug } from '../services/tenantSetup';
+import { mascaraCep, buscarCep } from '../services/cep';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -14,10 +17,19 @@ interface Usuario {
   ativo: boolean;
 }
 
+function mascaraCnpj(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 14);
+  return d
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
 export default function Configuracoes() {
   const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
-  const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>('usuarios');
+  const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>(getSlug() === 'focus' ? 'sistema' : 'usuarios');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -28,6 +40,36 @@ export default function Configuracoes() {
   const [notificacoes, setNotificacoes] = useState({ email: true, push: true, pedido: false });
   const [corPrincipal, setCorPrincipal] = useState('#000000');
   const [corSalva, setCorSalva] = useState(false);
+
+  const configSistema = useSistemaStore((state) => state.config);
+  const carregada = useSistemaStore((state) => state.carregada);
+  const atualizarConfig = useSistemaStore((state) => state.atualizar);
+  const salvarConfig = useSistemaStore((state) => state.salvar);
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '' });
+  const [enviandoLogo, setEnviandoLogo] = useState(false);
+  const [enviandoVideo, setEnviandoVideo] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [salvandoConfig, setSalvandoConfig] = useState(false);
+
+  useEffect(() => {
+    if (carregada) {
+      setCorPrincipal(configSistema.corPrincipal);
+      setFormEmpresa({
+        nomeEmpresa: configSistema.nomeEmpresa,
+        cnpj: configSistema.cnpj,
+        slogan: configSistema.slogan,
+        endereco: configSistema.endereco,
+        cep: configSistema.cep,
+        logradouro: configSistema.logradouro,
+        numero: configSistema.numero,
+        bairro: configSistema.bairro,
+        cidade: configSistema.cidade,
+        estado: configSistema.estado,
+        logoUrl: configSistema.logoUrl,
+        videoUrl: configSistema.videoUrl ?? '',
+      });
+    }
+  }, [carregada]);
 
   const [senhaMestreModal, setSenhaMestreModal] = useState(false);
   const [senhaMestreInput, setSenhaMestreInput] = useState('');
@@ -57,7 +99,7 @@ export default function Configuracoes() {
     try {
       const response = await fetch(`${API_URL}/Auth/validar-senha-mestre`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
         body: JSON.stringify({ senha: senhaMestreInput })
       });
 
@@ -80,7 +122,7 @@ export default function Configuracoes() {
 
   const carregarUsuarios = async () => {
     try {
-      const resp = await fetch(`${API_URL}/Usuarios`);
+      const resp = await fetch(`${API_URL}/Usuarios`, { headers: tenantHeaders() });
       if (resp.ok) {
         const data = await resp.json();
         setUsuarios(data);
@@ -92,7 +134,7 @@ export default function Configuracoes() {
 
   const toggleAtivo = async (id: number) => {
     try {
-      const resp = await fetch(`${API_URL}/Usuarios/${id}/toggle-ativo`, { method: 'PUT' });
+      const resp = await fetch(`${API_URL}/Usuarios/${id}/toggle-ativo`, { method: 'PUT', headers: tenantHeaders() });
       if (resp.ok) {
         setUsuarios(usuarios.map(u => u.id === id ? { ...u, ativo: !u.ativo } : u));
       }
@@ -102,7 +144,7 @@ export default function Configuracoes() {
   const excluirUsuario = async (id: number) => {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
     try {
-      const resp = await fetch(`${API_URL}/Usuarios/${id}`, { method: 'DELETE' });
+      const resp = await fetch(`${API_URL}/Usuarios/${id}`, { method: 'DELETE', headers: tenantHeaders() });
       if (resp.ok) {
         setUsuarios(usuarios.filter(u => u.id !== id));
       }
@@ -144,7 +186,7 @@ export default function Configuracoes() {
       if (usuarioEditando) {
         const resp = await fetch(`${API_URL}/Usuarios/${usuarioEditando.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
           body: JSON.stringify({
             nome: formNovoUsuario.nome,
             usuarioLogin: formNovoUsuario.usuarioLogin,
@@ -160,7 +202,7 @@ export default function Configuracoes() {
       } else {
         const resp = await fetch(`${API_URL}/Usuarios`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
           body: JSON.stringify({
             nome: formNovoUsuario.nome,
             usuarioLogin: formNovoUsuario.usuarioLogin,
@@ -181,9 +223,81 @@ export default function Configuracoes() {
     setUsuarioEditando(null);
   };
 
-  const salvarConfigSistema = () => {
-    setCorSalva(true);
-    setTimeout(() => setCorSalva(false), 2000);
+  const salvarConfigSistema = async () => {
+    setSalvandoConfig(true);
+    const ok = await salvarConfig({
+      nomeEmpresa: formEmpresa.nomeEmpresa,
+      cnpj: formEmpresa.cnpj,
+      slogan: formEmpresa.slogan,
+      endereco: formEmpresa.endereco,
+      cep: formEmpresa.cep,
+      logradouro: formEmpresa.logradouro,
+      numero: formEmpresa.numero,
+      bairro: formEmpresa.bairro,
+      cidade: formEmpresa.cidade,
+      estado: formEmpresa.estado,
+      logoUrl: formEmpresa.logoUrl,
+      videoUrl: formEmpresa.videoUrl,
+      corPrincipal,
+    });
+    setSalvandoConfig(false);
+    if (ok) {
+      setCorSalva(true);
+      setTimeout(() => setCorSalva(false), 2000);
+    }
+  };
+
+  const uploadLogo = async (file: File | undefined) => {
+    if (!file) return;
+    setEnviandoLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const resp = await fetch(`${API_URL}/Upload/imagem`, {
+        method: 'POST',
+        headers: tenantHeaders(),
+        body: formData,
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setFormEmpresa(f => ({ ...f, logoUrl: data.url }));
+      }
+    } catch { /* ignora */ }
+    setEnviandoLogo(false);
+  };
+
+  const uploadVideo = async (file: File | undefined) => {
+    if (!file) return;
+    setEnviandoVideo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const resp = await fetch(`${API_URL}/Upload/arquivo`, {
+        method: 'POST',
+        headers: tenantHeaders(),
+        body: formData,
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setFormEmpresa(f => ({ ...f, videoUrl: data.url }));
+      }
+    } catch { /* ignora */ }
+    setEnviandoVideo(false);
+  };
+
+  const buscarCepConfig = async () => {
+    setBuscandoCep(true);
+    const end = await buscarCep(formEmpresa.cep);
+    if (end) {
+      setFormEmpresa((f) => ({
+        ...f,
+        logradouro: end.logradouro,
+        bairro: end.bairro,
+        cidade: end.cidade,
+        estado: end.estado,
+      }));
+    }
+    setBuscandoCep(false);
   };
 
   if (!acessoPermitido) {
@@ -197,7 +311,7 @@ export default function Configuracoes() {
           <p className="text-gray-500 mb-6">Esta área requer autorização de administrador.</p>
           <button
             onClick={() => { setSenhaMestreModal(true); setModalAberto(true); }}
-            className="bg-black text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 mx-auto"
+            className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 mx-auto"
           >
             <Lock size={16} /> Informar Senha Mestre
           </button>
@@ -227,7 +341,7 @@ export default function Configuracoes() {
               />
               <div className="flex gap-3 justify-end mt-6">
                 <button onClick={() => { setSenhaMestreModal(false); setModalAberto(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-                <button onClick={validarSenhaMestre} disabled={!senhaMestreInput.trim() || senhaMestreLoading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${senhaMestreInput.trim() && !senhaMestreLoading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                <button onClick={validarSenhaMestre} disabled={!senhaMestreInput.trim() || senhaMestreLoading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${senhaMestreInput.trim() && !senhaMestreLoading ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                   {senhaMestreLoading ? 'Validando...' : 'Validar'}
                 </button>
               </div>
@@ -254,7 +368,7 @@ export default function Configuracoes() {
           { id: 'usuarios' as const, label: 'Usuários', icon: Users },
           { id: 'permissoes' as const, label: 'Permissões', icon: Shield },
           { id: 'sistema' as const, label: 'Sistema', icon: Palette },
-        ].map(tab => (
+        ].filter(tab => getSlug() !== 'focus' || tab.id === 'sistema').map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -275,7 +389,7 @@ export default function Configuracoes() {
                 <h2 className="text-lg font-serif font-semibold text-gray-800">Usuários do Sistema</h2>
                 <span className="text-xs text-gray-400 bg-gray-200 px-2.5 py-1 rounded-full font-medium">{usuarios.length} cadastrados</span>
               </div>
-              <button onClick={abrirNovoUsuario} className="bg-black text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm">
+              <button onClick={abrirNovoUsuario} className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm">
                 <Plus size={16} /> Novo Usuário
               </button>
             </div>
@@ -296,7 +410,7 @@ export default function Configuracoes() {
                     <tr key={usuario.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
                             {usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
                           </div>
                           <div>
@@ -386,14 +500,139 @@ export default function Configuracoes() {
             <h2 className="text-lg font-serif font-semibold text-gray-800">Configurações do Sistema</h2>
 
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Building2 size={18} className="text-black" /> Dados da Empresa</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Empresa *</label>
+                  <input type="text" value={formEmpresa.nomeEmpresa} onChange={e => setFormEmpresa({ ...formEmpresa, nomeEmpresa: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="Nome da empresa exibido no sistema" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
+                  <input type="text" value={formEmpresa.cnpj} onChange={e => setFormEmpresa({ ...formEmpresa, cnpj: mascaraCnpj(e.target.value) })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="00.000.000/0000-00" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Slogan / Subtítulo</label>
+                  <input type="text" value={formEmpresa.slogan} onChange={e => setFormEmpresa({ ...formEmpresa, slogan: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="Ex.: Amendoim & Especiarias" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                  <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                    <div className="grid gap-3 sm:grid-cols-4">
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-xs font-medium text-gray-500">CEP</label>
+                        <div className="flex gap-2">
+                          <input type="text" value={formEmpresa.cep} onChange={e => setFormEmpresa({ ...formEmpresa, cep: mascaraCep(e.target.value) })} placeholder="00000-000" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                          <button type="button" onClick={buscarCepConfig} disabled={buscandoCep} className="shrink-0 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50">
+                            {buscandoCep ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Buscar CEP'}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Número</label>
+                        <input type="text" value={formEmpresa.numero} onChange={e => setFormEmpresa({ ...formEmpresa, numero: e.target.value })} placeholder="123" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Estado (UF)</label>
+                        <input type="text" value={formEmpresa.estado} onChange={e => setFormEmpresa({ ...formEmpresa, estado: e.target.value })} maxLength={2} placeholder="PE" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Logradouro</label>
+                        <input type="text" value={formEmpresa.logradouro} onChange={e => setFormEmpresa({ ...formEmpresa, logradouro: e.target.value })} placeholder="Rua, avenida..." className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Bairro</label>
+                        <input type="text" value={formEmpresa.bairro} onChange={e => setFormEmpresa({ ...formEmpresa, bairro: e.target.value })} placeholder="Centro" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-500">Cidade</label>
+                        <input type="text" value={formEmpresa.cidade} onChange={e => setFormEmpresa({ ...formEmpresa, cidade: e.target.value })} placeholder="Paulista" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                      {formEmpresa.logoUrl ? (
+                        <img src={formEmpresa.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                      ) : (
+                        <Building2 size={28} className="text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary transition-colors cursor-pointer shadow-sm w-fit">
+                        <UploadCloud size={16} /> {enviandoLogo ? 'Enviando...' : 'Enviar Logo'}
+                        <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => uploadLogo(e.target.files?.[0])} disabled={enviandoLogo} />
+                      </label>
+                      {formEmpresa.logoUrl && (
+                        <button onClick={() => setFormEmpresa({ ...formEmpresa, logoUrl: '' })} className="text-sm text-gray-600 hover:underline flex items-center gap-1 w-fit">
+                          <Trash2 size={14} /> Remover logo
+                        </button>
+                      )}
+                      <p className="text-[11px] text-gray-400 italic">PNG ou JPG. A logo substitui a marca exibida em todo o sistema.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Palette size={18} className="text-black" /> Aparência</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cor Principal</label>
-                  <div className="flex gap-3">
-                    {[{ cor: '#000000', nome: 'Preto' }, { cor: '#3b82f6', nome: 'Blue' }, { cor: '#8b5cf6', nome: 'Purple' }, { cor: '#f59e0b', nome: 'Amber' }, { cor: '#ef4444', nome: 'Red' }].map(({ cor, nome }) => (
-                      <button key={cor} onClick={() => setCorPrincipal(cor)} className={`w-10 h-10 rounded-xl transition-all hover:scale-110 ${corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`} style={{ backgroundColor: cor }} title={nome} />
+                  <div className="flex gap-3 items-center">
+                    {[{ cor: '#0a0a0a', nome: 'Preto' }, { cor: '#2563eb', nome: 'Blue' }, { cor: '#7c3aed', nome: 'Purple' }, { cor: '#d97706', nome: 'Amber' }, { cor: '#dc2626', nome: 'Red' }].map(({ cor, nome }) => (
+                      <button
+                        key={cor}
+                        onClick={() => { setCorPrincipal(cor); atualizarConfig({ corPrincipal: cor }); }}
+                        className={`w-10 h-10 rounded-xl transition-all hover:scale-110 ${corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                        style={{ backgroundColor: cor }}
+                        title={nome}
+                      />
                     ))}
+                    <div className="relative">
+                      <input
+                        type="color"
+                        value={corPrincipal}
+                        onChange={e => { setCorPrincipal(e.target.value); atualizarConfig({ corPrincipal: e.target.value }); }}
+                        className="w-10 h-10 rounded-xl cursor-pointer border border-gray-200 bg-white p-0"
+                        title="Cor personalizada"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-2 italic">A cor é aplicada imediatamente em todo o sistema.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vídeo / Foto de Fundo</label>
+                  <p className="text-[11px] text-gray-400 mb-2">Exibido como fundo da tela de login da empresa.</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                      {formEmpresa.videoUrl ? (
+                        /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(formEmpresa.videoUrl) ? (
+                          <img src={formEmpresa.videoUrl} alt="Fundo" className="w-full h-full object-cover" />
+                        ) : (
+                          <video src={formEmpresa.videoUrl} muted playsInline className="w-full h-full object-cover" />
+                        )
+                      ) : (
+                        <Building2 size={28} className="text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary transition-colors cursor-pointer shadow-sm w-fit">
+                        <UploadCloud size={16} /> {enviandoVideo ? 'Enviando...' : 'Enviar Vídeo/Foto'}
+                        <input type="file" accept="video/mp4,video/webm,video/quicktime,image/png,image/jpeg" className="hidden" onChange={e => uploadVideo(e.target.files?.[0])} disabled={enviandoVideo} />
+                      </label>
+                      {formEmpresa.videoUrl && (
+                        <button onClick={() => setFormEmpresa({ ...formEmpresa, videoUrl: '' })} className="text-sm text-gray-600 hover:underline flex items-center gap-1 w-fit">
+                          <Trash2 size={14} /> Remover fundo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <input type="text" value={formEmpresa.videoUrl} onChange={e => setFormEmpresa({ ...formEmpresa, videoUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black bg-white" placeholder="Ou cole a URL do vídeo/foto" />
                   </div>
                 </div>
               </div>
@@ -412,7 +651,7 @@ export default function Configuracoes() {
                       <div className="font-medium text-gray-900 text-sm">{item.label}</div>
                       <div className="text-xs text-gray-400">{item.descricao}</div>
                     </div>
-                    <button onClick={() => setNotificacoes({ ...notificacoes, [item.key]: !notificacoes[item.key] })} className={`w-11 h-6 rounded-full transition-all relative ${notificacoes[item.key] ? 'bg-black' : 'bg-gray-300'}`}>
+                    <button onClick={() => setNotificacoes({ ...notificacoes, [item.key]: !notificacoes[item.key] })} className={`w-11 h-6 rounded-full transition-all relative ${notificacoes[item.key] ? 'bg-primary' : 'bg-gray-300'}`}>
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${notificacoes[item.key] ? 'left-6' : 'left-1'}`} />
                     </button>
                   </div>
@@ -434,10 +673,10 @@ export default function Configuracoes() {
               </div>
             </div>
 
-            <button onClick={salvarConfigSistema} className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-sm ${
-              corSalva ? 'bg-gray-800 text-white shadow-black/20' : 'bg-black text-white hover:bg-gray-800 shadow-black/20'
+            <button onClick={salvarConfigSistema} disabled={salvandoConfig || !formEmpresa.nomeEmpresa.trim()} className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-sm ${
+              corSalva ? 'bg-gray-800 text-white shadow-black/20' : salvandoConfig || !formEmpresa.nomeEmpresa.trim() ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary shadow-black/20'
             }`}>
-              {corSalva ? <><Check size={16} /> Salvo!</> : <><Save size={16} /> Salvar Configurações</>}
+              {corSalva ? <><Check size={16} /> Salvo!</> : salvandoConfig ? 'Salvando...' : <><Save size={16} /> Salvar Configurações</>}
             </button>
           </div>
         )}
@@ -473,7 +712,7 @@ export default function Configuracoes() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Setores (Máx. {setoresConfig.maxPorUsuario})</label>
                 <div className="flex flex-wrap gap-2">
                   {setores.map(setor => (
-                    <button key={setor} onClick={() => toggleSetorForm(setor)} className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${formNovoUsuario.setores.includes(setor) ? 'bg-black text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                    <button key={setor} onClick={() => toggleSetorForm(setor)} className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${formNovoUsuario.setores.includes(setor) ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                       {setor}
                     </button>
                   ))}
@@ -485,7 +724,7 @@ export default function Configuracoes() {
             </div>
             <div className="flex gap-3 justify-end mt-8">
               <button onClick={() => { setIsModalOpen(false); setModalAberto(false); setUsuarioEditando(null); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
-              <button onClick={salvarUsuario} disabled={!formNovoUsuario.nome.trim() || !formNovoUsuario.usuarioLogin.trim() || loading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${formNovoUsuario.nome.trim() && formNovoUsuario.usuarioLogin.trim() && !loading ? 'bg-black text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+              <button onClick={salvarUsuario} disabled={!formNovoUsuario.nome.trim() || !formNovoUsuario.usuarioLogin.trim() || loading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${formNovoUsuario.nome.trim() && formNovoUsuario.usuarioLogin.trim() && !loading ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                 {loading ? 'Salvando...' : usuarioEditando ? 'Salvar Alterações' : 'Cadastrar Usuário'}
               </button>
             </div>

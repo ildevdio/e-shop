@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import NotificationBell from './NotificationBell';
+import { getSlug, isShopDomain } from '../services/tenantSetup';
 
 const SECTOR_LABELS: Record<string, string> = {
   '/': 'Dashboard',
@@ -22,6 +23,7 @@ const SECTOR_LABELS: Record<string, string> = {
   '/empresa/avisos': 'Empresa — Avisos',
   '/empresa/enquetes': 'Empresa — Enquetes',
   '/configuracoes': 'Configurações',
+  '/empresas': 'Cadastro de Empresas',
 };
 
 interface TopbarProps {
@@ -37,9 +39,14 @@ export default function Topbar({ className }: TopbarProps) {
   const initials = (nome || 'U')
     .split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
 
-  const sectorLabel = SECTOR_LABELS[location.pathname] || 'Sistema';
+  const slug = getSlug();
+  const pathSemSlug = slug ? location.pathname.replace(`/${slug}`, '') || '/' : location.pathname;
+  const sectorLabel = SECTOR_LABELS[pathSemSlug] || 'Sistema';
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => {
+    logout();
+    navigate(isShopDomain() ? '/login' : `/${slug}/login`);
+  };
 
   return (
     <header className={`sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-6 backdrop-blur transition-all duration-300 ${modalAberto ? 'pointer-events-none border-transparent bg-transparent' : 'border-border bg-secondary/50'} ${className ?? ''}`.trim()}>

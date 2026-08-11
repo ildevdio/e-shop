@@ -346,7 +346,7 @@ export default function Financeiro() {
               <button
                 onClick={salvarAlteracoes}
                 disabled={salvando}
-                className="px-5 py-2.5 bg-black text-white hover:bg-gray-800 rounded-xl font-medium transition-colors text-sm disabled:opacity-50"
+                className="px-5 py-2.5 bg-primary text-white hover:bg-primary rounded-xl font-medium transition-colors text-sm disabled:opacity-50"
               >
                 {salvando ? <Loader2 size={14} className="animate-spin" /> : null}
                 Salvar Alterações

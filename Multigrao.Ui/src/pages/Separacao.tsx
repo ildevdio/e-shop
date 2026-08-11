@@ -172,7 +172,7 @@ export default function Separacao() {
                   </div>
                   <button
                     onClick={() => assumirPedido(p)}
-                    className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide flex items-center gap-2 hover:bg-black shadow-sm transition-all shrink-0"
+                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide flex items-center gap-2 hover:bg-black shadow-sm transition-all shrink-0"
                   >
                     <Play size={16} /> Assumir
                   </button>
@@ -189,7 +189,7 @@ export default function Separacao() {
                     const c = p.itens.filter(i => i.separado).length;
                     return (
                       <div key={p.id} className="bg-white p-5 rounded-2xl shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-all flex items-center gap-5">
-                        <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
+                        <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shrink-0">
                           <span className="text-xs font-bold text-white">#{p.id}</span>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -270,7 +270,7 @@ export default function Separacao() {
             </div>
             <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gray-900 rounded-full transition-all duration-500"
+                className="h-full bg-primary rounded-full transition-all duration-500"
                 style={{ width: `${progresso}%` }}
               />
             </div>
@@ -298,7 +298,7 @@ export default function Separacao() {
                 </div>
                 <div className="w-6 h-6 rounded-md flex items-center justify-center transition-all shrink-0 border border-gray-300 bg-white">
                   {item.separado && (
-                    <div className="w-full h-full bg-black rounded-md flex items-center justify-center">
+                    <div className="w-full h-full bg-primary rounded-md flex items-center justify-center">
                       <Check size={14} strokeWidth={3} className="text-white" />
                     </div>
                   )}
@@ -329,7 +329,7 @@ export default function Separacao() {
               disabled={!todosSeparados}
               className={`w-full py-4 rounded-2xl text-sm font-bold tracking-wide transition-all ${
                 todosSeparados
-                  ? 'bg-gray-900 text-white hover:bg-black shadow-lg shadow-black/10'
+                  ? 'bg-primary text-white hover:bg-black shadow-lg shadow-black/10'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
@@ -343,7 +343,7 @@ export default function Separacao() {
       {step === 'concluido' && pedidoAtivo && (
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="text-center anim-scale-in">
-            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 size={40} className="text-white" />
             </div>
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Separação Concluída</h1>
@@ -360,7 +360,7 @@ export default function Separacao() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => { setPedidoAtivo(null); setStep('fila'); carregar(); }}
-                className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-black transition-all"
+                className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-black transition-all"
               >
                 <ArrowLeft size={16} /> Voltar à Fila
               </button>

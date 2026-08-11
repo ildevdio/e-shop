@@ -13,6 +13,7 @@ import { logisticaService } from '../services/logisticaService';
 import { entregaService } from '../services/entregaService';
 import { avisoService } from '../services/avisoService';
 import type { LucideIcon } from 'lucide-react';
+import { useSistemaStore } from '../store/sistemaStore';
 
 interface Kpi {
   label: string;
@@ -40,6 +41,7 @@ export default function Dashboard() {
   const role = useAuthStore(state => state.role);
   const setores = useAuthStore(state => state.setores);
   const isAdmin = role === 'AdminMaster' || role === 'SuperAdmin';
+  const config = useSistemaStore((state) => state.config);
 
   const [kpis, setKpis] = useState<Kpi[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -115,7 +117,7 @@ export default function Dashboard() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-4">
             <Wheat size={16} className="text-white/40" />
-            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-[0.2em]">Multigrãos — Amendoim & Especiarias</span>
+            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-[0.2em]">{config.nomeEmpresa}{config.slogan ? ` — ${config.slogan}` : ''}</span>
           </div>
           <h2 className="text-2xl font-heading font-bold tracking-tight mb-1">
             {greeting}, {nome?.split(' ')[0] || 'Operador'}

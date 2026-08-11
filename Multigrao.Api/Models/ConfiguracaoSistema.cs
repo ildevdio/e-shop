@@ -1,0 +1,22 @@
+namespace Multigrao.Api.Models
+{
+    public class ConfiguracaoSistema
+    {
+        public int Id { get; set; }
+        public string NomeEmpresa { get; set; } = "Multigrãos";
+        public string Slug { get; set; } = "multigraos";
+        public string? Cnpj { get; set; }
+        public string? Slogan { get; set; }
+        public string? Endereco { get; set; }
+        public string? Cep { get; set; }
+        public string? Logradouro { get; set; }
+        public string? Numero { get; set; }
+        public string? Bairro { get; set; }
+        public string? Cidade { get; set; }
+        public string? Estado { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? VideoUrl { get; set; }
+        public string CorPrincipal { get; set; } = "#0a0a0a";
+        public bool Ativo { get; set; } = true;
+    }
+}

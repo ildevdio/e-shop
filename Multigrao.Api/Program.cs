@@ -15,6 +15,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<Multigrao.Api.Services.IAuthService, Multigrao.Api.Services.AuthService>();
+builder.Services.AddScoped<Multigrao.Api.Services.ITenantContext, Multigrao.Api.Services.TenantContext>();
 
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
@@ -27,7 +28,7 @@ var configuredOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS")
     ?? builder.Configuration["Cors:Origins"]
     ?? "http://localhost:5173").Split(',', StringSplitOptions.TrimEntries);
 
-var hardcodedOrigins = new[] { "https://multigraos.vercel.app" };
+var hardcodedOrigins = new[] { "https://multigraos.vercel.app", "https://shop.focus-solutions.tech" };
 
 var corsOrigins = configuredOrigins
     .Concat(hardcodedOrigins)
@@ -89,6 +90,7 @@ db.Database.Migrate();
 app.UseStaticFiles();
 
 app.UseAuthentication();
+app.UseMiddleware<Multigrao.Api.Middlewares.TenantMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

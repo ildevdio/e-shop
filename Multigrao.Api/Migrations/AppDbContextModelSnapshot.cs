@@ -43,6 +43,9 @@ namespace Multigrao.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IAAtiva")
                         .HasColumnType("boolean");
 
@@ -66,6 +69,9 @@ namespace Multigrao.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int?>("PedidoId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Quantidade")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -85,6 +91,9 @@ namespace Multigrao.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("UsuarioAtendenteId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("VendaFechada")
                         .HasColumnType("boolean");
 
@@ -92,7 +101,11 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ConversaId");
 
-                    b.ToTable("AtendimentoLeads", (string)null);
+                    b.HasIndex("PedidoId");
+
+                    b.HasIndex("UsuarioAtendenteId");
+
+                    b.ToTable("AtendimentoLeads");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Aviso", b =>
@@ -113,6 +126,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<DateTime>("DataPublicacao")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("SetorAlvoId")
                         .HasColumnType("integer");
 
@@ -127,7 +143,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("SetorAlvoId");
 
-                    b.ToTable("Avisos", (string)null);
+                    b.ToTable("Avisos");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Carrinho", b =>
@@ -146,12 +162,15 @@ namespace Multigrao.Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CpfCnpj")
+                    b.HasIndex("EmpresaId", "CpfCnpj")
                         .IsUnique();
 
-                    b.ToTable("Carrinhos", (string)null);
+                    b.ToTable("Carrinhos");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.CarrinhoItem", b =>
@@ -163,6 +182,9 @@ namespace Multigrao.Api.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CarrinhoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EmpresaId")
                         .HasColumnType("integer");
 
                     b.Property<int>("ProdutoId")
@@ -177,7 +199,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ProdutoId");
 
-                    b.ToTable("CarrinhoItens", (string)null);
+                    b.ToTable("CarrinhoItens");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Categoria", b =>
@@ -187,6 +209,9 @@ namespace Multigrao.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -198,7 +223,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categorias", (string)null);
+                    b.ToTable("Categorias");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
@@ -241,6 +266,9 @@ namespace Multigrao.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -305,7 +333,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("VendedorId");
 
-                    b.ToTable("Clientes", (string)null);
+                    b.ToTable("Clientes");
 
                     b.HasData(
                         new
@@ -318,6 +346,7 @@ namespace Multigrao.Api.Migrations
                             Complemento = "",
                             CpfCnpj = "12.345.678/0001-90",
                             Email = "contato@paodourado.com.br",
+                            EmpresaId = 1,
                             Estado = "PE",
                             InscricaoEstadual = "",
                             InscricaoMunicipal = "",
@@ -339,6 +368,7 @@ namespace Multigrao.Api.Migrations
                             Complemento = "",
                             CpfCnpj = "98.765.432/0001-10",
                             Email = "compras@fresh.com.br",
+                            EmpresaId = 1,
                             Estado = "PE",
                             InscricaoEstadual = "",
                             InscricaoMunicipal = "",
@@ -360,6 +390,7 @@ namespace Multigrao.Api.Migrations
                             Complemento = "",
                             CpfCnpj = "11.222.333/0001-44",
                             Email = "vendas@naturalzinha.com.br",
+                            EmpresaId = 1,
                             Estado = "PE",
                             InscricaoEstadual = "",
                             InscricaoMunicipal = "",
@@ -370,6 +401,99 @@ namespace Multigrao.Api.Migrations
                             RegimeTributario = "",
                             Telefone = "(81) 3333-6666",
                             TipoPessoa = "PJ"
+                        });
+                });
+
+            modelBuilder.Entity("Multigrao.Api.Models.ConfiguracaoSistema", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Bairro")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Cep")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Cidade")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Cnpj")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CorPrincipal")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Endereco")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Estado")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Logradouro")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NomeEmpresa")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Numero")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slogan")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VideoUrl")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConfiguracoesSistema");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Ativo = true,
+                            Bairro = "Centro",
+                            Cidade = "Paulista",
+                            Cnpj = "26.277.355/0001-70",
+                            CorPrincipal = "#0a0a0a",
+                            Endereco = "Centro — Paulista — PE",
+                            Estado = "PE",
+                            LogoUrl = "/multigraos-logo.png",
+                            NomeEmpresa = "Multigrãos",
+                            Slogan = "Amendoim & Especiarias",
+                            Slug = "multigraos",
+                            VideoUrl = "/multigraosvid.mp4"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Ativo = true,
+                            Cidade = "Paulista",
+                            Cnpj = "00.000.000/0000-00",
+                            CorPrincipal = "#111827",
+                            Endereco = "Paulista — PE",
+                            Estado = "PE",
+                            LogoUrl = "/multigraos-logo.png",
+                            NomeEmpresa = "Focus Solutions",
+                            Slogan = "Plataforma de Gestão",
+                            Slug = "focus"
                         });
                 });
 
@@ -394,6 +518,9 @@ namespace Multigrao.Api.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -408,7 +535,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("Contatos", (string)null);
+                    b.ToTable("Contatos");
 
                     b.HasData(
                         new
@@ -417,6 +544,7 @@ namespace Multigrao.Api.Migrations
                             Cargo = "",
                             ClienteId = 1,
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Carlos Eduardo",
                             Telefone = "(81) 99812-3344"
                         },
@@ -426,6 +554,7 @@ namespace Multigrao.Api.Migrations
                             Cargo = "",
                             ClienteId = 1,
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Fernanda Lima",
                             Telefone = "(81) 99766-5588"
                         },
@@ -435,6 +564,7 @@ namespace Multigrao.Api.Migrations
                             Cargo = "",
                             ClienteId = 2,
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Roberto Alves",
                             Telefone = "(81) 99234-1122"
                         },
@@ -444,6 +574,7 @@ namespace Multigrao.Api.Migrations
                             Cargo = "",
                             ClienteId = 2,
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Mariana Costa",
                             Telefone = "(81) 99100-2233"
                         },
@@ -453,6 +584,7 @@ namespace Multigrao.Api.Migrations
                             Cargo = "",
                             ClienteId = 3,
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Pedro Henrique",
                             Telefone = "(81) 98877-6655"
                         },
@@ -461,6 +593,7 @@ namespace Multigrao.Api.Migrations
                             Id = 6,
                             Cargo = "",
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Ana Beatriz",
                             Telefone = "(81) 98543-2211"
                         },
@@ -469,6 +602,7 @@ namespace Multigrao.Api.Migrations
                             Id = 7,
                             Cargo = "",
                             Email = "",
+                            EmpresaId = 1,
                             Nome = "Lucas Nascimento",
                             Telefone = "(81) 98432-1100"
                         });
@@ -488,6 +622,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Tipo")
                         .HasColumnType("integer");
 
@@ -500,7 +637,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("Conversas", (string)null);
+                    b.ToTable("Conversas");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
@@ -523,6 +660,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<DateTime>("DataExpiracao")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -532,7 +672,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("AutorId");
 
-                    b.ToTable("Enquetes", (string)null);
+                    b.ToTable("Enquetes");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
@@ -542,6 +682,9 @@ namespace Multigrao.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("MotivoDevolucao")
                         .IsRequired()
@@ -566,7 +709,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("RotaId");
 
-                    b.ToTable("Entregas", (string)null);
+                    b.ToTable("Entregas");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.EntregaPedido", b =>
@@ -581,7 +724,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("PedidoId");
 
-                    b.ToTable("EntregasPedidos", (string)null);
+                    b.ToTable("EntregasPedidos");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.ItemPedido", b =>
@@ -591,6 +734,9 @@ namespace Multigrao.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("PedidoId")
                         .HasColumnType("integer");
@@ -626,7 +772,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("SeparadoPorUsuarioId");
 
-                    b.ToTable("ItensPedido", (string)null);
+                    b.ToTable("ItensPedido");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Marca", b =>
@@ -640,6 +786,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<string>("Cor")
                         .HasMaxLength(7)
                         .HasColumnType("character varying(7)");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<byte[]>("ImagemBytes")
                         .HasColumnType("bytea");
@@ -659,7 +808,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Marcas", (string)null);
+                    b.ToTable("Marcas");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Mensagem", b =>
@@ -679,6 +828,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<DateTime?>("DataVisualizacao")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Texto")
                         .IsRequired()
                         .HasColumnType("text");
@@ -696,7 +848,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("UsuarioRemetenteId");
 
-                    b.ToTable("Mensagens", (string)null);
+                    b.ToTable("Mensagens");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Notificacao", b =>
@@ -709,6 +861,9 @@ namespace Multigrao.Api.Migrations
 
                     b.Property<DateTime>("CriadaEm")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("Lida")
                         .HasColumnType("boolean");
@@ -740,7 +895,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notificacoes", (string)null);
+                    b.ToTable("Notificacoes");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.OpcaoEnquete", b =>
@@ -750,6 +905,9 @@ namespace Multigrao.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("EnqueteId")
                         .HasColumnType("integer");
@@ -766,7 +924,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("EnqueteId");
 
-                    b.ToTable("OpcoesEnquete", (string)null);
+                    b.ToTable("OpcoesEnquete");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
@@ -808,6 +966,9 @@ namespace Multigrao.Api.Migrations
 
                     b.Property<decimal>("Desconto")
                         .HasColumnType("numeric");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("EnderecoConfere")
                         .HasColumnType("boolean");
@@ -869,7 +1030,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("ClienteId");
 
-                    b.ToTable("Pedidos", (string)null);
+                    b.ToTable("Pedidos");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Produto", b =>
@@ -897,6 +1058,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<string>("Embalagem")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("Estoque")
                         .HasColumnType("numeric");
@@ -939,7 +1103,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("MarcaId");
 
-                    b.ToTable("Produtos", (string)null);
+                    b.ToTable("Produtos");
 
                     b.HasData(
                         new
@@ -948,6 +1112,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "CAS001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Castanha do Pará",
                             PesoUnidade = 0.5m,
@@ -960,6 +1125,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "CHI001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Chia (1kg)",
                             PesoUnidade = 1m,
@@ -972,6 +1138,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "AVE001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Aveia em Flocos",
                             PesoUnidade = 0.5m,
@@ -984,6 +1151,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "QUI001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Quinoa (500g)",
                             PesoUnidade = 0.5m,
@@ -996,6 +1164,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "LIN001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Linhaça Dourada",
                             PesoUnidade = 0.25m,
@@ -1008,6 +1177,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "NOZ001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Nozes (500g)",
                             PesoUnidade = 0.5m,
@@ -1020,6 +1190,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "AME001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Amêndoas (250g)",
                             PesoUnidade = 0.25m,
@@ -1032,6 +1203,7 @@ namespace Multigrao.Api.Migrations
                             Ativo = true,
                             CodigoERP = "CAC001",
                             Destaque = false,
+                            EmpresaId = 1,
                             Estoque = 0m,
                             Nome = "Cacau em Pó",
                             PesoUnidade = 0.3m,
@@ -1050,6 +1222,9 @@ namespace Multigrao.Api.Migrations
 
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LinkGoogleMaps")
                         .IsRequired()
@@ -1072,7 +1247,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("VeiculoId");
 
-                    b.ToTable("Rotas", (string)null);
+                    b.ToTable("Rotas");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Setor", b =>
@@ -1090,7 +1265,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Setores", (string)null);
+                    b.ToTable("Setores");
 
                     b.HasData(
                         new
@@ -1146,6 +1321,9 @@ namespace Multigrao.Api.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -1167,13 +1345,14 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
                             Ativo = true,
+                            EmpresaId = 1,
                             Nome = "Admin Multigrãos",
                             Role = "AdminMaster",
                             SenhaHash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq",
@@ -1183,6 +1362,7 @@ namespace Multigrao.Api.Migrations
                         {
                             Id = 2,
                             Ativo = true,
+                            EmpresaId = 1,
                             Nome = "João Comercial",
                             Role = "Comum",
                             SenhaHash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq",
@@ -1192,6 +1372,7 @@ namespace Multigrao.Api.Migrations
                         {
                             Id = 3,
                             Ativo = true,
+                            EmpresaId = 1,
                             Nome = "Ana Separação",
                             Role = "Comum",
                             SenhaHash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq",
@@ -1201,10 +1382,21 @@ namespace Multigrao.Api.Migrations
                         {
                             Id = 4,
                             Ativo = true,
+                            EmpresaId = 1,
                             Nome = "Pedro Motorista",
                             Role = "Comum",
                             SenhaHash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq",
                             UsuarioLogin = "pedro"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Ativo = true,
+                            EmpresaId = 2,
+                            Nome = "Admin Focus",
+                            Role = "AdminMaster",
+                            SenhaHash = "$2a$11$8txlZeWbLmAkE.FUvRPhj.P6VzpU7K2GVhfVMWMJKqVldAuGhvEXC",
+                            UsuarioLogin = "focus"
                         });
                 });
 
@@ -1220,7 +1412,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("SetorId");
 
-                    b.ToTable("UsuarioSetores", (string)null);
+                    b.ToTable("UsuarioSetores");
 
                     b.HasData(
                         new
@@ -1263,6 +1455,9 @@ namespace Multigrao.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Modelo")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1278,12 +1473,13 @@ namespace Multigrao.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Veiculos", (string)null);
+                    b.ToTable("Veiculos");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
+                            EmpresaId = 1,
                             Modelo = "Fiorino",
                             PesoMaximo = 800m,
                             Placa = "ABC-1234"
@@ -1291,6 +1487,7 @@ namespace Multigrao.Api.Migrations
                         new
                         {
                             Id = 2,
+                            EmpresaId = 1,
                             Modelo = "Van Master",
                             PesoMaximo = 1500m,
                             Placa = "DEF-5678"
@@ -1307,6 +1504,9 @@ namespace Multigrao.Api.Migrations
 
                     b.Property<DateTime>("DataVoto")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("EnqueteId")
                         .HasColumnType("integer");
@@ -1325,7 +1525,7 @@ namespace Multigrao.Api.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("VotosEnquete", (string)null);
+                    b.ToTable("VotosEnquete");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.AtendimentoLead", b =>
@@ -1336,7 +1536,21 @@ namespace Multigrao.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
+                        .WithMany()
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Multigrao.Api.Models.Usuario", "UsuarioAtendente")
+                        .WithMany()
+                        .HasForeignKey("UsuarioAtendenteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Conversa");
+
+                    b.Navigation("Pedido");
+
+                    b.Navigation("UsuarioAtendente");
                 });
 
             modelBuilder.Entity("Multigrao.Api.Models.Aviso", b =>
