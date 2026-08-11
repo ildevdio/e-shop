@@ -10,29 +10,33 @@ namespace Multigrao.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.InsertData(
-                table: "ConfiguracoesSistema",
-                columns: new[] { "Id", "Ativo", "CorPrincipal", "Endereco", "LogoUrl", "NomeEmpresa", "Slogan", "Slug" },
-                values: new object[] { 2, true, "#111827", "Paulista — PE", "/multigraos-logo.png", "Focus Solutions", "Plataforma de Gestão", "focus" });
+            migrationBuilder.Sql("""
+                INSERT INTO "ConfiguracoesSistema" ("Id", "Ativo", "CorPrincipal", "Endereco", "LogoUrl", "NomeEmpresa", "Slogan", "Slug")
+                SELECT 2, TRUE, '#111827', 'Paulista — PE', '/multigraos-logo.png', 'Focus Solutions', 'Plataforma de Gestão', 'focus'
+                WHERE NOT EXISTS (SELECT 1 FROM "ConfiguracoesSistema" WHERE "Id" = 2);
+                """);
 
-            migrationBuilder.InsertData(
-                table: "Usuarios",
-                columns: new[] { "Id", "Ativo", "EmpresaId", "Nome", "Role", "SenhaHash", "UsuarioLogin" },
-                values: new object[] { 5, true, 2, "Admin Focus", "AdminMaster", "$2a$11$8txlZeWbLmAkE.FUvRPhj.P6VzpU7K2GVhfVMWMJKqVldAuGhvEXC", "focus" });
+            migrationBuilder.Sql("""
+                SELECT setval(pg_get_serial_sequence('"Usuarios"', 'Id'), (SELECT COALESCE(MAX("Id"), 1) FROM "Usuarios"));
+                """);
+
+            migrationBuilder.Sql("""
+                INSERT INTO "Usuarios" ("Ativo", "EmpresaId", "Nome", "Role", "SenhaHash", "UsuarioLogin")
+                SELECT TRUE, 2, 'Admin Focus', 'AdminMaster', '$2a$11$8txlZeWbLmAkE.FUvRPhj.P6VzpU7K2GVhfVMWMJKqVldAuGhvEXC', 'focus'
+                WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE "UsuarioLogin" = 'focus');
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(
-                table: "ConfiguracoesSistema",
-                keyColumn: "Id",
-                keyValue: 2);
+            migrationBuilder.Sql("""
+                DELETE FROM "ConfiguracoesSistema" WHERE "Id" = 2;
+                """);
 
-            migrationBuilder.DeleteData(
-                table: "Usuarios",
-                keyColumn: "Id",
-                keyValue: 5);
+            migrationBuilder.Sql("""
+                DELETE FROM "Usuarios" WHERE "UsuarioLogin" = 'focus' AND "EmpresaId" = 2;
+                """);
         }
     }
 }
