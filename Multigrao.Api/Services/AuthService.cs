@@ -24,7 +24,9 @@ namespace Multigrao.Api.Services
 
         public string GenerateJwtToken(Usuario usuario)
         {
-            var key = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
+            var key = Environment.GetEnvironmentVariable("JWT_KEY")
+                ?? _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT_KEY is not configured.");
             var issuer = _configuration["Jwt:Issuer"];
             var audience = _configuration["Jwt:Audience"];
 
