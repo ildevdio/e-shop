@@ -116,7 +116,7 @@ function CardEcommerce({
           <span className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
         {isAtacado && (
-          <span className="absolute top-2 left-2 bg-zinc-900 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Atacado</span>
+          <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Atacado</span>
         )}
         {produto.estoque <= 0 && (
           <span className="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Esgotado</span>
@@ -156,7 +156,7 @@ function CardEcommerce({
             Produto esgotado
           </button>
         ) : (
-          <button onClick={onAbrir} className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-[10px] rounded-full transition-colors">
+          <button onClick={onAbrir} className="w-full py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[10px] rounded-full transition-colors">
             Ver Produto
           </button>
         )}
@@ -188,7 +188,7 @@ function CardCarrossel({
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
       </button>
       {isAtacado && (
-        <span className="absolute top-3 left-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Atacado</span>
+        <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Atacado</span>
       )}
       {produto.estoque <= 0 && (
         <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Esgotado</span>
@@ -298,7 +298,7 @@ function CampoQuantidade({
         type="button"
         onClick={() => aoAplicar(valor + 1)}
         disabled={noLimite}
-        className={`rounded-full transition-colors ${noLimite ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed' : 'bg-zinc-900 text-white hover:bg-zinc-800'} ${grande ? 'p-3' : 'p-1.5'}`}
+        className={`rounded-full transition-colors ${noLimite ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'} ${grande ? 'p-3' : 'p-1.5'}`}
       >
         <Plus size={grande ? 18 : 14} />
       </button>
@@ -313,7 +313,7 @@ function FaixaMarca({ marca, total }: { marca: Marca | null; total: number }) {
   if (!marca) {
     return (
       <div className="flex items-center gap-3 px-5 sm:px-8 py-4 rounded-2xl border border-zinc-900/20 bg-white">
-        <div className="h-8 w-2 bg-zinc-900 rounded-full" />
+        <div className="h-8 w-2 bg-primary rounded-full" />
         <h3 className="font-heading font-bold text-xl sm:text-2xl text-zinc-900">Diversos</h3>
         <div className="flex-1" />
         <span className="hidden sm:block text-[11px] font-bold uppercase tracking-widest text-zinc-400">
@@ -391,8 +391,8 @@ const [erroAcesso, setErroAcesso] = useState('');
   const config = useSistemaStore((state) => state.config);
   
   // Theme Variables
-  const primaryBg = isRestaurant ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-zinc-900 hover:bg-zinc-800 text-white';
-  const primaryBorderActive = isRestaurant ? 'border-red-600 bg-red-600 text-white' : 'border-zinc-900 bg-zinc-900 text-white';
+  const primaryBg = 'bg-primary text-primary-foreground hover:bg-primary/90';
+  const primaryBorderActive = 'border-primary bg-primary text-primary-foreground';
 
   const handleBuscarCEP = async () => {
     setBuscandoCEP(true);
@@ -830,7 +830,7 @@ const [erroAcesso, setErroAcesso] = useState('');
             onClick={() => setTema('ecommerce')}
             className="flex items-center gap-2 backdrop-blur-md px-4 py-2 shadow-sm transition-colors text-sm font-medium bg-white/90 border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-full"
           >
-            <Palette size={16} className="text-red-500" />
+            <Palette size={16} className="text-primary" />
             Tema: Restaurante
           </button>
         </div>
@@ -858,13 +858,13 @@ const [erroAcesso, setErroAcesso] = useState('');
                       onChange={setFiltro}
                       sugestoes={sugestoes}
                       aoSelecionar={s => setFiltro(s.rotulo)}
-                      classNameInput="h-10 pl-10 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm transition-all"
+                      classNameInput="h-10 pl-10 pr-4 bg-white border border-primary rounded-full focus:outline-none text-sm transition-all"
                       onBuscar={buscarECatalogo}
                     />
                   </div>
                   <button
                     onClick={() => setMenuCategorias(true)}
-                    className={`flex items-center gap-2 h-10 px-5 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${categoriaFiltrada !== null ? 'bg-zinc-900 text-white hover:bg-zinc-800' : 'bg-white text-zinc-900 hover:bg-zinc-100'}`}
+                    className={`flex items-center gap-2 h-10 px-5 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${categoriaFiltrada !== null ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-white text-primary hover:bg-primary/10'}`}
                   >
                     <LayoutGrid size={16} />
                     <span className="max-w-28 truncate">{categoriaFiltradaNome ?? 'Categorias'}</span>
@@ -893,7 +893,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   >
                     <ShoppingCart size={18} />
                     {totalItensCarrinho > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-zinc-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
                         {totalItensCarrinho}
                       </span>
                     )}
@@ -907,7 +907,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   onChange={setFiltro}
                   sugestoes={sugestoes}
                   aoSelecionar={s => setFiltro(s.rotulo)}
-                  classNameInput="w-full h-10 pl-10 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm transition-all"
+                  classNameInput="w-full h-10 pl-10 pr-4 bg-white border border-primary rounded-full focus:outline-none text-sm transition-all"
                   onBuscar={buscarECatalogo}
                 />
               </div>
@@ -921,7 +921,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-7xl mx-auto px-4">
             <button
               onClick={() => { setProdutoDetalhe(null); setVista('catalogo'); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs'}`}
             >
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -1015,7 +1015,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     Produto esgotado
                   </button>
                 ) : (
-                  <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
+                  <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
                     Adicionar {qtdDetalhe} {produtoDetalhe.unidadeVenda ? produtoDetalhe.unidadeVenda.toLowerCase() : (qtdDetalhe === 1 ? 'item' : 'itens')} ao carrinho
                   </button>
                 )}
@@ -1044,7 +1044,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-6xl mx-auto w-full px-4 flex items-center gap-3 shrink-0">
             <button
               onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full uppercase tracking-widest text-xs'}`}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs'}`}
             >
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -1053,12 +1053,12 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-6xl mx-auto w-full px-4 py-6 flex-1 min-h-0">
             {pedidoCriado ? (
               <div className="text-center py-16">
-                <div className={`mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 ${isRestaurant ? 'bg-red-50' : 'bg-zinc-900'}`}>
-                  <CheckCircle2 size={40} className={isRestaurant ? 'text-red-600' : 'text-white'} />
+                <div className={`mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 ${isRestaurant ? 'bg-primary/10' : 'bg-primary'}`}>
+                  <CheckCircle2 size={40} className={isRestaurant ? 'text-primary' : 'text-primary-foreground'} />
                 </div>
                 <h2 className={`font-heading text-3xl font-bold ${isRestaurant ? 'text-neutral-900' : 'text-zinc-900'}`}>Pedido enviado!</h2>
                 <p className={`mt-3 ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>Recebemos seu pedido com sucesso. Em breve entraremos em contato para confirmar.</p>
-                <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className={`mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm ${isRestaurant ? 'bg-red-600 hover:bg-red-700 text-white rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full'}`}>
+                <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className={`mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm ${isRestaurant ? 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full'}`}>
                   Voltar ao catálogo
                 </button>
               </div>
@@ -1069,7 +1069,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
                 <h2 className={`font-heading text-2xl font-bold ${isRestaurant ? 'text-neutral-900' : 'text-zinc-900'}`}>Seu carrinho está vazio</h2>
                 <p className={`mt-2 ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>Navegue pelo catálogo e adicione produtos ao carrinho.</p>
-                <button onClick={() => setVista('catalogo')} className={`mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm ${isRestaurant ? 'bg-red-600 hover:bg-red-700 text-white rounded-xl' : 'bg-zinc-900 hover:bg-zinc-800 text-white rounded-full'}`}>
+                <button onClick={() => setVista('catalogo')} className={`mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm ${isRestaurant ? 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full'}`}>
                   Ver produtos
                 </button>
               </div>
@@ -1313,7 +1313,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
 
           {!isRestaurant && (
-            <button onClick={scrollParaCatalogo} className="mt-8 px-8 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-xs rounded-full shadow-[0_5px_0_rgba(0,0,0,0.35)] active:translate-y-[3px] active:shadow-none transition-all">
+            <button onClick={scrollParaCatalogo} className="mt-8 px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-xs rounded-full shadow-[0_5px_0_rgba(0,0,0,0.35)] active:translate-y-[3px] active:shadow-none transition-all">
               Ver Produtos
             </button>
           )}
@@ -1321,7 +1321,7 @@ const [erroAcesso, setErroAcesso] = useState('');
       </div>
 
       {!isRestaurant && (
-        <div ref={tickerRef} className="bg-zinc-900 text-white">
+        <div ref={tickerRef} className="bg-primary text-primary-foreground">
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]">
             <span>{config.nomeEmpresa}</span>
             <span className="text-orange-500">●</span>
@@ -1341,14 +1341,14 @@ const [erroAcesso, setErroAcesso] = useState('');
           <section className="mb-10">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-2 bg-zinc-900 rounded-full" />
+        <div className="h-8 w-2 bg-primary rounded-full" />
                 <h2 className="font-heading text-2xl sm:text-3xl font-bold text-zinc-900">Destaques</h2>
               </div>
               <div className="hidden sm:flex items-center gap-2">
-                <button onClick={() => rolarCarrossel(-1)} className="h-10 w-10 flex items-center justify-center bg-white border border-zinc-900 rounded-full hover:bg-zinc-900 hover:text-white transition-colors">
+                <button onClick={() => rolarCarrossel(-1)} className="h-10 w-10 flex items-center justify-center bg-white border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
                   <ChevronLeft size={20} />
                 </button>
-                <button onClick={() => rolarCarrossel(1)} className="h-10 w-10 flex items-center justify-center bg-white border border-zinc-900 rounded-full hover:bg-zinc-900 hover:text-white transition-colors">
+                <button onClick={() => rolarCarrossel(1)} className="h-10 w-10 flex items-center justify-center bg-white border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
                   <ChevronRight size={20} />
                 </button>
               </div>
@@ -1417,7 +1417,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     return (
                       <div key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                         <div className="flex items-center gap-3 mb-6">
-                          <div className="h-7 w-2 shrink-0 bg-zinc-900 rounded-full" />
+                          <div className="h-7 w-2 shrink-0 bg-primary rounded-full" />
                           <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">{categoria.nome}</h2>
                           <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">{produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'}</span>
                         </div>
@@ -1442,8 +1442,8 @@ const [erroAcesso, setErroAcesso] = useState('');
               return (
                 <section key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                   <div className={`flex items-center gap-3 mb-8 ${isRestaurant ? 'px-2' : ''}`}>
-                    {isRestaurant && <div className="h-8 w-1.5 bg-red-500 rounded-full" />}
-                    {!isRestaurant && <div className="h-8 w-2 shrink-0 bg-zinc-900 rounded-full" />}
+                    {isRestaurant && <div className="h-8 w-1.5 bg-primary rounded-full" />}
+                    {!isRestaurant && <div className="h-8 w-2 shrink-0 bg-primary rounded-full" />}
                     <h2 className={`${isRestaurant ? 'font-heading text-2xl md:text-3xl font-bold tracking-tight text-slate-900' : 'font-heading text-2xl md:text-3xl font-bold tracking-tight text-zinc-900'}`}>
                       {categoria.nome}
                     </h2>
@@ -1508,7 +1508,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                                           <Minus size={16} />
                                         </button>
                                         <span className="font-semibold text-neutral-800 w-12 text-center">{qtd}</span>
-                                        <button onClick={() => addAoCarrinho(p.id)} disabled={qtd >= p.estoque} className={`p-2.5 rounded-lg transition-colors ${qtd >= p.estoque ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white shadow-sm'}`}>
+                                        <button onClick={() => addAoCarrinho(p.id)} disabled={qtd >= p.estoque} className={`p-2.5 rounded-lg transition-colors ${qtd >= p.estoque ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed' : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'}`}>
                                           <Plus size={16} />
                                         </button>
                                       </div>
@@ -1517,7 +1517,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                                         Produto esgotado
                                       </button>
                                     ) : (
-                                      <button onClick={() => addAoCarrinho(p.id)} className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors flex items-center justify-center gap-2 text-sm">
+                                      <button onClick={() => addAoCarrinho(p.id)} className="w-full py-2.5 rounded-xl border border-primary/40 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 text-sm">
                                         <Plus size={16} /> Adicionar
                                       </button>
                                     )}
@@ -1567,7 +1567,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-7xl mx-auto pointer-events-auto">
             <button
               onClick={() => setVista('carrinho')}
-              className={`w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] ${isRestaurant ? 'bg-red-600 hover:bg-red-700 text-white rounded-2xl' : 'bg-zinc-900 text-white rounded-full border-2 border-zinc-900'}`}
+              className={`w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] ${isRestaurant ? 'bg-primary text-primary-foreground rounded-2xl' : 'bg-primary text-primary-foreground rounded-full border-2 border-primary'}`}
             >
               <span className="flex items-center gap-3 min-w-0">
                 <span className="text-sm font-bold truncate">{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</span>
@@ -1581,7 +1581,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <span className={`text-sm font-bold ${isRestaurant ? 'text-white/90' : 'text-white/80'}`}>
                   {valorTotalCarrinho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
-                <span className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap ${isRestaurant ? 'bg-white text-red-600 rounded-xl' : 'bg-white text-zinc-900 rounded-full'}`}>
+                <span className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap ${isRestaurant ? 'bg-white text-primary rounded-xl' : 'bg-white text-primary rounded-full'}`}>
                   <ShoppingBag size={16} /> Finalizar
                 </span>
               </span>
@@ -1598,7 +1598,7 @@ const [erroAcesso, setErroAcesso] = useState('');
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setContaAberta(false)} />
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-[#F7F5F2] shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 bg-zinc-900 text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
               <h2 className="font-heading font-bold text-xl">Minha Conta</h2>
               <button onClick={() => setContaAberta(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
             </div>
@@ -1621,14 +1621,14 @@ const [erroAcesso, setErroAcesso] = useState('');
                       onChange={e => setCpfAcesso(mascaraCpfCnpj(e.target.value))}
                       onKeyDown={e => { if (e.key === 'Enter') acessarConta(); }}
                       placeholder="CPF ou CNPJ"
-                      className="w-full h-12 pl-11 pr-4 bg-white border border-zinc-900 rounded-full focus:outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 transition-all focus:ring-2 focus:ring-zinc-900"
+                      className="w-full h-12 pl-11 pr-4 bg-white border border-primary rounded-full focus:outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 transition-all focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   {erroAcesso && <p className="text-xs text-red-600 font-medium mt-2">{erroAcesso}</p>}
                   <button
                     onClick={acessarConta}
                     disabled={buscandoAcesso}
-                    className="mt-4 w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-xs rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="mt-4 w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-xs rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     {buscandoAcesso ? <><Loader2 size={16} className="animate-spin" /> Acessando...</> : <><KeyRound size={16} /> Acessar</>}
                   </button>
@@ -1734,7 +1734,7 @@ const [erroAcesso, setErroAcesso] = useState('');
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuCategorias(false)} />
           <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-[#F7F5F2] shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 bg-zinc-900 text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
               <h2 className="font-heading font-bold text-xl">Categorias</h2>
               <button onClick={() => setMenuCategorias(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
             </div>
@@ -1743,7 +1743,7 @@ const [erroAcesso, setErroAcesso] = useState('');
               <div className="space-y-2">
                 <button
                   onClick={() => aplicarFiltroCategoria(null)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-900/15 hover:border-zinc-900'}`}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-zinc-900/15 hover:border-primary'}`}
                 >
                   <span className="font-bold text-sm">Todas as categorias</span>
                   {categoriaFiltrada === null && <Check size={16} className="shrink-0" />}
@@ -1752,7 +1752,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   <button
                     key={c.id}
                     onClick={() => aplicarFiltroCategoria(c.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-900/15 hover:border-zinc-900'}`}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-zinc-900/15 hover:border-primary'}`}
                   >
                     <span className="font-bold text-sm">{c.nome}</span>
                     {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-zinc-400 shrink-0" />}
