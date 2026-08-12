@@ -173,12 +173,12 @@ export default function ComercialClientes() {
     const isPJ = form.tipoPessoa === 'PJ';
     return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2">
           <label className={labelClass}>{isPJ ? 'Razão Social' : 'Nome Completo'} *</label>
           <input type="text" value={form.razaoSocialNome} onChange={e => setCampo('razaoSocialNome', e.target.value)} className={inputClass} placeholder={isPJ ? 'Razão social...' : 'Nome completo...'} />
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <label className={labelClass}>Tipo de Pessoa</label>
           <div className="flex gap-2">
             <button type="button" onClick={() => { setForm(f => ({ ...f, tipoPessoa: 'PJ', cpfCnpj: '' })); }}
@@ -230,11 +230,11 @@ export default function ComercialClientes() {
           <label className={labelClass}>Telefone</label>
           <input type="text" value={form.telefone} onChange={e => setCampo('telefone', e.target.value)} className={inputClass} placeholder="(00) 00000-0000" />
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <label className={labelClass}>E-mail</label>
           <input type="email" value={form.email} onChange={e => setCampo('email', e.target.value)} className={inputClass} placeholder="email@exemplo.com" />
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <label className={labelClass}>Vendedor Responsável</label>
           <select value={form.vendedorId ?? ''} onChange={e => setCampo('vendedorId', e.target.value ? Number(e.target.value) : '')} className={inputClass}>
             <option value="">Nenhum</option>
@@ -245,8 +245,8 @@ export default function ComercialClientes() {
       </div>
       <hr className="border-gray-100" />
       <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Endereço</p>
-      <div className="grid grid-cols-6 gap-4">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="sm:col-span-1 lg:col-span-1">
           <label className={labelClass}>CEP</label>
           <div className="relative">
             <input type="text" value={form.cep} onChange={e => setCampo('cep', e.target.value)}
@@ -256,27 +256,27 @@ export default function ComercialClientes() {
             {buscandoCEP && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
           </div>
         </div>
-        <div className="col-span-3">
+        <div className="sm:col-span-1 lg:col-span-3">
           <label className={labelClass}>Logradouro</label>
           <input type="text" value={form.logradouro} onChange={e => setCampo('logradouro', e.target.value)} className={inputClass} placeholder="Rua, Av..." />
         </div>
-        <div>
+        <div className="sm:col-span-1 lg:col-span-1">
           <label className={labelClass}>Número</label>
           <input type="text" value={form.numero} onChange={e => setCampo('numero', e.target.value)} className={inputClass} placeholder="Nº" />
         </div>
-        <div>
+        <div className="sm:col-span-1 lg:col-span-1">
           <label className={labelClass}>Compl.</label>
           <input type="text" value={form.complemento} onChange={e => setCampo('complemento', e.target.value)} className={inputClass} placeholder="Compl..." />
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-1 lg:col-span-2">
           <label className={labelClass}>Bairro</label>
           <input type="text" value={form.bairro} onChange={e => setCampo('bairro', e.target.value)} className={inputClass} placeholder="Bairro..." />
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-1 lg:col-span-2">
           <label className={labelClass}>Cidade</label>
           <input type="text" value={form.cidade} onChange={e => setCampo('cidade', e.target.value)} className={inputClass} placeholder="Cidade..." />
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-1 lg:col-span-2">
           <label className={labelClass}>Estado</label>
           <select value={form.estado} onChange={e => setCampo('estado', e.target.value)} className={inputClass}>
             <option value="">UF</option>
@@ -298,7 +298,7 @@ export default function ComercialClientes() {
     );
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {campo('Tipo', selecionado.tipoPessoa === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica')}
           {campo(selecionado.tipoPessoa === 'PF' ? 'Nome' : 'Razão Social', selecionado.razaoSocialNome)}
           {selecionado.tipoPessoa === 'PJ' && campo('Nome Fantasia', selecionado.nomeFantasia)}
@@ -311,7 +311,7 @@ export default function ComercialClientes() {
           {selecionado.vendedor && campo('Vendedor', selecionado.vendedor.nome)}
         </div>
         <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mt-4">Endereço</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {campo('CEP', selecionado.cep)}
           {campo('Logradouro', `${selecionado.logradouro}${selecionado.numero ? ', ' + selecionado.numero : ''}`)}
           {campo('Complemento', selecionado.complemento)}

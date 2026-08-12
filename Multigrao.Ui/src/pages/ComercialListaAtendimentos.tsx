@@ -158,7 +158,7 @@ export default function ComercialListaAtendimentos() {
               </button>
             </div>
             <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Nome</span>
                   <p className="text-gray-900 font-medium mt-0.5">{detalhe.lead.nome}</p>

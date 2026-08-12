@@ -6,6 +6,7 @@ import { useSistemaStore } from '../store/sistemaStore';
 import { tenantHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_DISPONIVEIS } from '../services/cores';
+import { midiaUrl } from '../utils/imageUrl';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -320,7 +321,7 @@ export default function Configuracoes() {
 
         {senhaMestreModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-serif font-bold text-gray-900">Senha Mestre</h2>
                 <button onClick={() => { setSenhaMestreModal(false); setModalAberto(false); setSenhaMestreInput(''); setSenhaMestreErro(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
@@ -364,7 +365,7 @@ export default function Configuracoes() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         {[
           { id: 'usuarios' as const, label: 'Usuários', icon: Users },
           { id: 'permissoes' as const, label: 'Permissões', icon: Shield },
@@ -556,7 +557,7 @@ export default function Configuracoes() {
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                       {formEmpresa.logoUrl ? (
-                        <img src={formEmpresa.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                        <img src={midiaUrl(formEmpresa.logoUrl)} alt="Logo" className="w-full h-full object-contain" />
                       ) : (
                         <Building2 size={28} className="text-gray-300" />
                       )}
@@ -612,9 +613,9 @@ export default function Configuracoes() {
                     <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                       {formEmpresa.videoUrl ? (
                         /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(formEmpresa.videoUrl) ? (
-                          <img src={formEmpresa.videoUrl} alt="Fundo" className="w-full h-full object-cover" />
+                          <img src={midiaUrl(formEmpresa.videoUrl)} alt="Fundo" className="w-full h-full object-cover" />
                         ) : (
-                          <video src={formEmpresa.videoUrl} muted playsInline className="w-full h-full object-cover" />
+                          <video src={midiaUrl(formEmpresa.videoUrl)} muted playsInline className="w-full h-full object-cover" />
                         )
                       ) : (
                         <Building2 size={28} className="text-gray-300" />

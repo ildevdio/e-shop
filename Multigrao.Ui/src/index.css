@@ -116,6 +116,38 @@ body {
   }
 }
 
+/* Grainient — container */
+.grainient-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Orbes flutuantes — hero */
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(45px, -35px) scale(1.15); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-50px, 40px) scale(1.1); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, 45px) scale(0.9); }
+}
+.orb-anim { animation: orb-drift 18s ease-in-out infinite; }
+.orb-anim-2 { animation: orb-drift-2 22s ease-in-out infinite; }
+.orb-anim-3 { animation: orb-drift-3 26s ease-in-out infinite; }
+
+/* Brilho pulsante — hero */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.glow-pulse { animation: glow-pulse 6s ease-in-out infinite; }
+
 /* Scrollbar — conteúdo */
 .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

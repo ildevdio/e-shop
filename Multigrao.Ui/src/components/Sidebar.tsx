@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
 import { entregaService } from '../services/entregaService';
 import { useSistemaStore } from '../store/sistemaStore';
+import { useUiStore } from '../store/uiStore';
 import { getSlug } from '../services/tenantSetup';
+import { midiaUrl } from '../utils/imageUrl';
 
 interface NavItem {
   icon: LucideIcon;
@@ -95,19 +97,47 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
     return location.pathname === full || location.pathname.startsWith(full + '/');
   };
 
-  return (
-    <aside className={`relative flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground anim-slide-in-left transition-all duration-300 ${className ?? ''}`.trim()}>
-      <GrainPattern opacity={0.05} color="#404040" className="inset-0 w-full h-full" animated />
+  const { sidebarAberta, setSidebarAberta } = useUiStore();
 
-      <div className="relative z-10 flex h-16 items-center border-b border-sidebar-border px-5">
-        <div className="flex items-center gap-3">
-          <img src={config.logoUrl} alt={config.nomeEmpresa} className="h-10 w-10 object-contain" />
-          <div className="flex flex-col leading-tight">
-            <span className="font-heading font-semibold tracking-wide text-sidebar-foreground">{config.nomeEmpresa}</span>
-            <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">{config.slogan}</span>
+  useEffect(() => {
+    setSidebarAberta(false);
+  }, [location.pathname, setSidebarAberta]);
+
+  return (
+    <>
+      {/* Overlay mobile */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          sidebarAberta ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={() => setSidebarAberta(false)}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`fixed left-0 top-0 z-50 flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 lg:static lg:translate-x-0 ${
+          sidebarAberta ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+        } ${className ?? ''}`.trim()}
+      >
+        <GrainPattern opacity={0.05} color="#404040" className="inset-0 w-full h-full" animated />
+
+        <div className="relative z-10 flex h-16 items-center border-b border-sidebar-border px-5">
+          <div className="flex items-center gap-3">
+            <img src={midiaUrl(config.logoUrl)} alt={config.nomeEmpresa} className="h-10 w-10 object-contain" />
+            <div className="flex flex-col leading-tight">
+              <span className="font-heading font-semibold tracking-wide text-sidebar-foreground">{config.nomeEmpresa}</span>
+              <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">{config.slogan}</span>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setSidebarAberta(false)}
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-active/60 hover:text-sidebar-foreground lg:hidden"
+            title="Fechar menu"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      </div>
 
       <nav className="relative z-10 flex-1 overflow-y-auto sidebar-scrollbar px-3 py-4">
         {slug === 'focus' ? (
@@ -130,7 +160,8 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
           <p className="text-[10px] text-sidebar-muted uppercase tracking-wider">v0.1 — Fase 1</p>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

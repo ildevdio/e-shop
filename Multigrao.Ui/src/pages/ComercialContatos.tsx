@@ -80,7 +80,7 @@ export default function ComercialContatos() {
         <label className={labelClass}>Nome *</label>
         <input type="text" value={form.nome} onChange={e => setCampo('nome', e.target.value)} className={inputClass} placeholder="Nome do contato..." />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Telefone *</label>
           <input type="text" value={form.telefone} onChange={e => setCampo('telefone', e.target.value)} className={inputClass} placeholder="(00) 00000-0000" />
@@ -90,7 +90,7 @@ export default function ComercialContatos() {
           <input type="email" value={form.email} onChange={e => setCampo('email', e.target.value)} className={inputClass} placeholder="email@exemplo.com" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Cargo</label>
           <input type="text" value={form.cargo} onChange={e => setCampo('cargo', e.target.value)} className={inputClass} placeholder="Ex: Comprador" />
@@ -115,7 +115,7 @@ export default function ComercialContatos() {
       </div>
     );
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {campo('Nome', selecionado.nome)}
         {campo('Telefone', selecionado.telefone)}
         {campo('E-mail', selecionado.email)}
@@ -192,7 +192,7 @@ export default function ComercialContatos() {
 
       {modalTipo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={fecharModal}>
-          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">
                 {modalTipo === 'criar' ? 'Novo Contato' : modalTipo === 'editar' ? 'Editar Contato' : 'Detalhes do Contato'}

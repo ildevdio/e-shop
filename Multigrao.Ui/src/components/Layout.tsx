@@ -16,7 +16,7 @@ export default function Layout() {
 
         <main className="relative flex-1 overflow-hidden">
           <FloatingProducts className="-z-10" />
-          <div className="relative h-full overflow-auto p-4 pb-6">
+          <div className="relative h-full overflow-auto p-2 pb-6 sm:p-4">
             <Outlet />
           </div>
         </main>

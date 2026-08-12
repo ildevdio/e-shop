@@ -6,7 +6,7 @@ import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
 import { carrinhoService } from '../services/carrinhoService';
-import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
+import { imageUrl, produtoImagemUrl, midiaUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
@@ -1183,8 +1183,8 @@ const [erroAcesso, setErroAcesso] = useState('');
                   {/* Coluna direita — informações do pedido */}
                   <div className="space-y-5 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-1">
                   {/* Dados do solicitante */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
                       <label className={`text-sm font-bold block mb-1 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Nome completo *</label>
                       <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Seu nome" />
                     </div>
@@ -1242,8 +1242,8 @@ const [erroAcesso, setErroAcesso] = useState('');
                   {tipoEntrega === 'Entrega' && (
                     <div className="pt-2">
                       <p className={`text-sm font-bold mb-3 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Endereço de entrega *</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="col-span-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="sm:col-span-2">
                           <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Rua, Avenida..." />
                         </div>
                         <div>
@@ -1290,7 +1290,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
         <div className={`relative z-10 px-4 h-full flex flex-col ${isRestaurant ? 'items-center text-center py-12 md:py-20' : 'items-start text-left justify-end pb-16 md:pb-24 md:pl-16 lg:pl-24'}`}>
           <img
-            src={config.logoUrl}
+            src={midiaUrl(config.logoUrl)}
             alt={config.nomeEmpresa}
             className={`h-auto object-contain mb-8 brightness-110 ${isRestaurant ? 'w-56 md:w-72' : 'w-[9.4rem] md:w-[11.4rem]'}`}
           />

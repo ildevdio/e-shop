@@ -155,7 +155,7 @@ export default function EmpresaEnquetes() {
 
       {showNova && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">Nova Enquete</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Pergunta *</label><input type="text" value={novaEnquete.titulo} onChange={e => setNovaEnquete({ ...novaEnquete, titulo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Qual melhor horário?" /></div>

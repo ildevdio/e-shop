@@ -32,7 +32,7 @@ namespace Multigrao.Api.Controllers
             using var stream = new FileStream(caminho, FileMode.Create);
             await file.CopyToAsync(stream);
 
-            var url = $"{Request.Scheme}://{Request.Host}/api/Upload/{nomeArquivo}";
+            var url = $"/api/Upload/{nomeArquivo}";
             return Ok(new { url });
         }
 
@@ -52,7 +52,7 @@ namespace Multigrao.Api.Controllers
             using var stream = new FileStream(caminho, FileMode.Create);
             await file.CopyToAsync(stream);
 
-            var url = $"{Request.Scheme}://{Request.Host}/api/Upload/{nomeArquivo}";
+            var url = $"/api/Upload/{nomeArquivo}";
             return Ok(new { url, nomeOriginal = file.FileName, tamanho = file.Length });
         }
 

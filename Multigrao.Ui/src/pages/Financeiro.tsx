@@ -234,7 +234,7 @@ export default function Financeiro() {
                   {detalhe.solicitanteTelefone && <p className="text-xs text-gray-500 mt-0.5">Tel: {detalhe.solicitanteTelefone}</p>}
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Tipo</span>
                   <select value={editDetalhe.tipoEntrega} onChange={e => setEditDetalhe({ ...editDetalhe, tipoEntrega: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5">
@@ -266,7 +266,7 @@ export default function Financeiro() {
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Total</span>
                   <p className="text-gray-900 font-medium mt-0.5">
@@ -278,7 +278,7 @@ export default function Financeiro() {
                   <p className="text-gray-900 font-medium mt-0.5">{new Date(detalhe.dataCriacao).toLocaleDateString('pt-BR')}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
                   <input type="text" value={editDetalhe.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
@@ -341,7 +341,7 @@ export default function Financeiro() {
                 />
               </div>
             </div>
-            <div className="flex gap-3 justify-end mt-6">
+            <div className="flex flex-wrap gap-3 justify-end mt-6">
               <button onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Fechar</button>
               <button
                 onClick={salvarAlteracoes}

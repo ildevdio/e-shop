@@ -38,7 +38,7 @@ export default function Logistica() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         <button onClick={() => setActiveTab('roteirizacao')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${activeTab === 'roteirizacao' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
           <Navigation size={18} /> Roteirização
         </button>
@@ -755,7 +755,7 @@ function ConsultasTab() {
                   <p className="text-xs text-gray-500 mt-0.5">Tel: {primeiroPedido(detalhe)?.cliente?.telefone}</p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Valor</span>
                   <p className="text-gray-900 font-medium mt-0.5">R$ {valorTotal(detalhe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
@@ -809,7 +809,7 @@ function ConsultasTab() {
 
       {editando && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditando(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Editar Entrega #{editando.id}</h2>
               <button onClick={() => setEditando(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
@@ -940,7 +940,7 @@ function VeiculosTab() {
 
       {showNovo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Novo Veículo</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Modelo *</label><input type="text" value={novoVeiculo.modelo} onChange={e => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Fiat Fiorino" /></div>

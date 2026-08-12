@@ -514,7 +514,7 @@ export default function ComercialPedidos() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         <button onClick={() => setAbaAtiva('pendentes')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${abaAtiva === 'pendentes' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
           <FileCheck size={18} /> Pendentes de Finalização
           <span className="ml-1 text-xs opacity-50">
@@ -785,7 +785,7 @@ export default function ComercialPedidos() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total (R$)</label>
                       <div className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-700">
@@ -1110,7 +1110,7 @@ export default function ComercialPedidos() {
 
       {pedidoPendenteDialog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
                 <span className="text-amber-600 text-lg font-bold">!</span>
@@ -1173,7 +1173,7 @@ export default function ComercialPedidos() {
                 <X size={20} />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Pedido</span>
                 <p className="text-gray-900 font-medium mt-0.5">#{detalhe.id}</p>
@@ -1182,7 +1182,7 @@ export default function ComercialPedidos() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Status</span>
                 <p className="text-gray-900 font-medium mt-0.5">{STATUS_LABELS[detalhe.status] ?? detalhe.status}</p>
               </div>
-              <div className="col-span-2 bg-gray-50 rounded-xl p-3">
+              <div className="sm:col-span-2 bg-gray-50 rounded-xl p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Cliente / Solicitante</span>
                   {!detalhe.clienteId && detalhe.solicitanteNome && (
@@ -1497,7 +1497,7 @@ export default function ComercialPedidos() {
                 <label className="text-sm font-medium text-gray-700">Nome / Razão Social *</label>
                 <input value={novoCliente.razaoSocialNome} onChange={e => setNovoCliente({ ...novoCliente, razaoSocialNome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Nome completo ou razão social" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">CPF / CNPJ</label>
                   <input value={novoCliente.cpfCnpj} onChange={e => setNovoCliente({ ...novoCliente, cpfCnpj: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="000.000.000-00" />
@@ -1507,7 +1507,7 @@ export default function ComercialPedidos() {
                   <input value={novoCliente.telefone} onChange={e => setNovoCliente({ ...novoCliente, telefone: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="(00) 00000-0000" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">CEP</label>
                   <div className="relative">
@@ -1515,12 +1515,12 @@ export default function ComercialPedidos() {
                     {buscandoCEP === 'novo' && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
                   </div>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-gray-700">Logradouro</label>
                   <input value={novoCliente.logradouro} onChange={e => setNovoCliente({ ...novoCliente, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Rua, Avenida..." />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Número</label>
                   <input value={novoCliente.numero} onChange={e => setNovoCliente({ ...novoCliente, numero: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="123" />
@@ -1549,7 +1549,7 @@ export default function ComercialPedidos() {
 
       {showBloqueadoDialog && clienteBloqueadoSelecionado && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                 <ShieldAlert size={22} className="text-amber-500" /> Cliente Bloqueado

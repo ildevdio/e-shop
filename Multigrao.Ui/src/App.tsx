@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import LoginEmpresa from './pages/LoginEmpresa';
 import Dashboard from './pages/Dashboard';
 import Empresas from './pages/Empresas';
+import NovaEmpresa from './pages/NovaEmpresa';
 import Configuracoes from './pages/Configuracoes';
 import Chat from './pages/Chat';
 import Empresa from './pages/Empresa';
@@ -27,6 +28,7 @@ import Financeiro from './pages/Financeiro';
 import { useAuthStore } from './store/authStore';
 import { useSistemaStore } from './store/sistemaStore';
 import { isShopDomain } from './services/tenantSetup';
+import { midiaUrl } from './utils/imageUrl';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((state) => state.token);
@@ -72,7 +74,8 @@ function App() {
 
   useEffect(() => {
     const link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
-    if (link && logoUrl) link.href = logoUrl;
+    const href = midiaUrl(logoUrl);
+    if (link && href) link.href = href;
   }, [logoUrl]);
 
   return (
@@ -88,6 +91,7 @@ function App() {
         <Route path="/:slug" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<IndexRoute />} />
           <Route path="empresas" element={<Empresas />} />
+          <Route path="empresas/nova" element={<NovaEmpresa />} />
           <Route path="configuracoes" element={<Configuracoes />} />
           <Route path="chat" element={<Chat />} />
 

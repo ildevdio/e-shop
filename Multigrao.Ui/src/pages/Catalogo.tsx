@@ -378,8 +378,8 @@ export default function Catalogo() {
                 })}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="sm:col-span-2">
                   <label className="text-sm font-medium text-gray-700">Nome completo *</label>
                   <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Seu nome" />
                 </div>
@@ -394,8 +394,8 @@ export default function Catalogo() {
               </div>
 
               <p className="text-sm font-medium text-gray-700">Endereço de entrega *</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="sm:col-span-2">
                   <label className="text-xs text-gray-500">Logradouro</label>
                   <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Rua, Avenida..." />
                 </div>
@@ -665,7 +665,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
             <label className="text-sm font-medium text-gray-700">Nome *</label>
             <input value={form.nome ?? ''} onChange={e => setForm({ ...form, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700">Categoria</label>
               <select value={form.categoriaId ?? ''} onChange={e => setForm({ ...form, categoriaId: e.target.value ? parseInt(e.target.value) : null })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
@@ -681,7 +681,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium text-gray-700">Preço Varejo</label>
                 <input type="number" step={0.01} value={form.precoVarejo ?? ''} onChange={e => { const val = e.target.value; setForm({ ...form, precoVarejo: val === '' ? undefined : parseFloat(val) }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
@@ -691,7 +691,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
                 <input type="number" step={0.01} value={form.precoAtacado ?? ''} onChange={e => { const val = e.target.value; setForm({ ...form, precoAtacado: val === '' ? undefined : parseFloat(val) }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
               </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700">Embalagem</label>
               <input value={form.embalagem ?? ''} onChange={e => setForm({ ...form, embalagem: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Ex: 12· DZ" />
@@ -705,7 +705,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700">Peso Unidade (kg)</label>
               <input type="number" step={0.01} value={form.pesoUnidade ?? 0} onChange={e => setForm({ ...form, pesoUnidade: parseFloat(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
@@ -866,7 +866,7 @@ function MarcaForm({ marca, onClose, onSalvo }: {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-serif font-bold text-gray-900">{form.id ? 'Editar' : 'Nova'} Marca</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>

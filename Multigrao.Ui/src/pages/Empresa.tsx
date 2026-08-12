@@ -211,7 +211,7 @@ export default function Empresa() {
           <h1 className="text-2xl font-serif font-bold text-gray-900">Mural da Empresa</h1>
           <p className="text-gray-500 mt-1">Comunicados, enquetes e avisos gerais.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={() => { setShowNovaEnquete(true); setModalAberto(true); }}
             className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
@@ -360,7 +360,7 @@ export default function Empresa() {
 
       {showNovoAviso && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Novo Aviso</h2>
               <button onClick={() => { setShowNovoAviso(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
@@ -374,7 +374,7 @@ export default function Empresa() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Conteúdo *</label>
                 <textarea value={novoAviso.conteudo} onChange={e => setNovoAviso({ ...novoAviso, conteudo: e.target.value })} rows={3} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm resize-none" placeholder="Descreva o aviso..." />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                   <select value={novoAviso.tipo} onChange={e => setNovoAviso({ ...novoAviso, tipo: e.target.value as any })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
@@ -407,7 +407,7 @@ export default function Empresa() {
 
       {showNovaEnquete && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Nova Enquete</h2>
               <button onClick={() => { setShowNovaEnquete(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
