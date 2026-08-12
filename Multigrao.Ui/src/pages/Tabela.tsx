@@ -1,5 +1,5 @@
-import { useState, useEffect, Fragment, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, Palette, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2 } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2 } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
@@ -354,7 +354,6 @@ interface CategoriaComProdutos {
 }
 
 export default function Tabela() {
-  const [tema, setTema] = useState<'restaurant' | 'ecommerce'>('restaurant');
   const [categorias, setCategorias] = useState<CategoriaComProdutos[]>([]);
   const [todasCategorias, setTodasCategorias] = useState<Categoria[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -386,7 +385,6 @@ const [erroAcesso, setErroAcesso] = useState('');
   const salvarCarrinhoRef = useRef<number | null>(null);
   const tickerRef = useRef<HTMLDivElement | null>(null);
 
-  const isRestaurant = tema === 'restaurant';
   const carrosselRef = useRef<HTMLDivElement>(null);
   const config = useSistemaStore((state) => state.config);
   
@@ -491,29 +489,6 @@ const [erroAcesso, setErroAcesso] = useState('');
       return acc + (temTaxaEmbalagem(p, qtd) ? TAXA_EMBALAGEM : 0);
     }, 0),
   [carrinho, categorias]);
-
-  const addAoCarrinho = (produtoId: number) => {
-    const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === produtoId);
-    if (produto && produto.estoque <= 0) {
-      alert('Este produto está esgotado.');
-      return;
-    }
-    setCarrinho(prev => {
-      const atual = prev.get(produtoId) ?? 0;
-      const proximo = produto ? Math.min(produto.estoque, atual + 1) : atual + 1;
-      return new Map(prev).set(produtoId, proximo);
-    });
-  };
-
-  const removeDoCarrinho = (produtoId: number) => {
-    setCarrinho(prev => {
-      const next = new Map(prev);
-      const qtd = next.get(produtoId) ?? 0;
-      if (qtd <= 1) next.delete(produtoId);
-      else next.set(produtoId, qtd - 1);
-      return next;
-    });
-  };
 
   const setQtdCarrinho = (produtoId: number, quantidade: number) => {
     setCarrinho(prev => {
@@ -658,7 +633,7 @@ const [erroAcesso, setErroAcesso] = useState('');
       window.removeEventListener('scroll', onScroll);
       document.removeEventListener('scroll', onScroll, { capture: true });
     };
-  }, [isRestaurant]);
+  }, []);
 
   const scrollParaCatalogo = () => {
     const primeira = categoriasFiltradas[0];
@@ -821,23 +796,10 @@ const [erroAcesso, setErroAcesso] = useState('');
   }, [carrinho, acessado, cpfAcessado]);
 
   return (
-    <div className={`min-h-screen ${isRestaurant ? 'bg-neutral-50/50' : 'bg-[#F7F5F2]'}`}>
+    <div className="min-h-screen bg-[#F7F5F2]">
       
-      {/* ── Theme Switcher (restaurante; no e-commerce fica na nav) ── */}
-      {isRestaurant && (
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={() => setTema('ecommerce')}
-            className="flex items-center gap-2 backdrop-blur-md px-4 py-2 shadow-sm transition-colors text-sm font-medium bg-white/90 border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-full"
-          >
-            <Palette size={16} className="text-primary" />
-            Tema: Restaurante
-          </button>
-        </div>
-      )}
-
       {/* ── Nav fixa (dock) — detalhe geral do sistema ── */}
-      {!isRestaurant && (
+      {
         <div className="fixed top-0 inset-x-0 z-40 px-3 sm:px-4 pt-3">
           <div
             className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
@@ -873,13 +835,6 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
                 <div className="flex-1 flex items-center justify-end gap-2">
                   <button
-                    onClick={() => setTema('restaurant')}
-                    title="Tema restaurante"
-                    className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
-                  >
-                    <Palette size={18} />
-                  </button>
-                  <button
                     onClick={() => setContaAberta(true)}
                     title="Conta"
                     className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
@@ -914,14 +869,14 @@ const [erroAcesso, setErroAcesso] = useState('');
             </div>
           </div>
           </div>
-        )}
+        }
 
       {vista === 'produto' && produtoDetalhe ? (
-        <div className={`min-h-screen pb-10 ${isRestaurant ? 'pt-4' : 'pt-36 sm:pt-28'}`}>
+        <div className="min-h-screen pb-10 pt-36 sm:pt-28">
           <div className="max-w-7xl mx-auto px-4">
             <button
               onClick={() => { setProdutoDetalhe(null); setVista('catalogo'); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs'}`}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs"
             >
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -1040,36 +995,36 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
         </div>
       ) : vista === 'carrinho' ? (
-        <div className={`min-h-screen flex flex-col lg:h-screen lg:overflow-hidden ${isRestaurant ? 'pt-4' : 'pt-36 sm:pt-28'}`}>
+        <div className="min-h-screen flex flex-col lg:h-screen lg:overflow-hidden pt-36 sm:pt-28">
           <div className="max-w-6xl mx-auto w-full px-4 flex items-center gap-3 shrink-0">
             <button
               onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors ${isRestaurant ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs'}`}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs"
             >
               <ArrowLeft size={16} /> Voltar
             </button>
-            <h1 className={`font-bold ${isRestaurant ? 'text-lg text-neutral-900' : 'font-heading text-2xl text-zinc-900'}`}>Seu Pedido</h1>
+            <h1 className="font-heading text-2xl text-zinc-900">Seu Pedido</h1>
           </div>
           <div className="max-w-6xl mx-auto w-full px-4 py-6 flex-1 min-h-0">
             {pedidoCriado ? (
               <div className="text-center py-16">
-                <div className={`mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 ${isRestaurant ? 'bg-primary/10' : 'bg-primary'}`}>
-                  <CheckCircle2 size={40} className={isRestaurant ? 'text-primary' : 'text-primary-foreground'} />
+                <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 bg-primary">
+                  <CheckCircle2 size={40} className="text-primary-foreground" />
                 </div>
-                <h2 className={`font-heading text-3xl font-bold ${isRestaurant ? 'text-neutral-900' : 'text-zinc-900'}`}>Pedido enviado!</h2>
-                <p className={`mt-3 ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>Recebemos seu pedido com sucesso. Em breve entraremos em contato para confirmar.</p>
-                <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className={`mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm ${isRestaurant ? 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full'}`}>
+                <h2 className="font-heading text-3xl font-bold text-zinc-900">Pedido enviado!</h2>
+                <p className="mt-3 text-zinc-500 font-medium">Recebemos seu pedido com sucesso. Em breve entraremos em contato para confirmar.</p>
+                <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
                   Voltar ao catálogo
                 </button>
               </div>
             ) : carrinho.size === 0 ? (
               <div className="text-center py-16">
-                <div className={`mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 ${isRestaurant ? 'bg-neutral-100' : 'bg-white border border-zinc-900'}`}>
-                  <ShoppingCart size={36} className={isRestaurant ? 'text-neutral-400' : 'text-zinc-900'} />
+                <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 bg-white border border-zinc-900">
+                  <ShoppingCart size={36} className="text-zinc-900" />
                 </div>
-                <h2 className={`font-heading text-2xl font-bold ${isRestaurant ? 'text-neutral-900' : 'text-zinc-900'}`}>Seu carrinho está vazio</h2>
-                <p className={`mt-2 ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>Navegue pelo catálogo e adicione produtos ao carrinho.</p>
-                <button onClick={() => setVista('catalogo')} className={`mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm ${isRestaurant ? 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl' : 'bg-primary hover:bg-primary/90 text-primary-foreground rounded-full'}`}>
+                <h2 className="font-heading text-2xl font-bold text-zinc-900">Seu carrinho está vazio</h2>
+                <p className="mt-2 text-zinc-500 font-medium">Navegue pelo catálogo e adicione produtos ao carrinho.</p>
+                <button onClick={() => setVista('catalogo')} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
                   Ver produtos
                 </button>
               </div>
@@ -1084,7 +1039,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       if (!produto) return null;
                       const preco = precoPorQtd(produto, quantidade);
                       return (
-                        <div key={produtoId} className={`relative overflow-hidden rounded-2xl ${isRestaurant ? 'border border-neutral-200' : 'border border-zinc-900/10'}`}>
+                        <div key={produtoId} className="relative overflow-hidden rounded-2xl border border-zinc-900/10">
                           <button
                             type="button"
                             onClick={() => { setQtdCarrinho(produtoId, 0); setAbrirExclusao(null); }}
@@ -1107,7 +1062,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
-                                <p className={`font-bold truncate ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900 text-sm'}`}>{produto.nome}</p>
+                                <p className="font-bold truncate text-zinc-900 text-sm">{produto.nome}</p>
                                 <button
                                   type="button"
                                   onClick={() => setAbrirExclusao(prev => prev === produtoId ? null : produtoId)}
@@ -1117,7 +1072,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                                   {abrirExclusao === produtoId ? <ChevronRight size={16} /> : <Trash2 size={16} />}
                                 </button>
                               </div>
-                              <p className={`text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>{formatPreco(preco)} / un.</p>
+                              <p className="text-sm text-zinc-500 font-medium">{formatPreco(preco)} / un.</p>
                               <div className="mt-2 flex items-center justify-between gap-2">
                                 <CampoQuantidade
                                   valor={quantidade}
@@ -1125,7 +1080,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                                   onChange={q => setQtdCarrinho(produtoId, q)}
                                   aoRemover={() => setQtdCarrinho(produtoId, 0)}
                                 />
-                                <span className={`font-bold shrink-0 ${isRestaurant ? 'text-neutral-800' : 'text-zinc-900'}`}>{formatPreco(preco * quantidade)}</span>
+                                <span className="font-bold shrink-0 text-zinc-900">{formatPreco(preco * quantidade)}</span>
                               </div>
                             </div>
                           </div>
@@ -1139,7 +1094,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                               <button
                                 type="button"
                                 onClick={() => setQtdCarrinho(produtoId, 2)}
-                                className={`shrink-0 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors ${isRestaurant ? 'bg-amber-600 hover:bg-amber-700 text-white rounded-lg' : 'bg-amber-500 hover:bg-amber-600 text-white rounded-full'}`}
+                                className="shrink-0 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors bg-amber-500 hover:bg-amber-600 text-white rounded-full"
                               >
                                 Levar 2kg
                               </button>
@@ -1151,28 +1106,28 @@ const [erroAcesso, setErroAcesso] = useState('');
                       );
                     })}
                     </div>
-                    <div className={`p-4 mt-3 space-y-3 text-base shrink-0 ${isRestaurant ? 'bg-neutral-50 rounded-2xl border border-neutral-100' : 'bg-[#F7F5F2] rounded-2xl border border-zinc-900/10'}`}>
+                    <div className="p-4 mt-3 space-y-3 text-base shrink-0 bg-[#F7F5F2] rounded-2xl border border-zinc-900/10">
                     {totalTaxaEmbalagem > 0 && (
                       <>
-                        <div className={`pt-3 mt-3 flex justify-between text-sm ${isRestaurant ? 'border-t border-neutral-200 text-neutral-500' : 'border-t border-zinc-900 text-zinc-500 font-medium'}`}>
+                        <div className="pt-3 mt-3 flex justify-between text-sm border-t border-zinc-900 text-zinc-500 font-medium">
                           <span>Subtotal</span>
                           <span>{formatPreco([...carrinho.entries()].reduce((acc, [id, qtd]) => {
                             const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
                             return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
                           }, 0))}</span>
                         </div>
-                        <div className={`flex justify-between text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>
+                        <div className="flex justify-between text-sm text-zinc-500 font-medium">
                           <span>Taxa de embalagem</span>
                           <span>{formatPreco(totalTaxaEmbalagem)}</span>
                         </div>
                       </>
                     )}
-                    <div className={`pt-3 mt-3 flex justify-between font-bold text-lg ${isRestaurant ? 'border-t border-neutral-200 text-neutral-900' : 'border-t border-zinc-900 text-zinc-900'}`}>
+                    <div className="pt-3 mt-3 flex justify-between font-bold text-lg border-t border-zinc-900 text-zinc-900">
                       <span>Total</span>
                       <span>{formatPreco(valorTotalCarrinho)}</span>
                     </div>
                     {pesoTotalCarrinho > 0 && (
-                      <div className={`pt-2 flex justify-between text-sm ${isRestaurant ? 'text-neutral-500' : 'text-zinc-500 font-medium'}`}>
+                      <div className="pt-2 flex justify-between text-sm text-zinc-500 font-medium">
                         <span>Peso total</span>
                         <span>{pesoTotalCarrinho.toFixed(2)} kg</span>
                       </div>
@@ -1185,34 +1140,34 @@ const [erroAcesso, setErroAcesso] = useState('');
                   {/* Dados do solicitante */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2">
-                      <label className={`text-sm font-bold block mb-1 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Nome completo *</label>
-                      <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Seu nome" />
+                      <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Nome completo *</label>
+                      <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Seu nome" />
                     </div>
                     <div>
-                      <label className={`text-sm font-bold block mb-1 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>CPF / CNPJ *</label>
-                      <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="000.000.000-00" />
+                      <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">CPF / CNPJ *</label>
+                      <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="000.000.000-00" />
                     </div>
                     <div>
-                      <label className={`text-sm font-bold block mb-1 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Telefone</label>
-                      <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="(81) 99999-9999" />
+                      <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Telefone</label>
+                      <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="(81) 99999-9999" />
                     </div>
                   </div>
 
                   {/* Tipo de Entrega */}
                   <div>
-                    <label className={`text-sm font-bold block mb-2 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Opção de Recebimento *</label>
+                    <label className="text-sm font-bold block mb-2 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Opção de Recebimento *</label>
                     <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={() => setTipoEntrega('Entrega')}
-                        className={`flex-1 py-3 text-sm font-bold transition-all border ${isRestaurant ? 'rounded-xl' : 'rounded-full'} ${tipoEntrega === 'Entrega' ? primaryBorderActive : (isRestaurant ? 'bg-white text-neutral-600 border-neutral-200' : 'bg-white text-zinc-600 border-zinc-300 hover:border-zinc-900')}`}
+                        className={`flex-1 py-3 text-sm font-bold transition-all border rounded-full ${tipoEntrega === 'Entrega' ? primaryBorderActive : 'bg-white text-zinc-600 border-zinc-300 hover:border-zinc-900'}`}
                       >
                         Entrega
                       </button>
                       <button
                         type="button"
                         onClick={() => setTipoEntrega('Retirada')}
-                        className={`flex-1 py-3 text-sm font-bold transition-all border ${isRestaurant ? 'rounded-xl' : 'rounded-full'} ${tipoEntrega === 'Retirada' ? primaryBorderActive : (isRestaurant ? 'bg-white text-neutral-600 border-neutral-200' : 'bg-white text-zinc-600 border-zinc-300 hover:border-zinc-900')}`}
+                        className={`flex-1 py-3 text-sm font-bold transition-all border rounded-full ${tipoEntrega === 'Retirada' ? primaryBorderActive : 'bg-white text-zinc-600 border-zinc-300 hover:border-zinc-900'}`}
                       >
                         Retirada
                       </button>
@@ -1220,11 +1175,11 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </div>
 
                   <div>
-                    <label className={`text-sm font-bold block mb-1 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Forma de Pagamento</label>
+                    <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Forma de Pagamento</label>
                     <select
                       value={pagamento}
                       onChange={e => setPagamento(e.target.value)}
-                      className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`}
+                      className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white"
                     >
                       <option value="">Selecione na entrega/retirada</option>
                       <option value="Dinheiro">Dinheiro</option>
@@ -1241,36 +1196,36 @@ const [erroAcesso, setErroAcesso] = useState('');
                   {/* Endereço */}
                   {tipoEntrega === 'Entrega' && (
                     <div className="pt-2">
-                      <p className={`text-sm font-bold mb-3 ${isRestaurant ? 'text-neutral-700' : 'text-zinc-900 uppercase text-[11px] tracking-[0.15em]'}`}>Endereço de entrega *</p>
+                      <p className="text-sm font-bold mb-3 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Endereço de entrega *</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="sm:col-span-2">
-                          <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Rua, Avenida..." />
+                          <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Rua, Avenida..." />
                         </div>
                         <div>
-                          <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Número" />
+                          <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Número" />
                         </div>
                         <div>
-                          <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Complemento" />
+                          <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Complemento" />
                         </div>
                         <div>
                           <div className="relative">
-                            <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full bg-white p-3 outline-none text-base transition-colors ${buscandoCEP ? 'pr-10' : ''} ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="CEP" />
+                            <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full bg-white p-3 outline-none text-base transition-colors ${buscandoCEP ? 'pr-10' : ''} border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white`} placeholder="CEP" />
                             {buscandoCEP && <Loader2 size={18} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
                           </div>
                         </div>
                         <div>
-                          <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Bairro" />
+                          <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Bairro" />
                         </div>
                         <div>
-                          <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="Cidade" />
+                          <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Cidade" />
                         </div>
                         <div>
-                          <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className={`w-full bg-white p-3 outline-none text-base transition-colors ${isRestaurant ? 'border border-neutral-200 rounded-xl focus:border-neutral-400' : 'border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white'}`} placeholder="UF" maxLength={2} />
+                          <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="UF" maxLength={2} />
                         </div>
                       </div>
                     </div>
                   )}
-                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md ${isRestaurant ? 'rounded-xl' : 'rounded-full'} ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : (isRestaurant ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')}`}>
+                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md rounded-full ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'}`}>
                     {enviando ? 'Enviando...' : 'Confirmar Pedido'}
                   </button>
                   </div>
@@ -1282,26 +1237,26 @@ const [erroAcesso, setErroAcesso] = useState('');
       ) : (
         <>
       {/* ── Hero ── */}
-      <div className={`relative overflow-hidden shadow-sm ${isRestaurant ? 'rounded-none md:rounded-b-[3rem]' : 'h-screen rounded-none bg-white'}`}>
+      <div className="relative overflow-hidden shadow-sm h-screen rounded-none bg-white">
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
           <source src="/multigraosvid.mp4" type="video/mp4" />
         </video>
-        <div className={`absolute inset-0 ${isRestaurant ? 'bg-black/50' : 'bg-black/30'}`} />
+        <div className="absolute inset-0 bg-black/30" />
 
-        <div className={`relative z-10 px-4 h-full flex flex-col ${isRestaurant ? 'items-center text-center py-12 md:py-20' : 'items-start text-left justify-end pb-16 md:pb-24 md:pl-16 lg:pl-24'}`}>
+        <div className="relative z-10 px-4 h-full flex flex-col items-start text-left justify-end pb-16 md:pb-24 md:pl-16 lg:pl-24">
           <img
             src={midiaUrl(config.logoUrl)}
             alt={config.nomeEmpresa}
-            className={`h-auto object-contain mb-8 brightness-110 ${isRestaurant ? 'w-56 md:w-72' : 'w-[9.4rem] md:w-[11.4rem]'}`}
+            className="h-auto object-contain mb-8 brightness-110 w-[9.4rem] md:w-[11.4rem]"
           />
-            <h1 className={`${isRestaurant ? 'font-heading text-3xl md:text-5xl tracking-wide font-bold' : 'font-heading text-2xl md:text-3xl font-bold tracking-wide'} text-white drop-shadow-md`}>
-            {isRestaurant ? 'Nosso Menu Digital' : 'O melhor da natureza para a sua loja.'}
+            <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md">
+            O melhor da natureza para a sua loja.
           </h1>
-          <p className={`text-white/90 mt-6 font-medium drop-shadow ${isRestaurant ? 'text-base md:text-lg max-w-xl' : 'text-sm md:text-base max-w-xl'}`}>
-            {isRestaurant ? 'Escolha seus produtos favoritos de forma simples e rápida' : 'Sua distribuidora de produtos naturais'}
+          <p className="text-white/90 mt-6 font-medium drop-shadow text-sm md:text-base max-w-xl">
+            Sua distribuidora de produtos naturais
           </p>
 
-          <div className={`flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-sm text-white/90 font-medium ${isRestaurant ? 'justify-center' : 'justify-start'}`}>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-sm text-white/90 font-medium justify-start">
             <span className="flex items-center gap-2">
               <MapPin size={16} className="text-white/70" />
               {config.endereco}
@@ -1312,16 +1267,13 @@ const [erroAcesso, setErroAcesso] = useState('');
             </a>
           </div>
 
-          {!isRestaurant && (
-            <button onClick={scrollParaCatalogo} className="mt-8 px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-xs rounded-full shadow-[0_5px_0_rgba(0,0,0,0.35)] active:translate-y-[3px] active:shadow-none transition-all">
-              Ver Produtos
-            </button>
-          )}
+          <button onClick={scrollParaCatalogo} className="mt-8 px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-xs rounded-full shadow-[0_5px_0_rgba(0,0,0,0.35)] active:translate-y-[3px] active:shadow-none transition-all">
+            Ver Produtos
+          </button>
         </div>
       </div>
 
-      {!isRestaurant && (
-        <div ref={tickerRef} className="bg-primary text-primary-foreground">
+      <div ref={tickerRef} className="bg-primary text-primary-foreground">
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]">
             <span>{config.nomeEmpresa}</span>
             <span className="text-orange-500">●</span>
@@ -1332,12 +1284,11 @@ const [erroAcesso, setErroAcesso] = useState('');
             <span>(81) 98859-3757</span>
           </div>
         </div>
-      )}
 
       {/* ── Conteúdo ── */}
-      <div className={`max-w-7xl mx-auto px-4 ${isRestaurant ? 'py-10' : 'py-12'} pb-32`}>
+      <div className="max-w-7xl mx-auto px-4 py-12 pb-32">
         
-        {!isRestaurant && categoriaFiltrada === null && produtosDestaque.length > 0 && (
+        {categoriaFiltrada === null && produtosDestaque.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
@@ -1371,41 +1322,13 @@ const [erroAcesso, setErroAcesso] = useState('');
           </section>
         )}
 
-        {isRestaurant && (
-          <div className="sticky top-0 z-30 pt-4 pb-4 bg-neutral-50/90 backdrop-blur-md mb-6">
-            <SearchAutocomplete
-              placeholder="Pesquise pelo nome do produto..."
-              valor={filtro}
-              onChange={setFiltro}
-              sugestoes={sugestoes}
-              aoSelecionar={s => setFiltro(s.rotulo)}
-              className="mb-4"
-              onBuscar={scrollParaCatalogo}
-            />
-
-            {filtro === '' && (
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x items-center">
-                {todasCategorias.map(c => (
-                  <button
-                    key={c.id}
-                    onClick={() => { const el = document.getElementById(`cat-${c.id}`); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 120; window.scrollTo({top: y, behavior: 'smooth'}); } }}
-                    className="snap-start shrink-0 transition-all px-5 py-2.5 rounded-full text-sm font-medium bg-white border border-neutral-200 text-neutral-700 hover:border-red-200 hover:text-red-600 shadow-sm"
-                  >
-                    {c.nome}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {carregando ? (
           <div className="flex items-center justify-center py-20 text-neutral-400 text-sm italic">Carregando catálogo...</div>
         ) : categoriasFiltradas.length === 0 ? (
           <div className="text-center py-20 text-neutral-400 text-sm italic">Nenhum produto encontrado.</div>
         ) : (
           <div className="space-y-16">
-            {!isRestaurant && marcaFiltrada ? (
+            {marcaFiltrada ? (
               <section className="scroll-mt-32">
                 <FaixaMarca
                   marca={marcaFiltrada}
@@ -1441,96 +1364,14 @@ const [erroAcesso, setErroAcesso] = useState('');
               categoriasFiltradas.map(({ categoria, grupos }) => {
               return (
                 <section key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
-                  <div className={`flex items-center gap-3 mb-8 ${isRestaurant ? 'px-2' : ''}`}>
-                    {isRestaurant && <div className="h-8 w-1.5 bg-primary rounded-full" />}
-                    {!isRestaurant && <div className="h-8 w-2 shrink-0 bg-primary rounded-full" />}
-                    <h2 className={`${isRestaurant ? 'font-heading text-2xl md:text-3xl font-bold tracking-tight text-slate-900' : 'font-heading text-2xl md:text-3xl font-bold tracking-tight text-zinc-900'}`}>
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="h-8 w-2 shrink-0 bg-primary rounded-full" />
+                    <h2 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">
                       {categoria.nome}
                     </h2>
                   </div>
 
-                  {isRestaurant ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                      {grupos.map((grupo, gi) => {
-                        return (
-                          <Fragment key={gi}>
-                            {grupo.marca && (
-                              <div className="col-span-full mt-2 mb-2 flex items-center gap-4">
-                                <h3 className="uppercase tracking-widest text-neutral-500 text-sm font-bold">
-                                  {grupo.marca.nome}
-                                </h3>
-                                <div className="flex-1 h-px bg-neutral-200" />
-                              </div>
-                            )}
-                            {grupo.produtos.map(p => {
-                              const qtd = qtdNoCarrinho(p.id);
-                              const isAtacado = qtd >= 5;
-                              return (
-                                <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 flex flex-col h-full hover:shadow-md transition-shadow">
-                                  <div className="flex gap-4 mb-4">
-                                    {produtoImagemUrl(p) ? (
-                                      <div className="relative shrink-0">
-                                        <img src={produtoImagemUrl(p)} alt="" className="h-24 w-24 rounded-xl object-cover ring-1 ring-neutral-100" />
-                                        {p.estoque <= 0 && (
-                                          <span className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-white px-1 text-center">Esgotado</span>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div className="h-24 w-24 rounded-xl bg-neutral-50 flex items-center justify-center shrink-0 ring-1 ring-neutral-100">
-                                        <span className="text-neutral-300 text-xs">Sem foto</span>
-                                      </div>
-                                    )}
-                                    <div className="flex-1">
-                                      <h3 className="font-bold text-neutral-800 leading-tight mb-1">{p.nome}</h3>
-                                      <p className="text-xs text-neutral-500 line-clamp-2 mb-1">
-                                        {p.embalagem && `${p.embalagem} `}
-                                        {p.unidadeVenda && `· ${p.unidadeVenda}`}
-                                      </p>
-                                      {p.estoque > 0 && (
-                                        <p className="text-[11px] font-semibold text-emerald-600 mb-1">Em estoque: {formatEstoque(p.estoque)}{p.unidadeVenda ? ` ${p.unidadeVenda.toLowerCase()}` : ''}</p>
-                                      )}
-                                      <div className="mt-auto">
-                                        {isAtacado ? (
-                                          <div className="flex items-center gap-2">
-                                            <p className="text-sm text-neutral-400 line-through">{formatPreco(p.precoVarejo)}</p>
-                                            <p className="text-lg font-bold text-emerald-600">{formatPreco(p.precoAtacado)}</p>
-                                          </div>
-                                        ) : (
-                                          <p className="text-lg font-bold text-neutral-900">{formatPreco(p.precoVarejo)}</p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="mt-auto pt-3 border-t border-neutral-100">
-                                    {qtd > 0 ? (
-                                      <div className="flex items-center justify-between bg-neutral-50 rounded-xl p-1 border border-neutral-100">
-                                        <button onClick={() => removeDoCarrinho(p.id)} className="p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-neutral-600 shadow-sm transition-colors">
-                                          <Minus size={16} />
-                                        </button>
-                                        <span className="font-semibold text-neutral-800 w-12 text-center">{qtd}</span>
-                                        <button onClick={() => addAoCarrinho(p.id)} disabled={qtd >= p.estoque} className={`p-2.5 rounded-lg transition-colors ${qtd >= p.estoque ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed' : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'}`}>
-                                          <Plus size={16} />
-                                        </button>
-                                      </div>
-                                    ) : p.estoque <= 0 ? (
-                                      <button disabled className="w-full py-2.5 rounded-xl bg-neutral-100 text-neutral-400 font-semibold cursor-not-allowed text-sm">
-                                        Produto esgotado
-                                      </button>
-                                    ) : (
-                                      <button onClick={() => addAoCarrinho(p.id)} className="w-full py-2.5 rounded-xl border border-primary/40 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 text-sm">
-                                        <Plus size={16} /> Adicionar
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </Fragment>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="space-y-10">
+                  <div className="space-y-10">
                       {[...grupos]
                         .sort((a, b) => (a.marca ? 0 : 1) - (b.marca ? 0 : 1))
                         .map((grupo, gi) => {
@@ -1552,7 +1393,6 @@ const [erroAcesso, setErroAcesso] = useState('');
                           );
                         })}
                     </div>
-                  )}
                 </section>
               );
             })
@@ -1567,21 +1407,21 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-7xl mx-auto pointer-events-auto">
             <button
               onClick={() => setVista('carrinho')}
-              className={`w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] ${isRestaurant ? 'bg-primary text-primary-foreground rounded-2xl' : 'bg-primary text-primary-foreground rounded-full border-2 border-primary'}`}
+              className="w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] bg-primary text-primary-foreground rounded-full border-2 border-primary"
             >
               <span className="flex items-center gap-3 min-w-0">
                 <span className="text-sm font-bold truncate">{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</span>
                 {pesoTotalCarrinho > 0 && (
-                  <span className={`text-xs font-semibold whitespace-nowrap ${isRestaurant ? 'text-white/70' : 'text-white/60'}`}>
+                  <span className="text-xs font-semibold whitespace-nowrap text-white/60">
                     {pesoTotalCarrinho.toFixed(2)} kg
                   </span>
                 )}
               </span>
               <span className="flex items-center gap-2 shrink-0">
-                <span className={`text-sm font-bold ${isRestaurant ? 'text-white/90' : 'text-white/80'}`}>
+                <span className="text-sm font-bold text-white/80">
                   {valorTotalCarrinho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
-                <span className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap ${isRestaurant ? 'bg-white text-primary rounded-xl' : 'bg-white text-primary rounded-full'}`}>
+                <span className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap bg-white text-primary rounded-full">
                   <ShoppingBag size={16} /> Finalizar
                 </span>
               </span>
@@ -1594,7 +1434,7 @@ const [erroAcesso, setErroAcesso] = useState('');
       )}
 
       {/* ── Aba lateral: Conta do cliente ── */}
-      {!isRestaurant && contaAberta && (
+      {contaAberta && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setContaAberta(false)} />
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-[#F7F5F2] shadow-2xl flex flex-col">
@@ -1730,7 +1570,7 @@ const [erroAcesso, setErroAcesso] = useState('');
         </div>
       )}
       {/* ── Aba lateral: Categorias ── */}
-      {!isRestaurant && menuCategorias && (
+      {menuCategorias && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuCategorias(false)} />
           <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-[#F7F5F2] shadow-2xl flex flex-col">
