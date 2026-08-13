@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Check, Edit3, Loader2, MapPin, Plus, RefreshCw, X } from 'lucide-react';
+import { Building2, Check, Edit3, Loader2, MapPin, Plus, RefreshCw, Trash2, UploadCloud, X } from 'lucide-react';
 import { getSlug, tenantHeaders, authHeaders } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_DISPONIVEIS } from '../services/cores';
+import { midiaUrl } from '../utils/imageUrl';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -50,10 +51,11 @@ export default function Empresas() {
   const [carregandoEmpresas, setCarregandoEmpresas] = useState(false);
 
   const [editando, setEditando] = useState<Empresa | null>(null);
-  const [formEdicao, setFormEdicao] = useState({ nomeEmpresa: '', cnpj: '', slug: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', videoUrl: '', corPrincipal: '#0a0a0a', ativo: true });
+  const [formEdicao, setFormEdicao] = useState({ nomeEmpresa: '', cnpj: '', slug: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', corPrincipal: '#0a0a0a', ativo: true });
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [erroEdicao, setErroEdicao] = useState('');
   const [buscandoCepEdicao, setBuscandoCepEdicao] = useState(false);
+  const [enviandoLogo, setEnviandoLogo] = useState(false);
 
   const carregarEmpresas = async () => {
     setCarregandoEmpresas(true);
@@ -101,11 +103,37 @@ export default function Empresas() {
       bairro: emp.bairro ?? '',
       cidade: emp.cidade ?? '',
       estado: emp.estado ?? '',
+      logoUrl: emp.logoUrl ?? '',
       videoUrl: emp.videoUrl ?? '',
       corPrincipal: emp.corPrincipal,
       ativo: emp.ativo,
     });
     setErroEdicao('');
+  };
+
+  const uploadLogoEdicao = async (file: File | undefined) => {
+    if (!file) return;
+    setEnviandoLogo(true);
+    setErroEdicao('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const resp = await fetch(`${API_URL}/Upload/imagem`, {
+        method: 'POST',
+        headers: tenantHeaders(),
+        body: formData,
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setFormEdicao((f) => ({ ...f, logoUrl: data.url }));
+      } else {
+        setErroEdicao('Falha ao enviar a logo.');
+      }
+    } catch {
+      setErroEdicao('Falha de conexão ao enviar a logo.');
+    } finally {
+      setEnviandoLogo(false);
+    }
   };
 
   const salvarEdicao = async () => {
@@ -114,10 +142,15 @@ export default function Empresas() {
     setErroEdicao('');
 
     try {
+      const corpo: Record<string, string | number | boolean | null> = { ...formEdicao };
+      if (formEdicao.logoUrl === (editando.logoUrl ?? '')) {
+        corpo.logoUrl = null;
+      }
+
       const response = await fetch(`${API_URL}/Configuracoes/empresas/${editando.id}`, {
         method: 'PUT',
         headers: headersJson(),
-        body: JSON.stringify(formEdicao),
+        body: JSON.stringify(corpo),
       });
 
       if (!response.ok) {
@@ -319,6 +352,31 @@ export default function Empresas() {
                   onChange={(e) => setFormEdicao((f) => ({ ...f, corPrincipal: e.target.value }))}
                   className={inputCls}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                    {formEdicao.logoUrl ? (
+                      <img src={midiaUrl(formEdicao.logoUrl)} alt="Logo" className="w-full h-full object-contain" />
+                    ) : (
+                      <Building2 size={28} className="text-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-medium transition-colors cursor-pointer shadow-sm w-fit">
+                      <UploadCloud size={16} /> {enviandoLogo ? 'Enviando...' : 'Enviar Logo'}
+                      <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => uploadLogoEdicao(e.target.files?.[0])} disabled={enviandoLogo} />
+                    </label>
+                    {formEdicao.logoUrl && (
+                      <button onClick={() => setFormEdicao((f) => ({ ...f, logoUrl: '' }))} className="text-sm text-gray-600 hover:underline flex items-center gap-1 w-fit">
+                        <Trash2 size={14} /> Remover logo
+                      </button>
+                    )}
+                    <p className="text-[11px] text-gray-400 italic">PNG ou JPG. A logo substitui a marca exibida em todo o sistema.</p>
+                  </div>
+                </div>
               </div>
 
               <div>

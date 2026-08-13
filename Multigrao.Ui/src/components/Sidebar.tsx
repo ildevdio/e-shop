@@ -7,7 +7,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
 import { entregaService } from '../services/entregaService';
-import { useSistemaStore } from '../store/sistemaStore';
+import { useSistemaStore, CONFIG_PADRAO } from '../store/sistemaStore';
 import { useUiStore } from '../store/uiStore';
 import { getSlug } from '../services/tenantSetup';
 import { midiaUrl } from '../utils/imageUrl';
@@ -123,7 +123,7 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
 
         <div className="relative z-10 flex h-16 items-center border-b border-sidebar-border px-5">
           <div className="flex items-center gap-3">
-            <img src={midiaUrl(config.logoUrl)} alt={config.nomeEmpresa} className="h-10 w-10 object-contain" />
+            <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-10 w-10 object-contain" />
             <div className="flex flex-col leading-tight">
               <span className="font-heading font-semibold tracking-wide text-sidebar-foreground">{config.nomeEmpresa}</span>
               <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">{config.slogan}</span>

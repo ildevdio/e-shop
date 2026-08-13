@@ -10,7 +10,7 @@ import { imageUrl, produtoImagemUrl, midiaUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
-import { useSistemaStore } from '../store/sistemaStore';
+import { useSistemaStore, CONFIG_PADRAO } from '../store/sistemaStore';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
@@ -1249,7 +1249,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
         <div className="relative z-10 px-4 h-full flex flex-col items-start text-left justify-end pb-16 md:pb-24 md:pl-16 lg:pl-24">
           <img
-            src={midiaUrl(config.logoUrl)}
+            src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)}
             alt={config.nomeEmpresa}
             className="h-auto object-contain mb-8 brightness-110 w-[9.4rem] md:w-[11.4rem]"
           />

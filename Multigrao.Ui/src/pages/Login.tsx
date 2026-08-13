@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { ArrowLeft, Eye, EyeOff, KeyRound, Loader2, Wheat } from 'lucide-react';
 import Grainient from '../components/ui/Grainient';
-import { useSistemaStore } from '../store/sistemaStore';
+import { useSistemaStore, CONFIG_PADRAO } from '../store/sistemaStore';
 import { getSlug, tenantHeaders } from '../services/tenantSetup';
 import { midiaUrl } from '../utils/imageUrl';
 
@@ -24,7 +24,7 @@ export default function Login() {
     if (getSlug()) useSistemaStore.getState().carregar();
   }, []);
 
-  const logo = midiaUrl(config.logoUrl);
+  const logo = midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

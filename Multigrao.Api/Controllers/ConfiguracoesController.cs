@@ -66,8 +66,10 @@ namespace Multigrao.Api.Controllers
             config.Cidade = dto.Cidade;
             config.Estado = dto.Estado;
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
-            config.LogoUrl = dto.LogoUrl;
-            config.VideoUrl = dto.VideoUrl;
+            if (dto.LogoUrl != null)
+                config.LogoUrl = dto.LogoUrl;
+            if (dto.VideoUrl != null)
+                config.VideoUrl = dto.VideoUrl;
             config.CorPrincipal = string.IsNullOrWhiteSpace(dto.CorPrincipal) ? "#0a0a0a" : dto.CorPrincipal;
             config.Fonte = string.IsNullOrWhiteSpace(dto.Fonte) ? "classica" : dto.Fonte;
             config.CorSecundaria = string.IsNullOrWhiteSpace(dto.CorSecundaria) ? "#f97316" : dto.CorSecundaria;

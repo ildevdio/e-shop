@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Check, Copy, Link2, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Building2, Check, Copy, Link2, Loader2, MapPin, Trash2, UploadCloud } from 'lucide-react';
 import { getSlug, tenantHeaders, authHeaders } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_DISPONIVEIS } from '../services/cores';
+import { midiaUrl } from '../utils/imageUrl';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -43,12 +44,14 @@ export default function NovaEmpresa() {
     bairro: '',
     cidade: '',
     estado: '',
+    logoUrl: '',
     videoUrl: '',
     corPrincipal: '#0a0a0a',
     login: 'admin',
     senha: 'admin123',
   });
   const [enviando, setEnviando] = useState(false);
+  const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [erro, setErro] = useState('');
   const [criada, setCriada] = useState<EmpresaCriada | null>(null);
   const [copiado, setCopiado] = useState('');
@@ -101,6 +104,7 @@ export default function NovaEmpresa() {
           bairro: form.bairro,
           cidade: form.cidade,
           estado: form.estado,
+          logoUrl: form.logoUrl,
           videoUrl: form.videoUrl,
           corPrincipal: form.corPrincipal,
           login: form.login,
@@ -116,11 +120,36 @@ export default function NovaEmpresa() {
 
       const data = await response.json();
       setCriada(data);
-      setForm({ nomeEmpresa: '', cnpj: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', videoUrl: '', corPrincipal: '#0a0a0a', login: 'admin', senha: 'admin123' });
+      setForm({ nomeEmpresa: '', cnpj: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', corPrincipal: '#0a0a0a', login: 'admin', senha: 'admin123' });
     } catch {
       setErro('Falha de conexão com o servidor.');
     } finally {
       setEnviando(false);
+    }
+  };
+
+  const uploadLogo = async (file: File | undefined) => {
+    if (!file) return;
+    setEnviandoLogo(true);
+    setErro('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const resp = await fetch(`${API_URL}/Upload/imagem`, {
+        method: 'POST',
+        headers: tenantHeaders(),
+        body: formData,
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setForm((f) => ({ ...f, logoUrl: data.url }));
+      } else {
+        setErro('Falha ao enviar a logo.');
+      }
+    } catch {
+      setErro('Falha de conexão ao enviar a logo.');
+    } finally {
+      setEnviandoLogo(false);
     }
   };
 
@@ -186,6 +215,31 @@ export default function NovaEmpresa() {
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Slogan</label>
           <input value={form.slogan} onChange={set('slogan')} placeholder="Ex.: Qualidade em amendoim" className={inputCls} />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+              {form.logoUrl ? (
+                <img src={midiaUrl(form.logoUrl)} alt="Logo" className="w-full h-full object-contain" />
+              ) : (
+                <Building2 size={28} className="text-gray-300" />
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-medium transition-colors cursor-pointer shadow-sm w-fit">
+                <UploadCloud size={16} /> {enviandoLogo ? 'Enviando...' : 'Enviar Logo'}
+                <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => uploadLogo(e.target.files?.[0])} disabled={enviandoLogo} />
+              </label>
+              {form.logoUrl && (
+                <button onClick={() => setForm((f) => ({ ...f, logoUrl: '' }))} className="text-sm text-gray-600 hover:underline flex items-center gap-1 w-fit">
+                  <Trash2 size={14} /> Remover logo
+                </button>
+              )}
+              <p className="text-[11px] text-gray-400 italic">PNG ou JPG. A logo substitui a marca exibida em todo o sistema.</p>
+            </div>
+          </div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">

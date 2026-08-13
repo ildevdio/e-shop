@@ -26,7 +26,7 @@ import Entregas from './pages/Entregas';
 import Conferencia from './pages/Conferencia';
 import Financeiro from './pages/Financeiro';
 import { useAuthStore } from './store/authStore';
-import { useSistemaStore } from './store/sistemaStore';
+import { useSistemaStore, CONFIG_PADRAO } from './store/sistemaStore';
 import { isShopDomain } from './services/tenantSetup';
 import { midiaUrl } from './utils/imageUrl';
 
@@ -74,7 +74,7 @@ function App() {
 
   useEffect(() => {
     const link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
-    const href = midiaUrl(logoUrl);
+    const href = midiaUrl(logoUrl || CONFIG_PADRAO.logoUrl);
     if (link && href) link.href = href;
   }, [logoUrl]);
 
