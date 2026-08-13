@@ -242,7 +242,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       setCorSecundaria(configSistema.corSecundaria);
       setCorFonte(configSistema.corFonte);
       setFonte(configSistema.fonte);
-      setDesignEcommerce(configSistema.designEcommerce);
+      setDesignEcommerce(DESIGNS_ECOMMERCE[configSistema.designEcommerce] ? configSistema.designEcommerce : 'claro');
       setFormEmpresa({
         nomeEmpresa: configSistema.nomeEmpresa,
         cnpj: configSistema.cnpj,
@@ -941,18 +941,25 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Design do e-commerce</label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {Object.entries(DESIGNS_ECOMMERCE).map(([key, d]) => (
                       <button
                         key={key}
                         onClick={() => { setDesignEcommerce(key); atualizarConfig({ designEcommerce: key }); }}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${designEcommerce === key ? 'bg-primary text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+                        className={`text-left rounded-2xl p-4 transition-all border-2 ${designEcommerce === key ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'}`}
                       >
-                        {d.nome}
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.bg }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.card }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.strong }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.text }} />
+                        </div>
+                        <div className={`text-sm font-semibold ${designEcommerce === key ? 'text-gray-900' : 'text-gray-700'}`}>{d.nome}</div>
+                        {d.descricao && <div className="text-[11px] text-gray-400 leading-snug mt-1">{d.descricao}</div>}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-2 italic">Estilo visual da loja: fundo, cards, bordas e tons de texto do e-commerce.</p>
+                  <p className="text-[11px] text-gray-400 mt-2 italic">Estilo visual da loja: fundo, cards, bordas, botões e tons de texto do e-commerce.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Fonte</label>

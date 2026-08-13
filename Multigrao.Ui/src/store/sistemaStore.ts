@@ -84,9 +84,41 @@ export const FONTES_ECOMMERCE: Record<string, { nome: string; heading: string; c
   },
 };
 
-export const DESIGNS_ECOMMERCE: Record<string, { nome: string; bg: string; card: string; surface: string; fill: string; text: string; muted: string; border: string; strong: string }> = {
+export interface EstilosEcommerce {
+  navRgb: string;
+  navAlphaMax: number;
+  navAlphaMin: number;
+  navTexto: string;
+  navBtnConta: string;
+  navBtnCarrinho: string;
+  navBtnMenu: string;
+  cardClasse: string;
+  cardSombra: string;
+  botaoClasse: string;
+  stepperClasse: string;
+  heroOverlay: string;
+  tickerClasse: string;
+  tituloTransform: string;
+}
+
+export interface DesignEcommerce {
+  nome: string;
+  descricao?: string;
+  bg: string;
+  card: string;
+  surface: string;
+  fill: string;
+  text: string;
+  muted: string;
+  border: string;
+  strong: string;
+  estilos: EstilosEcommerce;
+}
+
+export const DESIGNS_ECOMMERCE: Record<string, DesignEcommerce> = {
   claro: {
-    nome: 'Clássico',
+    nome: 'Classic',
+    descricao: 'O visual atual do sistema: elegante, serifado e acolhedor.',
     bg: '#f7f5f2',
     card: '#ffffff',
     surface: '#f7f5f2',
@@ -95,28 +127,78 @@ export const DESIGNS_ECOMMERCE: Record<string, { nome: string; bg: string; card:
     muted: '#71717a',
     border: 'rgba(24, 24, 27, 0.12)',
     strong: '#18181b',
+    estilos: {
+      navRgb: '24,24,27',
+      navAlphaMax: 0.6,
+      navAlphaMin: 0,
+      navTexto: '#ffffff',
+      navBtnConta: 'backdrop-blur-md bg-white/15 border border-white/40 text-white hover:bg-white/25',
+      navBtnCarrinho: 'bg-white text-zinc-900 hover:bg-zinc-100',
+      navBtnMenu: 'backdrop-blur-md bg-white/15 border border-white/40 text-white hover:bg-white/25',
+      cardClasse: 'rounded-2xl border border-ecom-border',
+      cardSombra: 'shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1',
+      botaoClasse: 'rounded-full uppercase tracking-widest',
+      stepperClasse: 'rounded-full',
+      heroOverlay: 'bg-black/30',
+      tickerClasse: 'bg-primary text-primary-foreground',
+      tituloTransform: '',
+    },
   },
-  escuro: {
-    nome: 'Escuro',
-    bg: '#0b0b0d',
-    card: '#17171a',
-    surface: '#101013',
-    fill: '#242428',
-    text: '#f4f4f5',
-    muted: '#9d9da6',
-    border: 'rgba(255, 255, 255, 0.12)',
-    strong: '#f4f4f5',
-  },
-  moderno: {
-    nome: 'Moderno',
+  bold: {
+    nome: 'Bold',
+    descricao: 'Alto contraste, títulos em caixa alta e bordas marcantes. Inspirado na Zynon.',
     bg: '#fafafa',
     card: '#ffffff',
-    surface: '#f4f4f5',
+    surface: '#f1f1f3',
     fill: '#e4e4e7',
-    text: '#111827',
-    muted: '#6b7280',
-    border: 'rgba(17, 24, 39, 0.10)',
-    strong: '#111827',
+    text: '#0a0a0a',
+    muted: '#52525b',
+    border: 'rgba(10, 10, 10, 0.18)',
+    strong: '#0a0a0a',
+    estilos: {
+      navRgb: '10,10,10',
+      navAlphaMax: 1,
+      navAlphaMin: 0,
+      navTexto: '#ffffff',
+      navBtnConta: 'bg-white/10 border border-white/25 text-white hover:bg-white/20',
+      navBtnCarrinho: 'bg-white text-black hover:bg-zinc-200',
+      navBtnMenu: 'bg-white/10 border border-white/25 text-white hover:bg-white/20',
+      cardClasse: 'rounded-xl border-2 border-ecom-strong',
+      cardSombra: 'shadow-none hover:shadow-[0_10px_28px_rgba(0,0,0,0.16)] hover:-translate-y-0.5',
+      botaoClasse: 'rounded-lg uppercase tracking-wide',
+      stepperClasse: 'rounded-lg',
+      heroOverlay: 'bg-black/55',
+      tickerClasse: 'bg-black text-white',
+      tituloTransform: 'uppercase',
+    },
+  },
+  pop: {
+    nome: 'Pop',
+    descricao: 'Cores quentes e vibrantes, cantos arredondados e clima de empório. Inspirado na Casas Pedro.',
+    bg: '#fff8f0',
+    card: '#ffffff',
+    surface: '#fff1e0',
+    fill: '#ffe3c2',
+    text: '#3f1d09',
+    muted: '#a05e2c',
+    border: 'rgba(159, 93, 44, 0.25)',
+    strong: '#7c2d12',
+    estilos: {
+      navRgb: '255,248,240',
+      navAlphaMax: 0.95,
+      navAlphaMin: 0.55,
+      navTexto: '#3f1d09',
+      navBtnConta: 'bg-black/5 border border-black/10 text-[#3f1d09] hover:bg-black/10',
+      navBtnCarrinho: 'bg-[#3f1d09] text-[#fff8f0] hover:bg-[#5c2d12]',
+      navBtnMenu: 'bg-black/5 border border-black/10 text-[#3f1d09] hover:bg-black/10',
+      cardClasse: 'rounded-2xl border-2 border-ecom-border',
+      cardSombra: 'shadow-[0_4px_14px_rgba(194,120,60,0.15)] hover:shadow-[0_14px_30px_rgba(194,120,60,0.25)] hover:-translate-y-1',
+      botaoClasse: 'rounded-full uppercase tracking-widest',
+      stepperClasse: 'rounded-full',
+      heroOverlay: 'bg-black/25',
+      tickerClasse: 'bg-ecom-secondary text-ecom-secondary-foreground',
+      tituloTransform: '',
+    },
   },
 };
 

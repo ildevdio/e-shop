@@ -10,7 +10,12 @@ import { imageUrl, produtoImagemUrl, midiaUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
-import { useSistemaStore, CONFIG_PADRAO } from '../store/sistemaStore';
+import { useSistemaStore, DESIGNS_ECOMMERCE, CONFIG_PADRAO } from '../store/sistemaStore';
+
+function useDesign() {
+  const design = useSistemaStore((s) => s.config.designEcommerce);
+  return (DESIGNS_ECOMMERCE[design] ?? DESIGNS_ECOMMERCE.claro).estilos;
+}
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
@@ -107,8 +112,9 @@ function CardEcommerce({
   showMarca?: boolean;
 }) {
   const isAtacado = ehAtacado(produto, qtd);
+  const ds = useDesign();
   return (
-    <div className="group bg-ecom-card rounded-2xl border border-ecom-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
+    <div className={`group bg-ecom-card ${ds.cardClasse} ${ds.cardSombra} transition-all flex flex-col h-full overflow-hidden`}>
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface border-b border-ecom-border text-left">
         {produtoImagemUrl(produto) ? (
           <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -130,7 +136,7 @@ function CardEcommerce({
           <p className="text-[9px] uppercase tracking-widest font-bold text-ecom-muted mb-1 truncate">{produto.marca.nome}</p>
         )}
         <button onClick={onAbrir} className="text-left">
-          <h3 className="font-heading font-bold text-ecom-text text-base leading-snug line-clamp-2 hover:underline decoration-ecom-muted underline-offset-4">{produto.nome}</h3>
+          <h3 className={`font-heading font-bold text-ecom-text text-base leading-snug line-clamp-2 hover:underline decoration-ecom-muted underline-offset-4 ${ds.tituloTransform}`}>{produto.nome}</h3>
         </button>
         <p className="text-[10px] uppercase tracking-widest font-semibold text-ecom-muted mt-1 mb-2 truncate">
           {produto.embalagem && `${produto.embalagem} `}
@@ -155,11 +161,11 @@ function CardEcommerce({
         {qtd > 0 ? (
           <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between" />
         ) : produto.estoque <= 0 ? (
-          <button disabled className="w-full py-2.5 bg-ecom-fill text-ecom-muted font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed">
+          <button disabled className={`w-full py-2.5 bg-ecom-fill text-ecom-muted font-bold text-[10px] ${ds.botaoClasse} cursor-not-allowed`}>
             Produto esgotado
           </button>
         ) : (
-          <button onClick={onAbrir} className="w-full py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[10px] rounded-full transition-colors">
+          <button onClick={onAbrir} className={`w-full py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] ${ds.botaoClasse} transition-colors`}>
             Ver Produto
           </button>
         )}
@@ -180,8 +186,9 @@ function CardCarrossel({
   onAbrir: () => void;
 }) {
   const isAtacado = ehAtacado(produto, qtd);
+  const ds = useDesign();
   return (
-    <div className="relative aspect-[4/5] rounded-3xl overflow-hidden group bg-ecom-surface border border-ecom-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-all">
+    <div className={`relative aspect-[4/5] overflow-hidden group bg-ecom-surface ${ds.cardClasse} ${ds.cardSombra} transition-all`}>
       <button onClick={onAbrir} aria-label={`Ver ${produto.nome}`} className="absolute inset-0 w-full h-full block text-left cursor-pointer">
         {produtoImagemUrl(produto) ? (
           <img src={produtoImagemUrl(produto)} alt={produto.nome} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -204,7 +211,7 @@ function CardCarrossel({
           <p className="text-[10px] uppercase tracking-widest font-bold text-white/70 mb-1">{produto.marca.nome}</p>
         )}
         <button onClick={onAbrir} className="text-left block w-full">
-          <h3 className="font-heading font-bold text-white text-xl leading-snug line-clamp-2 hover:underline decoration-white/40 underline-offset-4">{produto.nome}</h3>
+          <h3 className={`font-heading font-bold text-white text-xl leading-snug line-clamp-2 hover:underline decoration-white/40 underline-offset-4 ${ds.tituloTransform}`}>{produto.nome}</h3>
         </button>
         {produto.estoque > 0 && (
           <p className="text-[10px] font-semibold text-emerald-300 mt-1">
@@ -225,9 +232,9 @@ function CardCarrossel({
           {qtd > 0 ? (
             <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-ecom-card shrink-0" />
           ) : produto.estoque <= 0 ? (
-            <button disabled className="px-4 py-2 bg-ecom-fill text-ecom-muted font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed shrink-0">Esgotado</button>
+            <button disabled className={`px-4 py-2 bg-ecom-fill text-ecom-muted font-bold text-[10px] ${ds.botaoClasse} cursor-not-allowed shrink-0`}>Esgotado</button>
           ) : (
-            <button onClick={onAbrir} className="px-4 py-2 bg-white text-zinc-900 font-bold uppercase tracking-widest text-[10px] rounded-full hover:bg-zinc-100 transition-colors shrink-0">Ver Produto</button>
+            <button onClick={onAbrir} className={`px-4 py-2 bg-white text-zinc-900 font-bold text-[10px] ${ds.botaoClasse} hover:bg-zinc-100 transition-colors shrink-0`}>Ver Produto</button>
           )}
         </div>
       </div>
@@ -254,6 +261,7 @@ function CampoQuantidade({
 }) {
   const [texto, setTexto] = useState(String(valor));
   const [focado, setFocado] = useState(false);
+  const ds = useDesign();
 
   useEffect(() => {
     if (!focado) setTexto(String(valor));
@@ -282,7 +290,7 @@ function CampoQuantidade({
   const noLimite = max !== undefined && valor >= max;
 
   return (
-    <div className={`flex items-center rounded-full border border-ecom-border bg-ecom-surface ${grande ? 'p-1.5' : 'p-1'} ${className ?? ''}`}>
+    <div className={`flex items-center ${ds.stepperClasse} border border-ecom-border bg-ecom-surface ${grande ? 'p-1.5' : 'p-1'} ${className ?? ''}`}>
       <button
         type="button"
         onClick={aoDecrementar}
@@ -463,6 +471,9 @@ const [erroAcesso, setErroAcesso] = useState('');
   const carrosselRef = useRef<HTMLDivElement>(null);
   const config = useSistemaStore((state) => state.config);
   const carregadaConfig = useSistemaStore((state) => state.carregada);
+  const design = DESIGNS_ECOMMERCE[config.designEcommerce] ?? DESIGNS_ECOMMERCE.claro;
+  const ds = design.estilos;
+  const navAlpha = Math.min(1, ds.navAlphaMin + (vista === 'catalogo' ? opacidadeNav : 1) * ds.navAlphaMax);
   
   // Theme Variables
   const primaryBg = 'bg-primary text-primary-foreground hover:bg-primary/90';
@@ -987,10 +998,10 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div
             className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
             style={{
-              backgroundColor: `rgba(24,24,27,${((vista === 'catalogo' ? opacidadeNav : 1) * 0.6).toFixed(3)})`,
-              backdropFilter: (vista === 'catalogo' ? opacidadeNav : 1) > 0 ? 'blur(20px) saturate(160%)' : 'none',
-              WebkitBackdropFilter: (vista === 'catalogo' ? opacidadeNav : 1) > 0 ? 'blur(20px) saturate(160%)' : 'none',
-              boxShadow: (vista === 'catalogo' ? opacidadeNav : 1) >= 1 ? '0 10px 40px rgba(0,0,0,0.35)' : 'none',
+              backgroundColor: `rgba(${ds.navRgb},${navAlpha.toFixed(3)})`,
+              backdropFilter: navAlpha > 0 ? 'blur(20px) saturate(160%)' : 'none',
+              WebkitBackdropFilter: navAlpha > 0 ? 'blur(20px) saturate(160%)' : 'none',
+              boxShadow: navAlpha >= 1 ? '0 10px 40px rgba(0,0,0,0.35)' : 'none',
             }}
           >
           <div className="px-4 py-3 sm:py-4">
@@ -1032,7 +1043,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                         }
                       }}
                       title="Menu"
-                      className={`${config.tipoMenu === 'lateral' ? 'md:hidden' : ''} h-10 w-10 flex items-center justify-center rounded-full backdrop-blur-md bg-white/15 border border-white/40 text-white hover:bg-white/25 transition-colors ${qtdFiltrosAtivos > 0 ? 'ring-2 ring-primary' : ''}`}
+                      className={`${config.tipoMenu === 'lateral' ? 'md:hidden' : ''} h-10 w-10 flex items-center justify-center rounded-full ${ds.navBtnMenu} transition-colors ${qtdFiltrosAtivos > 0 ? 'ring-2 ring-primary' : ''}`}
                     >
                       {config.tipoMenu === 'hamburguer' ? <Menu size={18} /> : <LayoutGrid size={18} />}
                       {qtdFiltrosAtivos > 0 && (
@@ -1043,21 +1054,21 @@ const [erroAcesso, setErroAcesso] = useState('');
                     </button>
                   )}
                 </div>
-                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl -mt-1 tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
+                <h1 className="font-heading font-bold text-xl sm:text-2xl -mt-1 tracking-wide drop-shadow-md whitespace-nowrap" style={{ color: ds.navTexto }}>{config.nomeEmpresa}</h1>
                 <div className="flex-1 flex items-center justify-end gap-2">
                   {config.tipoMenu === 'dock' && (
                     <>
                       <button
                         onClick={() => setContaAberta(true)}
                         title="Conta"
-                        className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
+                        className={`h-10 w-10 flex items-center justify-center rounded-full ${ds.navBtnConta} transition-colors`}
                       >
                         <User size={18} />
                       </button>
                       <button
                         onClick={abrirCarrinho}
                         title="Carrinho"
-                        className="relative h-10 w-10 flex items-center justify-center bg-white text-zinc-900 rounded-full shadow-sm hover:bg-zinc-100 transition-colors"
+                        className={`relative h-10 w-10 flex items-center justify-center rounded-full ${ds.navBtnCarrinho} transition-colors`}
                       >
                         <ShoppingCart size={18} />
                         {totalItensCarrinho > 0 && (
@@ -1158,7 +1169,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-7xl mx-auto px-4">
             <button
               onClick={() => { setProdutoDetalhe(null); setVista('catalogo'); }}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs"
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors bg-primary hover:bg-primary/90 text-primary-foreground text-xs ${ds.botaoClasse}`}
             >
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -1249,11 +1260,11 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
 
                 {produtoDetalhe.estoque <= 0 ? (
-                  <button disabled className="w-full py-4 bg-ecom-fill text-ecom-muted font-bold uppercase tracking-widest text-sm rounded-full cursor-not-allowed">
+                  <button disabled className={`w-full py-4 bg-ecom-fill text-ecom-muted font-bold text-sm ${ds.botaoClasse} cursor-not-allowed`}>
                     Produto esgotado
                   </button>
                 ) : (
-                  <button onClick={adicionarDoDetalhe} className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm">
+                  <button onClick={adicionarDoDetalhe} className={`w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm ${ds.botaoClasse} transition-colors shadow-sm`}>
                     Adicionar {qtdDetalhe} {produtoDetalhe.unidadeVenda ? produtoDetalhe.unidadeVenda.toLowerCase() : (qtdDetalhe === 1 ? 'item' : 'itens')} ao carrinho
                   </button>
                 )}
@@ -1282,7 +1293,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-6xl mx-auto w-full px-4 flex items-center gap-3 shrink-0">
             <button
               onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors bg-primary hover:bg-primary/90 text-primary-foreground rounded-full uppercase tracking-widest text-xs"
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition-colors bg-primary hover:bg-primary/90 text-primary-foreground text-xs ${ds.botaoClasse}`}
             >
               <ArrowLeft size={16} /> Voltar
             </button>
@@ -1296,7 +1307,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
                 <h2 className="font-heading text-3xl font-bold text-ecom-text">Pedido enviado!</h2>
                 <p className="mt-3 text-ecom-muted font-medium">Recebemos seu pedido com sucesso. Em breve entraremos em contato para confirmar.</p>
-                <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
+                <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className={`mt-8 px-10 py-4 font-bold text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground ${ds.botaoClasse}`}>
                   Voltar ao catálogo
                 </button>
               </div>
@@ -1307,7 +1318,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
                 <h2 className="font-heading text-2xl font-bold text-ecom-text">Seu carrinho está vazio</h2>
                 <p className="mt-2 text-ecom-muted font-medium">Navegue pelo catálogo e adicione produtos ao carrinho.</p>
-                <button onClick={() => setVista('catalogo')} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
+                <button onClick={() => setVista('catalogo')} className={`mt-8 px-10 py-4 font-bold text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground ${ds.botaoClasse}`}>
                   Ver produtos
                 </button>
               </div>
@@ -1377,7 +1388,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                               <button
                                 type="button"
                                 onClick={() => setQtdCarrinho(produtoId, 2)}
-                                className="shrink-0 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors bg-ecom-secondary hover:bg-ecom-secondary/90 text-ecom-secondary-foreground rounded-full"
+                                className={`shrink-0 px-3 py-1.5 text-[11px] font-bold transition-colors bg-ecom-secondary hover:bg-ecom-secondary/90 text-ecom-secondary-foreground ${ds.botaoClasse}`}
                               >
                                 Levar 2kg
                               </button>
@@ -1508,7 +1519,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       </div>
                     </div>
                   )}
-                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md rounded-full ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : 'bg-ecom-fill text-ecom-muted cursor-not-allowed'}`}>
+                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md ${ds.botaoClasse} ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : 'bg-ecom-fill text-ecom-muted cursor-not-allowed'}`}>
                     {enviando ? 'Enviando...' : 'Confirmar Pedido'}
                   </button>
                   </div>
@@ -1524,7 +1535,7 @@ const [erroAcesso, setErroAcesso] = useState('');
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
           <source src="/multigraosvid.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/30" />
+        <div className={`absolute inset-0 ${ds.heroOverlay}`} />
 
         <div className="relative z-10 px-4 h-full flex flex-col items-start text-left justify-end pb-16 md:pb-24 md:pl-16 lg:pl-24">
           <img
@@ -1533,11 +1544,11 @@ const [erroAcesso, setErroAcesso] = useState('');
             className="h-auto object-contain mb-2 brightness-110 w-[9.4rem] md:w-[11.4rem]"
           />
           {config.exibirNomeAbaixoLogo && (
-            <h1 className="font-heading text-4xl md:text-6xl font-bold tracking-wide text-white drop-shadow-md">
+            <h1 className={`font-heading text-4xl md:text-6xl font-bold tracking-wide text-white drop-shadow-md ${ds.tituloTransform}`}>
               {config.nomeEmpresa}
             </h1>
           )}
-          <p className="font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md mt-10">
+          <p className={`font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md mt-10 ${ds.tituloTransform}`}>
             {config.tituloHero}
           </p>
           <p className="text-white/90 mt-6 font-medium drop-shadow text-sm md:text-base max-w-xl">
@@ -1555,13 +1566,13 @@ const [erroAcesso, setErroAcesso] = useState('');
             </a>
           </div>
 
-          <button onClick={scrollParaCatalogo} className="mt-8 px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-xs rounded-full shadow-[0_5px_0_rgba(0,0,0,0.35)] active:translate-y-[3px] active:shadow-none transition-all">
+          <button onClick={scrollParaCatalogo} className={`mt-8 px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs ${ds.botaoClasse} shadow-[0_5px_0_rgba(0,0,0,0.35)] active:translate-y-[3px] active:shadow-none transition-all`}>
             Ver Produtos
           </button>
         </div>
       </div>
 
-      <div ref={tickerRef} className="bg-primary text-primary-foreground">
+      <div ref={tickerRef} className={ds.tickerClasse}>
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]">
             <span>{config.nomeEmpresa}</span>
             <span className="text-ecom-secondary">●</span>
@@ -1581,7 +1592,7 @@ const [erroAcesso, setErroAcesso] = useState('');
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
         <div className="h-8 w-2 bg-primary rounded-full" />
-                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-ecom-text">Destaques</h2>
+                <h2 className={`font-heading text-2xl sm:text-3xl font-bold text-ecom-text ${ds.tituloTransform}`}>Destaques</h2>
               </div>
               <div className="hidden sm:flex items-center gap-2">
                 <button onClick={() => rolarCarrossel(-1)} className="h-10 w-10 flex items-center justify-center bg-ecom-card border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
@@ -1629,7 +1640,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       <div key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="h-7 w-2 shrink-0 bg-primary rounded-full" />
-                          <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-ecom-text">{categoria.nome}</h2>
+                          <h2 className={`font-heading text-xl sm:text-2xl font-bold tracking-tight text-ecom-text ${ds.tituloTransform}`}>{categoria.nome}</h2>
                           <span className="text-[11px] font-bold uppercase tracking-widest text-ecom-muted">{produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'}</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -1654,7 +1665,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <section key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="h-8 w-2 shrink-0 bg-primary rounded-full" />
-                    <h2 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-ecom-text">
+                    <h2 className={`font-heading text-2xl md:text-3xl font-bold tracking-tight text-ecom-text ${ds.tituloTransform}`}>
                       {categoria.nome}
                     </h2>
                   </div>
@@ -1695,7 +1706,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-7xl mx-auto pointer-events-auto">
             <button
               onClick={abrirCarrinho}
-              className="w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] bg-primary text-primary-foreground rounded-full border-2 border-primary"
+              className={`w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] bg-primary text-primary-foreground ${ds.botaoClasse} border-2 border-primary`}
             >
               <span className="flex items-center gap-3 min-w-0">
                 <span className="text-sm font-bold truncate">{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</span>
@@ -1756,7 +1767,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   <button
                     onClick={acessarConta}
                     disabled={buscandoAcesso}
-                    className="mt-4 w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-xs rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                    className={`mt-4 w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs ${ds.botaoClasse} transition-colors flex items-center justify-center gap-2 disabled:opacity-60`}
                   >
                     {buscandoAcesso ? <><Loader2 size={16} className="animate-spin" /> Acessando...</> : <><KeyRound size={16} /> Acessar</>}
                   </button>
@@ -1896,7 +1907,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </div>
                   <h2 className="font-heading text-2xl font-bold text-ecom-text">Seu carrinho está vazio</h2>
                   <p className="mt-2 text-ecom-muted font-medium">Navegue pelo catálogo e adicione produtos ao carrinho.</p>
-                  <button onClick={() => setCarrinhoDrawer(false)} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
+                  <button onClick={() => setCarrinhoDrawer(false)} className={`mt-8 px-10 py-4 font-bold text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground ${ds.botaoClasse}`}>
                     Ver produtos
                   </button>
                 </div>
@@ -1944,7 +1955,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
                 <button
                   onClick={() => { setCarrinhoDrawer(false); setVista('carrinho'); }}
-                  className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className={`w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm ${ds.botaoClasse} transition-colors shadow-sm flex items-center justify-center gap-2`}
                 >
                   <ShoppingBag size={18} /> Finalizar Pedido
                 </button>
