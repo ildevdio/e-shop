@@ -334,6 +334,11 @@ namespace Multigrao.Api.DTOs
         public string CorSecundaria { get; set; } = "#f97316";
         public string? CorFonte { get; set; }
         public string DesignEcommerce { get; set; } = "claro";
+        public string? TituloHero { get; set; }
+        public string? SubtextoHero { get; set; }
+        public bool? ExibirNomeAbaixoLogo { get; set; }
+        public string? TipoMenu { get; set; }
+        public string? TipoCarrinho { get; set; }
     }
 
     public class CriarEmpresaDto
@@ -355,6 +360,11 @@ namespace Multigrao.Api.DTOs
         public string? CorSecundaria { get; set; }
         public string? CorFonte { get; set; }
         public string? DesignEcommerce { get; set; }
+        public string? TituloHero { get; set; }
+        public string? SubtextoHero { get; set; }
+        public bool? ExibirNomeAbaixoLogo { get; set; }
+        public string? TipoMenu { get; set; }
+        public string? TipoCarrinho { get; set; }
         public string? Login { get; set; }
         public string? Senha { get; set; }
     }
@@ -378,6 +388,11 @@ namespace Multigrao.Api.DTOs
         public string? CorSecundaria { get; set; }
         public string? CorFonte { get; set; }
         public string? DesignEcommerce { get; set; }
+        public string? TituloHero { get; set; }
+        public string? SubtextoHero { get; set; }
+        public bool? ExibirNomeAbaixoLogo { get; set; }
+        public string? TipoMenu { get; set; }
+        public string? TipoCarrinho { get; set; }
         public string? Slug { get; set; }
         public bool? Ativo { get; set; }
     }

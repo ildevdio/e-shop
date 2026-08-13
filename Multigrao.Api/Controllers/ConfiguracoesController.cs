@@ -75,6 +75,16 @@ namespace Multigrao.Api.Controllers
             config.CorSecundaria = string.IsNullOrWhiteSpace(dto.CorSecundaria) ? "#f97316" : dto.CorSecundaria;
             config.CorFonte = dto.CorFonte;
             config.DesignEcommerce = string.IsNullOrWhiteSpace(dto.DesignEcommerce) ? "claro" : dto.DesignEcommerce;
+            if (dto.TituloHero != null)
+                config.TituloHero = dto.TituloHero;
+            if (dto.SubtextoHero != null)
+                config.SubtextoHero = dto.SubtextoHero;
+            if (dto.ExibirNomeAbaixoLogo.HasValue)
+                config.ExibirNomeAbaixoLogo = dto.ExibirNomeAbaixoLogo.Value;
+            if (!string.IsNullOrWhiteSpace(dto.TipoMenu))
+                config.TipoMenu = dto.TipoMenu;
+            if (!string.IsNullOrWhiteSpace(dto.TipoCarrinho))
+                config.TipoCarrinho = dto.TipoCarrinho;
 
             await _context.SaveChangesAsync();
 
@@ -119,6 +129,11 @@ namespace Multigrao.Api.Controllers
                 CorSecundaria = string.IsNullOrWhiteSpace(dto.CorSecundaria) ? "#f97316" : dto.CorSecundaria,
                 CorFonte = dto.CorFonte,
                 DesignEcommerce = string.IsNullOrWhiteSpace(dto.DesignEcommerce) ? "claro" : dto.DesignEcommerce,
+                TituloHero = dto.TituloHero,
+                SubtextoHero = dto.SubtextoHero,
+                ExibirNomeAbaixoLogo = dto.ExibirNomeAbaixoLogo ?? true,
+                TipoMenu = string.IsNullOrWhiteSpace(dto.TipoMenu) ? "dock" : dto.TipoMenu,
+                TipoCarrinho = string.IsNullOrWhiteSpace(dto.TipoCarrinho) ? "pagina" : dto.TipoCarrinho,
                 Ativo = true
             };
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
@@ -183,6 +198,11 @@ namespace Multigrao.Api.Controllers
                     corSecundaria = c.CorSecundaria,
                     corFonte = c.CorFonte,
                     designEcommerce = c.DesignEcommerce,
+                    tituloHero = c.TituloHero,
+                    subtextoHero = c.SubtextoHero,
+                    exibirNomeAbaixoLogo = c.ExibirNomeAbaixoLogo,
+                    tipoMenu = c.TipoMenu,
+                    tipoCarrinho = c.TipoCarrinho,
                     ativo = c.Ativo
                 })
                 .ToListAsync();
@@ -258,6 +278,21 @@ namespace Multigrao.Api.Controllers
             if (!string.IsNullOrWhiteSpace(dto.DesignEcommerce))
                 config.DesignEcommerce = dto.DesignEcommerce;
 
+            if (dto.TituloHero != null)
+                config.TituloHero = dto.TituloHero;
+
+            if (dto.SubtextoHero != null)
+                config.SubtextoHero = dto.SubtextoHero;
+
+            if (dto.ExibirNomeAbaixoLogo.HasValue)
+                config.ExibirNomeAbaixoLogo = dto.ExibirNomeAbaixoLogo.Value;
+
+            if (!string.IsNullOrWhiteSpace(dto.TipoMenu))
+                config.TipoMenu = dto.TipoMenu;
+
+            if (!string.IsNullOrWhiteSpace(dto.TipoCarrinho))
+                config.TipoCarrinho = dto.TipoCarrinho;
+
             if (dto.Ativo.HasValue)
                 config.Ativo = dto.Ativo.Value;
 
@@ -301,6 +336,11 @@ namespace Multigrao.Api.Controllers
                 corSecundaria = config.CorSecundaria,
                 corFonte = config.CorFonte,
                 designEcommerce = config.DesignEcommerce,
+                tituloHero = config.TituloHero,
+                subtextoHero = config.SubtextoHero,
+                exibirNomeAbaixoLogo = config.ExibirNomeAbaixoLogo,
+                tipoMenu = config.TipoMenu,
+                tipoCarrinho = config.TipoCarrinho,
                 ativo = config.Ativo
             });
         }
@@ -326,7 +366,12 @@ namespace Multigrao.Api.Controllers
                 fonte = config.Fonte,
                 corSecundaria = config.CorSecundaria,
                 corFonte = config.CorFonte,
-                designEcommerce = config.DesignEcommerce
+                designEcommerce = config.DesignEcommerce,
+                tituloHero = config.TituloHero,
+                subtextoHero = config.SubtextoHero,
+                exibirNomeAbaixoLogo = config.ExibirNomeAbaixoLogo,
+                tipoMenu = config.TipoMenu,
+                tipoCarrinho = config.TipoCarrinho
             };
         }
 

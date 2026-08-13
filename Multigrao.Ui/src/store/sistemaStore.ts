@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { tenantHeaders } from '../services/tenantSetup';
+import { tenantHeaders, getSlug } from '../services/tenantSetup';
 
 export interface ConfiguracaoSistema {
   slug: string;
@@ -20,9 +20,36 @@ export interface ConfiguracaoSistema {
   corSecundaria: string;
   corFonte: string;
   designEcommerce: string;
+  tituloHero: string;
+  subtextoHero: string;
+  exibirNomeAbaixoLogo: boolean;
+  tipoMenu: string;
+  tipoCarrinho: string;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
+
+const CHAVE_CONFIG = 'sistemaConfig_' + (getSlug() || 'default');
+
+function lerConfigLocal(): ConfiguracaoSistema | null {
+  try {
+    const raw = localStorage.getItem(CHAVE_CONFIG);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== 'object') return null;
+    return { ...CONFIG_PADRAO, ...data };
+  } catch {
+    return null;
+  }
+}
+
+function salvarConfigLocal(config: ConfiguracaoSistema) {
+  try {
+    localStorage.setItem(CHAVE_CONFIG, JSON.stringify(config));
+  } catch {
+    // armazenamento indisponível — ignora
+  }
+}
 
 export const FONTES_ECOMMERCE: Record<string, { nome: string; heading: string; corpo: string }> = {
   classica: {
@@ -112,6 +139,11 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   corSecundaria: '#f97316',
   corFonte: '',
   designEcommerce: 'claro',
+  tituloHero: 'O melhor da natureza para a sua loja.',
+  subtextoHero: 'Sua distribuidora de produtos naturais',
+  exibirNomeAbaixoLogo: true,
+  tipoMenu: 'dock',
+  tipoCarrinho: 'pagina',
 };
 
 function luminancia(hex: string): number {
@@ -156,7 +188,7 @@ interface SistemaStore {
 }
 
 export const useSistemaStore = create<SistemaStore>((set, get) => ({
-  config: CONFIG_PADRAO,
+  config: lerConfigLocal() ?? CONFIG_PADRAO,
   carregada: false,
   carregando: false,
 
@@ -186,8 +218,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           corSecundaria: data.corSecundaria || CONFIG_PADRAO.corSecundaria,
           corFonte: data.corFonte ?? CONFIG_PADRAO.corFonte,
           designEcommerce: data.designEcommerce || CONFIG_PADRAO.designEcommerce,
+          tituloHero: data.tituloHero || CONFIG_PADRAO.tituloHero,
+          subtextoHero: data.subtextoHero || CONFIG_PADRAO.subtextoHero,
+          exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? CONFIG_PADRAO.exibirNomeAbaixoLogo,
+          tipoMenu: data.tipoMenu || CONFIG_PADRAO.tipoMenu,
+          tipoCarrinho: data.tipoCarrinho || CONFIG_PADRAO.tipoCarrinho,
         };
         set({ config, carregada: true });
+        salvarConfigLocal(config);
         get().aplicarTema();
       }
     } catch {
@@ -200,6 +238,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
   atualizar: (dados) => {
     const config = { ...get().config, ...dados };
     set({ config });
+    salvarConfigLocal(config);
     get().aplicarTema();
   },
 
@@ -227,6 +266,11 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           corSecundaria: config.corSecundaria,
           corFonte: config.corFonte,
           designEcommerce: config.designEcommerce,
+          tituloHero: config.tituloHero,
+          subtextoHero: config.subtextoHero,
+          exibirNomeAbaixoLogo: config.exibirNomeAbaixoLogo,
+          tipoMenu: config.tipoMenu,
+          tipoCarrinho: config.tipoCarrinho,
         }),
       });
       if (!resp.ok) return false;
@@ -250,8 +294,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         corSecundaria: data.corSecundaria || config.corSecundaria,
         corFonte: data.corFonte ?? config.corFonte,
         designEcommerce: data.designEcommerce || config.designEcommerce,
+        tituloHero: data.tituloHero || config.tituloHero,
+        subtextoHero: data.subtextoHero || config.subtextoHero,
+        exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? config.exibirNomeAbaixoLogo,
+        tipoMenu: data.tipoMenu || config.tipoMenu,
+        tipoCarrinho: data.tipoCarrinho || config.tipoCarrinho,
       };
       set({ config: atualizada });
+      salvarConfigLocal(atualizada);
       get().aplicarTema();
       return true;
     } catch {

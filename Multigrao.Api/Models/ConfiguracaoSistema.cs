@@ -21,6 +21,11 @@ namespace Multigrao.Api.Models
         public string CorSecundaria { get; set; } = "#f97316";
         public string? CorFonte { get; set; }
         public string DesignEcommerce { get; set; } = "claro";
+        public string? TituloHero { get; set; }
+        public string? SubtextoHero { get; set; }
+        public bool ExibirNomeAbaixoLogo { get; set; } = true;
+        public string TipoMenu { get; set; } = "dock";
+        public string TipoCarrinho { get; set; } = "pagina";
         public bool Ativo { get; set; } = true;
     }
 }

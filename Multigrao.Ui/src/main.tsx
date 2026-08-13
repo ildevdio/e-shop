@@ -5,6 +5,7 @@ import './services/tenantSetup'
 import App from './App.tsx'
 import { useSistemaStore } from './store/sistemaStore'
 
+useSistemaStore.getState().aplicarTema()
 useSistemaStore.getState().carregar()
 
 createRoot(document.getElementById('root')!).render(

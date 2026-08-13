@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, UploadCloud, Loader2 } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronRight, ChevronLeft, Search } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE } from '../store/sistemaStore';
@@ -64,10 +64,153 @@ function SeletorCor({
   );
 }
 
-export default function Configuracoes() {
-  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
+function PreviewLoja({
+  tituloHero,
+  subtextoHero,
+  exibirNomeAbaixoLogo,
+  tipoMenu,
+  tipoCarrinho,
+  nomeEmpresa,
+}: {
+  tituloHero: string;
+  subtextoHero: string;
+  exibirNomeAbaixoLogo: boolean;
+  tipoMenu: string;
+  tipoCarrinho: string;
+  nomeEmpresa: string;
+}) {
+  const nav = (() => {
+    if (tipoMenu === 'hamburguer') return 'hamburguer';
+    if (tipoMenu === 'lateral') return 'lateral';
+    return 'dock';
+  })();
+  const carrinho = tipoCarrinho === 'drawer' ? 'drawer' : 'pagina';
+
+  return (
+    <div className="space-y-4">
+      {/* Navegador */}
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 border-b border-gray-200">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+          <span className="ml-2 flex-1 max-w-[140px] h-3 rounded bg-gray-200" />
+        </div>
+
+        <div className="relative p-3">
+          {/* Nav da loja */}
+          <div className="flex items-center justify-between gap-2 pb-3">
+            {nav === 'dock' ? (
+              <div className="flex items-center gap-2">
+                <span className="h-7 w-7 rounded-full border-2 border-gray-300 flex items-center justify-center"><SlidersHorizontal size={13} className="text-gray-400" /></span>
+                <span className="h-6 w-28 rounded-full bg-gray-200" />
+              </div>
+            ) : nav === 'hamburguer' ? (
+              <span className="h-7 w-7 rounded-full border-2 border-gray-300 flex items-center justify-center"><Menu size={13} className="text-gray-400" /></span>
+            ) : (
+              <span className="hidden md:block" />
+            )}
+            <span className="h-3 w-24 rounded bg-gray-300 mx-1" />
+            <div className="flex items-center gap-1.5">
+              {nav === 'dock' && (
+                <>
+                  <span className="h-6 w-6 rounded-full border-2 border-gray-300 flex items-center justify-center"><User size={13} className="text-gray-400" /></span>
+                  <span className="relative h-6 w-6 rounded-full bg-gray-900 flex items-center justify-center">
+                    <ShoppingCart size={13} className="text-white" />
+                    <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 px-0.5 rounded-full bg-primary text-white text-[7px] font-bold flex items-center justify-center">2</span>
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar lateral recolhida/expandida */}
+          {nav === 'lateral' && (
+            <div className="absolute left-3 top-14 bottom-3 w-44 rounded-xl border-2 border-gray-200 bg-white shadow-sm p-2 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between px-1 pb-1">
+                <span className="h-2 w-20 rounded bg-gray-400" />
+                <span className="h-5 w-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center"><ChevronLeft size={12} className="text-gray-400" /></span>
+              </div>
+              <span className="h-6 w-full rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center gap-1"><Search size={11} className="text-gray-400" /> <span className="h-1.5 w-14 rounded bg-gray-300" /></span>
+              <span className="h-5 w-full rounded-lg bg-gray-100 flex items-center justify-center"><SlidersHorizontal size={12} className="text-gray-400" /></span>
+              <span className="h-5 w-full rounded-lg bg-gray-100 flex items-center justify-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-gray-300" />
+                <span className="h-1.5 w-8 rounded bg-gray-300" />
+              </span>
+              <span className="mt-auto h-5 w-full rounded-lg bg-gray-100 flex items-center justify-center gap-1.5"><User size={12} className="text-gray-400" /> <span className="h-1.5 w-10 rounded bg-gray-300" /></span>
+              <span className="relative h-5 w-full rounded-lg bg-gray-100 flex items-center justify-center gap-1.5">
+                <ShoppingCart size={12} className="text-gray-400" /> <span className="h-1.5 w-10 rounded bg-gray-300" />
+                <span className="absolute top-0.5 right-1.5 h-3.5 min-w-3.5 px-0.5 rounded-full bg-primary text-white text-[7px] font-bold flex items-center justify-center">2</span>
+              </span>
+            </div>
+          )}
+
+          {/* Hero */}
+          <div className="rounded-xl bg-gray-100 border border-gray-200 p-3 h-40 relative overflow-hidden">
+            <div className="flex flex-col items-start justify-end h-full gap-1.5">
+              <span className="h-6 w-12 rounded bg-gray-300" />
+              {exibirNomeAbaixoLogo && (
+                <span className="h-2 w-14 rounded bg-gray-400" />
+              )}
+              <span className="h-3 w-40 rounded bg-gray-400" />
+              <span className="h-2 w-28 rounded bg-gray-300" />
+              <span className="h-5 w-16 rounded-full bg-gray-800 mt-1" />
+            </div>
+          </div>
+
+          {/* Conteúdo / grid */}
+          <div className="pt-3">
+            <span className="block h-3 w-24 rounded bg-gray-300 mb-2" />
+            <div className="grid grid-cols-3 gap-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-lg border border-gray-200 p-1.5 bg-white">
+                  <div className="aspect-square rounded bg-gray-100" />
+                  <div className="h-1.5 w-3/4 rounded bg-gray-300 mt-1" />
+                  <div className="h-1.5 w-1/2 rounded bg-gray-200 mt-1" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Drawer de carrinho */}
+          {carrinho === 'drawer' && (
+            <div className="absolute right-0 top-14 bottom-0 w-24 rounded-l-xl border border-gray-200 bg-white shadow-md p-2 flex flex-col gap-1.5">
+              <span className="h-2 w-12 rounded bg-gray-300" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <span className="h-6 w-6 rounded bg-gray-100 border border-gray-200" />
+                  <span className="h-1.5 flex-1 rounded bg-gray-200" />
+                </div>
+              ))}
+              <span className="mt-auto h-5 w-full rounded-full bg-gray-800" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Legenda */}
+      <div className="flex flex-wrap gap-2 text-[11px]">
+        <span className="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-gray-600 flex items-center gap-1">
+          <Menu size={11} /> {nav === 'dock' ? 'Dock no topo' : nav === 'hamburguer' ? 'Hambúrguer' : 'Lateral recolhido'}
+        </span>
+        <span className="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-gray-600 flex items-center gap-1">
+          <ShoppingCart size={11} /> {carrinho === 'drawer' ? 'Carrinho drawer' : 'Carrinho página'}
+        </span>
+        <span className="px-2.5 py-1 rounded-full bg-white border border-gray-200 text-gray-600 flex items-center gap-1">
+          <Eye size={11} /> {exibirNomeAbaixoLogo ? 'Nome abaixo da logo' : 'Sem nome na logo'}
+        </span>
+      </div>
+      <p className="text-[11px] text-gray-400 italic truncate">
+        {nomeEmpresa || 'Sua Empresa'} · {tituloHero || 'Título da loja'} · {subtextoHero || 'Subtexto'}
+      </p>
+    </div>
+  );
+}
+
+export default function Configuracoes() {  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>(getSlug() === 'focus' ? 'sistema' : 'usuarios');
+  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'notificacoes' | 'regras'>('empresa');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -87,7 +230,7 @@ export default function Configuracoes() {
   const carregada = useSistemaStore((state) => state.carregada);
   const atualizarConfig = useSistemaStore((state) => state.atualizar);
   const salvarConfig = useSistemaStore((state) => state.salvar);
-  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '' });
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina' });
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [enviandoVideo, setEnviandoVideo] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
@@ -113,6 +256,11 @@ export default function Configuracoes() {
         estado: configSistema.estado,
         logoUrl: configSistema.logoUrl,
         videoUrl: configSistema.videoUrl ?? '',
+        tituloHero: configSistema.tituloHero,
+        subtextoHero: configSistema.subtextoHero,
+        exibirNomeAbaixoLogo: configSistema.exibirNomeAbaixoLogo,
+        tipoMenu: configSistema.tipoMenu,
+        tipoCarrinho: configSistema.tipoCarrinho,
       });
     }
   }, [carregada]);
@@ -289,6 +437,11 @@ export default function Configuracoes() {
       corFonte,
       fonte,
       designEcommerce,
+      tituloHero: formEmpresa.tituloHero,
+      subtextoHero: formEmpresa.subtextoHero,
+      exibirNomeAbaixoLogo: formEmpresa.exibirNomeAbaixoLogo,
+      tipoMenu: formEmpresa.tipoMenu,
+      tipoCarrinho: formEmpresa.tipoCarrinho,
     });
     setSalvandoConfig(false);
     if (ok) {
@@ -546,9 +699,39 @@ export default function Configuracoes() {
         )}
 
         {activeTab === 'sistema' && (
-          <div className="p-6 overflow-y-auto space-y-6">
-            <h2 className="text-lg font-serif font-semibold text-gray-800">Configurações do Sistema</h2>
+          <div className="flex flex-col h-full">
+            <div className="flex flex-wrap gap-2 border-b border-gray-100 px-6 py-3 bg-gray-50/50">
+              {[
+                { id: 'empresa' as const, label: 'Empresa', icon: Building2 },
+                { id: 'loja' as const, label: 'Loja', icon: Store },
+                { id: 'aparencia' as const, label: 'Aparência', icon: Palette },
+                { id: 'notificacoes' as const, label: 'Notificações', icon: Bell },
+                { id: 'regras' as const, label: 'Regras', icon: Clock },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSistemaTab(tab.id)}
+                  className={`px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all ${
+                    sistemaTab === tab.id ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                  }`}
+                >
+                  <tab.icon size={16} /> {tab.label}
+                </button>
+              ))}
+            </div>
 
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-serif font-semibold text-gray-800">
+                {sistemaTab === 'empresa' && 'Dados da Empresa'}
+                {sistemaTab === 'loja' && 'Loja — Hero, Menu e Carrinho'}
+                {sistemaTab === 'aparencia' && 'Aparência'}
+                {sistemaTab === 'notificacoes' && 'Notificações'}
+                {sistemaTab === 'regras' && 'Regras de Negócio'}
+              </h2>
+            </div>
+
+            {sistemaTab === 'empresa' && (
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Building2 size={18} className="text-black" /> Dados da Empresa</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -625,8 +808,126 @@ export default function Configuracoes() {
                   </div>
                 </div>
               </div>
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mt-6">
+                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><ImageIcon size={18} className="text-black" /> Vídeo / Foto de Fundo</h3>
+                <p className="text-[11px] text-gray-400 mb-2">Exibido como fundo da tela de login e da hero da loja.</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                    {formEmpresa.videoUrl ? (
+                      /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(formEmpresa.videoUrl) ? (
+                        <img src={midiaUrl(formEmpresa.videoUrl)} alt="Fundo" className="w-full h-full object-cover" />
+                      ) : (
+                        <video src={midiaUrl(formEmpresa.videoUrl)} muted playsInline className="w-full h-full object-cover" />
+                      )
+                    ) : (
+                      <Building2 size={28} className="text-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary transition-colors cursor-pointer shadow-sm w-fit">
+                      <UploadCloud size={16} /> {enviandoVideo ? 'Enviando...' : 'Enviar Vídeo/Foto'}
+                      <input type="file" accept="video/mp4,video/webm,video/quicktime,image/png,image/jpeg" className="hidden" onChange={e => uploadVideo(e.target.files?.[0])} disabled={enviandoVideo} />
+                    </label>
+                    {formEmpresa.videoUrl && (
+                      <button onClick={() => setFormEmpresa({ ...formEmpresa, videoUrl: '' })} className="text-sm text-gray-600 hover:underline flex items-center gap-1 w-fit">
+                        <Trash2 size={14} /> Remover fundo
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <input type="text" value={formEmpresa.videoUrl} onChange={e => setFormEmpresa({ ...formEmpresa, videoUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Ou cole a URL do vídeo/foto" />
+                </div>
+              </div>
             </div>
+            )}
 
+            {sistemaTab === 'loja' && (
+              <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-6 items-start">
+                <div className="space-y-6">
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Store size={18} className="text-black" /> HeroPage</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Título da HeroPage</label>
+                        <input type="text" value={formEmpresa.tituloHero} onChange={e => setFormEmpresa({ ...formEmpresa, tituloHero: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Ex.: O melhor da natureza para a sua loja." />
+                        <p className="text-[11px] text-gray-400 mt-1 italic">Texto principal exibido sobre o vídeo/foto de fundo da loja.</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Subtexto da HeroPage</label>
+                        <input type="text" value={formEmpresa.subtextoHero} onChange={e => setFormEmpresa({ ...formEmpresa, subtextoHero: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Ex.: Sua distribuidora de produtos naturais" />
+                        <p className="text-[11px] text-gray-400 mt-1 italic">Frase curta exibida abaixo do título da loja.</p>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">Nome abaixo da logo</div>
+                          <div className="text-xs text-gray-400">Exibir o nome da empresa escrito logo abaixo da logo na HeroPage</div>
+                        </div>
+                        <button onClick={() => setFormEmpresa({ ...formEmpresa, exibirNomeAbaixoLogo: !formEmpresa.exibirNomeAbaixoLogo })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.exibirNomeAbaixoLogo ? 'bg-primary' : 'bg-gray-300'}`}>
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.exibirNomeAbaixoLogo ? 'left-6' : 'left-1'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><LayoutGrid size={18} className="text-black" /> Tipo de Menu</h3>
+                    <div className="space-y-3">
+                      {[
+                        { key: 'dock', nome: 'Dock fixo no topo', descricao: 'Barra flutuante no topo (no mobile vira um dock inferior).' },
+                        { key: 'hamburguer', nome: 'Hambúrguer', descricao: 'Menu recolhido, aberto pelo botão no topo da loja.' },
+                        { key: 'lateral', nome: 'Lateral recolhido', descricao: 'Menu colapsado na lateral esquerda da loja.' },
+                      ].map(opcao => (
+                        <div key={opcao.key} className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm">{opcao.nome}</div>
+                            <div className="text-xs text-gray-400">{opcao.descricao}</div>
+                          </div>
+                          <button onClick={() => setFormEmpresa({ ...formEmpresa, tipoMenu: opcao.key })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.tipoMenu === opcao.key ? 'bg-primary' : 'bg-gray-300'}`}>
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.tipoMenu === opcao.key ? 'left-6' : 'left-1'}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><ShoppingCart size={18} className="text-black" /> Tipo de Carrinho</h3>
+                    <div className="space-y-3">
+                      {[
+                        { key: 'pagina', nome: 'Página dedicada', descricao: 'O carrinho abre como uma página cheia da loja.' },
+                        { key: 'drawer', nome: 'Drawer lateral', descricao: 'O carrinho desliza pela lateral direita sobre o catálogo.' },
+                      ].map(opcao => (
+                        <div key={opcao.key} className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm">{opcao.nome}</div>
+                            <div className="text-xs text-gray-400">{opcao.descricao}</div>
+                          </div>
+                          <button onClick={() => setFormEmpresa({ ...formEmpresa, tipoCarrinho: opcao.key })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.tipoCarrinho === opcao.key ? 'bg-primary' : 'bg-gray-300'}`}>
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.tipoCarrinho === opcao.key ? 'left-6' : 'left-1'}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 xl:sticky xl:top-4">
+                  <h3 className="font-semibold text-gray-800 mb-1 flex items-center gap-2"><Eye size={18} className="text-black" /> Pré-visualização</h3>
+                  <p className="text-[11px] text-gray-400 mb-4">Esboço em baixa fidelidade da loja conforme as opções selecionadas.</p>
+                  <PreviewLoja
+                    tituloHero={formEmpresa.tituloHero}
+                    subtextoHero={formEmpresa.subtextoHero}
+                    exibirNomeAbaixoLogo={formEmpresa.exibirNomeAbaixoLogo}
+                    tipoMenu={formEmpresa.tipoMenu}
+                    tipoCarrinho={formEmpresa.tipoCarrinho}
+                    nomeEmpresa={formEmpresa.nomeEmpresa}
+                  />
+                </div>
+              </div>
+            )}
+
+            {sistemaTab === 'aparencia' && (
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Palette size={18} className="text-black" /> Aparência</h3>
               <div className="space-y-4">
@@ -719,7 +1020,9 @@ export default function Configuracoes() {
                 </div>
               </div>
             </div>
+            )}
 
+            {sistemaTab === 'notificacoes' && (
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Bell size={18} className="text-black" /> Notificações</h3>
               <div className="space-y-3">
@@ -740,7 +1043,9 @@ export default function Configuracoes() {
                 ))}
               </div>
             </div>
+            )}
 
+            {sistemaTab === 'regras' && (
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Clock size={18} className="text-black" /> Regras de Negócio</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -754,12 +1059,14 @@ export default function Configuracoes() {
                 </div>
               </div>
             </div>
+            )}
 
             <button onClick={salvarConfigSistema} disabled={salvandoConfig || !formEmpresa.nomeEmpresa.trim()} className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-sm ${
               corSalva ? 'bg-gray-800 text-white shadow-black/20' : salvandoConfig || !formEmpresa.nomeEmpresa.trim() ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary shadow-black/20'
             }`}>
               {corSalva ? <><Check size={16} /> Salvo!</> : salvandoConfig ? 'Salvando...' : <><Save size={16} /> Salvar Configurações</>}
             </button>
+            </div>
           </div>
         )}
       </div>

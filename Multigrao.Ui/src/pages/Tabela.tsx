@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2 } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
@@ -349,6 +349,71 @@ function FaixaMarca({ marca, total }: { marca: Marca | null; total: number }) {
   );
 }
 
+function PainelFiltros({
+  todasCategorias,
+  marcas,
+  categoriaFiltrada,
+  filtroMarcaId,
+  aoSelecionarCategoria,
+  aoSelecionarMarca,
+}: {
+  todasCategorias: Categoria[];
+  marcas: Marca[];
+  categoriaFiltrada: number | null;
+  filtroMarcaId: number | null;
+  aoSelecionarCategoria: (id: number | null) => void;
+  aoSelecionarMarca: (id: number | null) => void;
+}) {
+  return (
+    <>
+      <div>
+        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-2">Categorias</p>
+        <div className="space-y-2">
+          <button
+            onClick={() => aoSelecionarCategoria(null)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
+          >
+            <span className="font-bold text-sm">Todas as categorias</span>
+            {categoriaFiltrada === null && <Check size={16} className="shrink-0" />}
+          </button>
+          {todasCategorias.map(c => (
+            <button
+              key={c.id}
+              onClick={() => aoSelecionarCategoria(c.id)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
+            >
+              <span className="font-bold text-sm">{c.nome}</span>
+              {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-ecom-muted shrink-0" />}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6">
+        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-2">Marcas</p>
+        <div className="space-y-2">
+          <button
+            onClick={() => aoSelecionarMarca(null)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${filtroMarcaId === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
+          >
+            <span className="font-bold text-sm">Todas as marcas</span>
+            {filtroMarcaId === null && <Check size={16} className="shrink-0" />}
+          </button>
+          {marcas.map(m => (
+            <button
+              key={m.id}
+              onClick={() => aoSelecionarMarca(m.id)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${filtroMarcaId === m.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
+            >
+              <span className="font-bold text-sm">{m.nome}</span>
+              {filtroMarcaId === m.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-ecom-muted shrink-0" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 interface ProdutoAgrupado {
   marca: Marca | null;
   produtos: Produto[];
@@ -376,8 +441,12 @@ export default function Tabela() {
   const [produtoDetalhe, setProdutoDetalhe] = useState<Produto | null>(null);
   const [qtdDetalhe, setQtdDetalhe] = useState(1);
   const [vista, setVista] = useState<'catalogo' | 'produto' | 'carrinho'>('catalogo');
-const [menuCategorias, setMenuCategorias] = useState(false);
+  const [menuFiltros, setMenuFiltros] = useState(false);
+  const [menuLateral, setMenuLateral] = useState(false);
+  const [sidebarExpandida, setSidebarExpandida] = useState(true);
+  const [carrinhoDrawer, setCarrinhoDrawer] = useState(false);
 const [categoriaFiltrada, setCategoriaFiltrada] = useState<number | null>(null);
+const [marcaFiltradaId, setMarcaFiltradaId] = useState<number | null>(null);
 const [opacidadeNav, setOpacidadeNav] = useState(0);
 const [contaAberta, setContaAberta] = useState(false);
 const [cpfAcesso, setCpfAcesso] = useState('');
@@ -476,6 +545,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
   const produtoFiltrado = (p: Produto) => {
     if (categoriaFiltrada !== null && p.categoriaId !== categoriaFiltrada) return false;
+    if (marcaFiltradaId !== null && p.marcaId !== marcaFiltradaId) return false;
     if (!filtro) return true;
     const t = normalizar(filtro);
     return normalizar(p.nome).includes(t) || normalizar(p.marca?.nome ?? '').includes(t);
@@ -505,6 +575,16 @@ const [erroAcesso, setErroAcesso] = useState('');
   const qtdNoCarrinho = (produtoId: number) => carrinho.get(produtoId) ?? 0;
   const totalItensCarrinho = carrinho.size;
   const limparCarrinho = () => setCarrinho(new Map());
+
+  const abrirCarrinho = () => {
+    if (config.tipoCarrinho === 'drawer') {
+      setVista('catalogo');
+      setCarrinhoDrawer(true);
+    } else {
+      setCarrinhoDrawer(false);
+      setVista('carrinho');
+    }
+  };
 
   const produtosCarrinho = useMemo(
     () => [...carrinho.entries()]
@@ -656,7 +736,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
   const aplicarFiltroCategoria = (id: number | null) => {
     setCategoriaFiltrada(id);
-    setMenuCategorias(false);
+    setMenuFiltros(false);
     setTimeout(() => {
       const alvo = id ?? categorias[0]?.categoria.id;
       if (alvo === undefined) return;
@@ -665,9 +745,18 @@ const [erroAcesso, setErroAcesso] = useState('');
     }, 60);
   };
 
-  const categoriaFiltradaNome = categoriaFiltrada !== null
-    ? todasCategorias.find(c => c.id === categoriaFiltrada)?.nome
-    : undefined;
+  const aplicarFiltroMarca = (id: number | null) => {
+    setMarcaFiltradaId(id);
+    setMenuFiltros(false);
+    setTimeout(() => {
+      const alvo = categoriaFiltrada ?? categorias[0]?.categoria.id;
+      if (alvo === undefined) return;
+      const el = document.getElementById(`cat-${alvo}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 60);
+  };
+
+  const qtdFiltrosAtivos = (categoriaFiltrada !== null ? 1 : 0) + (marcaFiltradaId !== null ? 1 : 0);
 
   const abrirDetalhe = (p: Produto) => {
     setQtdDetalhe(qtdNoCarrinho(p.id) || 1);
@@ -799,11 +888,92 @@ const [erroAcesso, setErroAcesso] = useState('');
   }, [carrinho, acessado, cpfAcessado]);
 
   return (
-    <div className="min-h-screen bg-ecom-bg">
+    <div className={`min-h-screen bg-ecom-bg transition-[padding] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:pl-72' : 'md:pl-16') : ''}`}>
       
-      {/* ── Nav fixa (dock) — detalhe geral do sistema ── */}
-      {
-        <div className="fixed top-0 inset-x-0 z-40 px-3 sm:px-4 pt-3">
+      {/* ── Sidebar lateral (recolhe / expande) ── */}
+      {config.tipoMenu === 'lateral' && (
+        <aside className={`hidden md:flex fixed left-0 top-0 bottom-0 z-30 flex-col bg-ecom-surface border-r border-ecom-border transition-[width] duration-300 ${sidebarExpandida ? 'w-72' : 'w-16'}`}>
+          {sidebarExpandida ? (
+            <>
+              <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
+                <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-9 w-auto max-w-[180px] object-contain" />
+                <button onClick={() => setSidebarExpandida(false)} title="Recolher" className="p-2 rounded-full hover:bg-white/10 transition-colors"><ChevronLeft size={20} /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5">
+                <div className="mb-5">
+                  <SearchAutocomplete
+                    placeholder="Buscar produtos..."
+                    valor={filtro}
+                    onChange={setFiltro}
+                    sugestoes={sugestoes}
+                    aoSelecionar={s => setFiltro(s.rotulo)}
+                    classNameInput="w-full h-11 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
+                    onBuscar={buscarECatalogo}
+                  />
+                </div>
+                <PainelFiltros
+                  todasCategorias={todasCategorias}
+                  marcas={marcas}
+                  categoriaFiltrada={categoriaFiltrada}
+                  filtroMarcaId={marcaFiltradaId}
+                  aoSelecionarCategoria={id => setCategoriaFiltrada(id)}
+                  aoSelecionarMarca={id => setMarcaFiltradaId(id)}
+                />
+                <div className="mt-6 space-y-2">
+                  <button
+                    onClick={() => setContaAberta(true)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-ecom-border bg-ecom-card hover:border-primary transition-colors text-ecom-text font-bold text-sm"
+                  >
+                    <User size={18} /> Minha Conta
+                  </button>
+                  <button
+                    onClick={abrirCarrinho}
+                    className="relative w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-ecom-border bg-ecom-card hover:border-primary transition-colors text-ecom-text font-bold text-sm"
+                  >
+                    <ShoppingCart size={18} /> Meu Carrinho
+                    {totalItensCarrinho > 0 && (
+                      <span className="ml-auto h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {totalItensCarrinho}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-4">
+              <button onClick={() => setSidebarExpandida(true)} title="Expandir menu" className="h-10 w-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                <ChevronRight size={18} />
+              </button>
+              <button onClick={() => setSidebarExpandida(true)} title="Buscar" className="h-10 w-10 flex items-center justify-center rounded-2xl border border-ecom-border bg-ecom-card text-ecom-text hover:border-primary transition-colors">
+                <Search size={18} />
+              </button>
+              <button onClick={() => setSidebarExpandida(true)} title="Filtros" className={`relative h-10 w-10 flex items-center justify-center rounded-2xl border border-ecom-border bg-ecom-card text-ecom-text hover:border-primary transition-colors ${qtdFiltrosAtivos > 0 ? 'border-primary text-primary' : ''}`}>
+                <SlidersHorizontal size={18} />
+                {qtdFiltrosAtivos > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {qtdFiltrosAtivos}
+                  </span>
+                )}
+              </button>
+              <button onClick={() => setContaAberta(true)} title="Minha Conta" className="h-10 w-10 flex items-center justify-center rounded-2xl border border-ecom-border bg-ecom-card text-ecom-text hover:border-primary transition-colors">
+                <User size={18} />
+              </button>
+              <button onClick={abrirCarrinho} title="Meu Carrinho" className="relative h-10 w-10 flex items-center justify-center rounded-2xl border border-ecom-border bg-ecom-card text-ecom-text hover:border-primary transition-colors">
+                <ShoppingCart size={18} />
+                {totalItensCarrinho > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {totalItensCarrinho}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+        </aside>
+      )}
+
+      {/* ── Nav fixa (dock / hamburguer / lateral) ── */}
+      <div className={`fixed top-0 z-40 px-3 sm:px-4 pt-3 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'inset-x-0'}`}>
           <div
             className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
             style={{
@@ -815,64 +985,163 @@ const [erroAcesso, setErroAcesso] = useState('');
           >
           <div className="px-4 py-3 sm:py-4">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 flex items-center justify-start gap-8">
-                  <div className="hidden md:block w-44 lg:w-48">
+                <div className="flex-1 flex items-center justify-start gap-2 sm:gap-3">
+                  {config.tipoMenu === 'dock' ? (
+                    <>
+                      <div className="hidden md:block w-44 lg:w-52">
+                        <SearchAutocomplete
+                          placeholder="Buscar..."
+                          valor={filtro}
+                          onChange={setFiltro}
+                          sugestoes={sugestoes}
+                          aoSelecionar={s => setFiltro(s.rotulo)}
+                          classNameInput="h-10 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
+                          onBuscar={buscarECatalogo}
+                        />
+                      </div>
+                      <button
+                        onClick={() => setMenuFiltros(true)}
+                        className={`flex items-center gap-2 h-10 px-4 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${qtdFiltrosAtivos > 0 ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-ecom-card text-primary hover:bg-primary/10'}`}
+                      >
+                        <SlidersHorizontal size={16} />
+                        <span className="hidden sm:inline">Filtros</span>
+                        {qtdFiltrosAtivos > 0 && (
+                          <span className="h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                            {qtdFiltrosAtivos}
+                          </span>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        if (config.tipoMenu === 'lateral' && window.innerWidth >= 768) {
+                          setSidebarExpandida(v => !v);
+                        } else {
+                          setMenuLateral(true);
+                        }
+                      }}
+                      title="Menu"
+                      className={`${config.tipoMenu === 'lateral' ? 'md:hidden' : ''} h-10 w-10 flex items-center justify-center rounded-full backdrop-blur-md bg-white/15 border border-white/40 text-white hover:bg-white/25 transition-colors ${qtdFiltrosAtivos > 0 ? 'ring-2 ring-primary' : ''}`}
+                    >
+                      {config.tipoMenu === 'hamburguer' ? <Menu size={18} /> : <LayoutGrid size={18} />}
+                      {qtdFiltrosAtivos > 0 && (
+                        <span className="absolute top-0 -right-1 h-4 min-w-4 px-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                          {qtdFiltrosAtivos}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
+                <div className="flex-1 flex items-center justify-end gap-2">
+                  {config.tipoMenu === 'dock' && (
+                    <>
+                      <button
+                        onClick={() => setContaAberta(true)}
+                        title="Conta"
+                        className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
+                      >
+                        <User size={18} />
+                      </button>
+                      <button
+                        onClick={abrirCarrinho}
+                        title="Carrinho"
+                        className="relative h-10 w-10 flex items-center justify-center bg-white text-zinc-900 rounded-full shadow-sm hover:bg-zinc-100 transition-colors"
+                      >
+                        <ShoppingCart size={18} />
+                        {totalItensCarrinho > 0 && (
+                          <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                            {totalItensCarrinho}
+                          </span>
+                        )}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              {config.tipoMenu === 'dock' && (
+                <div className="md:hidden mt-3 flex gap-2">
+                  <div className="flex-1">
                     <SearchAutocomplete
                       placeholder="Buscar..."
                       valor={filtro}
                       onChange={setFiltro}
                       sugestoes={sugestoes}
                       aoSelecionar={s => setFiltro(s.rotulo)}
-                      classNameInput="h-10 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
+                      classNameInput="w-full h-10 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
                       onBuscar={buscarECatalogo}
                     />
                   </div>
                   <button
-                    onClick={() => setMenuCategorias(true)}
-                    className={`flex items-center gap-2 h-10 px-5 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${categoriaFiltrada !== null ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-ecom-card text-primary hover:bg-primary/10'}`}
+                    onClick={() => setMenuFiltros(true)}
+                    className={`flex items-center justify-center gap-2 h-10 px-4 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors shrink-0 ${qtdFiltrosAtivos > 0 ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-ecom-card text-primary hover:bg-primary/10'}`}
                   >
-                    <LayoutGrid size={16} />
-                    <span className="max-w-28 truncate">{categoriaFiltradaNome ?? 'Categorias'}</span>
-                  </button>
-                </div>
-                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
-                <div className="flex-1 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => setContaAberta(true)}
-                    title="Conta"
-                    className="h-10 w-10 flex items-center justify-center backdrop-blur-md bg-white/15 border border-white/40 text-white rounded-full hover:bg-white/25 transition-colors"
-                  >
-                    <User size={18} />
-                  </button>
-                  <button
-                    onClick={() => setVista('carrinho')}
-                    title="Carrinho"
-                    className="relative h-10 w-10 flex items-center justify-center bg-white text-zinc-900 rounded-full shadow-sm hover:bg-zinc-100 transition-colors"
-                  >
-                    <ShoppingCart size={18} />
-                    {totalItensCarrinho > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                        {totalItensCarrinho}
+                    <SlidersHorizontal size={16} />
+                    {qtdFiltrosAtivos > 0 && (
+                      <span className="h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {qtdFiltrosAtivos}
                       </span>
                     )}
                   </button>
                 </div>
-              </div>
-              <div className="md:hidden mt-3">
+              )}
+            </div>
+          </div>
+          </div>
+
+      {/* ── Slider lateral (hamburguer / lateral) — menu deslizante ── */}
+      {menuLateral && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuLateral(false)} />
+          <div className="absolute left-0 top-0 h-full w-full max-w-sm bg-ecom-surface shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
+              <h2 className="font-heading font-bold text-xl">Menu</h2>
+              <button onClick={() => setMenuLateral(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <div className="mb-5">
                 <SearchAutocomplete
-                  placeholder="Buscar..."
+                  placeholder="Buscar produtos..."
                   valor={filtro}
                   onChange={setFiltro}
                   sugestoes={sugestoes}
                   aoSelecionar={s => setFiltro(s.rotulo)}
-                  classNameInput="w-full h-10 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
-                  onBuscar={buscarECatalogo}
+                  classNameInput="w-full h-11 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
+                  onBuscar={() => { setMenuLateral(false); buscarECatalogo(); }}
                 />
+              </div>
+              <PainelFiltros
+                todasCategorias={todasCategorias}
+                marcas={marcas}
+                categoriaFiltrada={categoriaFiltrada}
+                filtroMarcaId={marcaFiltradaId}
+                aoSelecionarCategoria={id => { setCategoriaFiltrada(id); setMenuLateral(false); }}
+                aoSelecionarMarca={id => { setMarcaFiltradaId(id); setMenuLateral(false); }}
+              />
+              <div className="mt-6 space-y-2">
+                <button
+                  onClick={() => { setMenuLateral(false); setContaAberta(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-ecom-border bg-ecom-card hover:border-primary transition-colors text-ecom-text font-bold text-sm"
+                >
+                  <User size={18} /> Minha Conta
+                </button>
+                <button
+                  onClick={() => { setMenuLateral(false); abrirCarrinho(); }}
+                  className="relative w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-ecom-border bg-ecom-card hover:border-primary transition-colors text-ecom-text font-bold text-sm"
+                >
+                  <ShoppingCart size={18} /> Meu Carrinho
+                  {totalItensCarrinho > 0 && (
+                    <span className="ml-auto h-5 min-w-5 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {totalItensCarrinho}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           </div>
-          </div>
-        }
+        </div>
+      )}
 
       {vista === 'produto' && produtoDetalhe ? (
         <div className="min-h-screen pb-10 pt-36 sm:pt-28">
@@ -1253,11 +1522,16 @@ const [erroAcesso, setErroAcesso] = useState('');
             alt={config.nomeEmpresa}
             className="h-auto object-contain mb-8 brightness-110 w-[9.4rem] md:w-[11.4rem]"
           />
-            <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md">
-            O melhor da natureza para a sua loja.
-          </h1>
+          {config.exibirNomeAbaixoLogo && (
+            <h1 className="font-heading text-xl md:text-2xl font-bold tracking-wide text-white drop-shadow-md">
+              {config.nomeEmpresa}
+            </h1>
+          )}
+          <p className="font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md mt-2">
+            {config.tituloHero}
+          </p>
           <p className="text-white/90 mt-6 font-medium drop-shadow text-sm md:text-base max-w-xl">
-            Sua distribuidora de produtos naturais
+            {config.subtextoHero}
           </p>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-sm text-white/90 font-medium justify-start">
@@ -1410,7 +1684,7 @@ const [erroAcesso, setErroAcesso] = useState('');
         <div className="fixed bottom-4 inset-x-0 z-40 px-4 pointer-events-none">
           <div className="max-w-7xl mx-auto pointer-events-auto">
             <button
-              onClick={() => setVista('carrinho')}
+              onClick={abrirCarrinho}
               className="w-full flex items-center justify-between gap-3 px-5 py-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.99] bg-primary text-primary-foreground rounded-full border-2 border-primary"
             >
               <span className="flex items-center gap-3 min-w-0">
@@ -1573,37 +1847,99 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
         </div>
       )}
-      {/* ── Aba lateral: Categorias ── */}
-      {menuCategorias && (
+      {/* ── Drawer lateral: Filtros ── */}
+      {menuFiltros && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuCategorias(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuFiltros(false)} />
           <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-ecom-surface shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
-              <h2 className="font-heading font-bold text-xl">Categorias</h2>
-              <button onClick={() => setMenuCategorias(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
+              <h2 className="font-heading font-bold text-xl">Filtros</h2>
+              <button onClick={() => setMenuFiltros(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-2">Filtrar por</p>
-              <div className="space-y-2">
-                <button
-                  onClick={() => aplicarFiltroCategoria(null)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
-                >
-                  <span className="font-bold text-sm">Todas as categorias</span>
-                  {categoriaFiltrada === null && <Check size={16} className="shrink-0" />}
-                </button>
-                {todasCategorias.map(c => (
-                  <button
-                    key={c.id}
-                    onClick={() => aplicarFiltroCategoria(c.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
-                  >
-                    <span className="font-bold text-sm">{c.nome}</span>
-                    {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-ecom-muted shrink-0" />}
-                </button>
-                ))}
-              </div>
+              <PainelFiltros
+                todasCategorias={todasCategorias}
+                marcas={marcas}
+                categoriaFiltrada={categoriaFiltrada}
+                filtroMarcaId={marcaFiltradaId}
+                aoSelecionarCategoria={aplicarFiltroCategoria}
+                aoSelecionarMarca={aplicarFiltroMarca}
+              />
             </div>
+          </div>
+        </div>
+      )}
+      {/* ── Drawer lateral: Carrinho ── */}
+      {carrinhoDrawer && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setCarrinhoDrawer(false)} />
+          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-ecom-surface shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
+              <h2 className="font-heading font-bold text-xl">Seu Pedido</h2>
+              <button onClick={() => setCarrinhoDrawer(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {carrinho.size === 0 ? (
+                <div className="text-center py-16">
+                  <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 bg-ecom-card border border-ecom-strong">
+                    <ShoppingCart size={36} className="text-ecom-text" />
+                  </div>
+                  <h2 className="font-heading text-2xl font-bold text-ecom-text">Seu carrinho está vazio</h2>
+                  <p className="mt-2 text-ecom-muted font-medium">Navegue pelo catálogo e adicione produtos ao carrinho.</p>
+                  <button onClick={() => setCarrinhoDrawer(false)} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
+                    Ver produtos
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {produtosCarrinho.map(({ produto, quantidade }) => (
+                    <div key={produto.id} className="flex items-center gap-3 p-3 rounded-2xl border border-ecom-border bg-ecom-card">
+                      <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden bg-ecom-surface border border-ecom-border flex items-center justify-center">
+                        {produtoImagemUrl(produto) ? (
+                          <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-ecom-muted text-[8px] font-bold uppercase tracking-widest text-center">Sem foto</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold truncate text-ecom-text text-sm">{produto.nome}</p>
+                        <p className="text-sm text-ecom-muted font-medium">{formatPreco(precoPorQtd(produto, quantidade))} / un.</p>
+                        <div className="mt-1.5 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => setQtdCarrinho(produto.id, quantidade - 1)} className="h-7 w-7 flex items-center justify-center rounded-full border border-ecom-border bg-ecom-card hover:bg-ecom-fill transition-colors text-ecom-text"><Minus size={14} /></button>
+                            <span className="w-8 text-center text-sm font-bold text-ecom-text">{quantidade}</span>
+                            <button onClick={() => setQtdCarrinho(produto.id, quantidade + 1)} className="h-7 w-7 flex items-center justify-center rounded-full border border-ecom-border bg-ecom-card hover:bg-ecom-fill transition-colors text-ecom-text"><Plus size={14} /></button>
+                          </div>
+                          <span className="text-sm font-bold text-ecom-text">{formatPreco(precoPorQtd(produto, quantidade) * quantidade)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {carrinho.size > 0 && (
+              <div className="border-t border-ecom-border p-5 bg-ecom-surface space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ecom-muted font-medium">Total de itens</span>
+                  <span className="font-bold text-ecom-text">{totalItensCarrinho} {totalItensCarrinho === 1 ? 'item' : 'itens'}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ecom-muted font-medium">Peso total</span>
+                  <span className="font-bold text-ecom-text">{pesoTotalCarrinho.toFixed(2)} kg</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-ecom-muted font-medium">Total</span>
+                  <span className="text-xl font-black text-ecom-text">{valorTotalCarrinho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                </div>
+                <button
+                  onClick={() => { setCarrinhoDrawer(false); setVista('carrinho'); }}
+                  className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-sm rounded-full transition-colors shadow-sm flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag size={18} /> Finalizar Pedido
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
