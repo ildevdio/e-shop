@@ -1530,14 +1530,14 @@ const [erroAcesso, setErroAcesso] = useState('');
           <img
             src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)}
             alt={config.nomeEmpresa}
-            className="h-auto object-contain mb-8 brightness-110 w-[9.4rem] md:w-[11.4rem]"
+            className="h-auto object-contain mb-2 brightness-110 w-[9.4rem] md:w-[11.4rem]"
           />
           {config.exibirNomeAbaixoLogo && (
             <h1 className="font-heading text-4xl md:text-6xl font-bold tracking-wide text-white drop-shadow-md">
               {config.nomeEmpresa}
             </h1>
           )}
-          <p className="font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md mt-2">
+          <p className="font-heading text-2xl md:text-3xl font-bold tracking-wide text-white drop-shadow-md mt-10">
             {config.tituloHero}
           </p>
           <p className="text-white/90 mt-6 font-medium drop-shadow text-sm md:text-base max-w-xl">
