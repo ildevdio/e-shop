@@ -462,6 +462,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
   const carrosselRef = useRef<HTMLDivElement>(null);
   const config = useSistemaStore((state) => state.config);
+  const carregadaConfig = useSistemaStore((state) => state.carregada);
   
   // Theme Variables
   const primaryBg = 'bg-primary text-primary-foreground hover:bg-primary/90';
@@ -886,6 +887,15 @@ const [erroAcesso, setErroAcesso] = useState('');
       if (salvarCarrinhoRef.current) clearTimeout(salvarCarrinhoRef.current);
     };
   }, [carrinho, acessado, cpfAcessado]);
+
+  if (!carregadaConfig) {
+    return (
+      <div className="min-h-screen bg-ecom-bg flex flex-col items-center justify-center gap-4">
+        <Loader2 className="animate-spin text-primary" size={36} />
+        <p className="text-sm text-ecom-muted">Carregando loja...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-ecom-bg transition-[padding] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:pl-72' : 'md:pl-16') : ''}`}>

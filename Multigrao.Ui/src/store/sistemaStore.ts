@@ -231,7 +231,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
     } catch {
       set({ carregada: true });
     } finally {
-      set({ carregando: false });
+      set({ carregando: false, carregada: true });
     }
   },
 
