@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, Shoppi
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
-import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
+import { produtoService, UNIDADES_MEDIDA, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { marcaService } from '../services/marcaService';
 import { pedidoService } from '../services/pedidoService';
@@ -132,9 +132,6 @@ export default function Catalogo() {
 
   const formatPreco = (v: number) =>
     `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
-  const precoPorQtd = (produto: Produto, qtd: number) =>
-    qtd >= 5 ? produto.precoAtacado : produto.precoVarejo;
 
   const qtdNoCarrinho = (produtoId: number) => carrinho.get(produtoId) ?? 0;
 
@@ -288,7 +285,7 @@ export default function Catalogo() {
                                 <tbody>
                                   {grupo.produtos.map(p => {
                                     const qtd = qtdNoCarrinho(p.id);
-                                    const isAtacado = qtd >= 5;
+                                    const isAtacado = ehAtacado(p, qtd);
                                     return (
                                     <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                                       <td className="py-2.5 pr-4">
@@ -529,6 +526,8 @@ function GerenciarCatalogo({
                           marcaId: p.marcaId,
                           precoVarejo: p.precoVarejo,
                           precoAtacado: p.precoAtacado,
+                          quantidadeMinimaAtacado: p.quantidadeMinimaAtacado,
+                          vendidoAGranel: p.vendidoAGranel,
                           embalagem: p.embalagem,
                           unidadeVenda: p.unidadeVenda,
                           imagemUrl: p.imagemUrl,
@@ -630,6 +629,8 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
       marcaId: form.marcaId ?? null,
       precoVarejo: precoV,
       precoAtacado: precoA,
+      quantidadeMinimaAtacado: form.quantidadeMinimaAtacado && form.quantidadeMinimaAtacado > 0 ? form.quantidadeMinimaAtacado : 5,
+      vendidoAGranel: form.vendidoAGranel ?? false,
       embalagem: form.embalagem || null,
       unidadeVenda: form.unidadeVenda || null,
       imagemUrl: form.imagemUrl || null,
@@ -700,9 +701,22 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
               <label className="text-sm font-medium text-gray-700">Unid. Venda</label>
               <select value={form.unidadeVenda ?? ''} onChange={e => setForm({ ...form, unidadeVenda: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
                 <option value="">Selecione...</option>
-                <option value="UND">UND</option>
-                <option value="KG">KG</option>
+                {UNIDADES_MEDIDA.map(u => (
+                  <option key={u.valor} value={u.valor}>{u.nome}</option>
+                ))}
               </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Qtd. mín. para atacado</label>
+              <input type="number" min={1} value={form.quantidadeMinimaAtacado ?? 5} onChange={e => { const val = e.target.value; setForm({ ...form, quantidadeMinimaAtacado: val === '' ? undefined : parseInt(val) || 0 }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mt-4">
+                <input type="checkbox" checked={form.vendidoAGranel ?? false} onChange={e => setForm({ ...form, vendidoAGranel: e.target.checked })} className="h-4 w-4 accent-primary" />
+                Vendido a granel
+              </label>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

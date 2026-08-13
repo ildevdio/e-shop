@@ -27,6 +27,8 @@ export interface Produto {
   marca?: Marca | null;
   precoVarejo: number;
   precoAtacado: number;
+  quantidadeMinimaAtacado: number;
+  vendidoAGranel: boolean;
   embalagem: string | null;
   unidadeVenda: string | null;
   imagemUrl: string | null;
@@ -34,6 +36,28 @@ export interface Produto {
   ativo: boolean;
   destaque: boolean;
   estoque: number;
+}
+
+export const UNIDADES_MEDIDA = [
+  { valor: 'kg', nome: 'Quilo (kg)' },
+  { valor: 'g', nome: 'Grama (g)' },
+  { valor: 'L', nome: 'Litro (L)' },
+  { valor: 'ml', nome: 'Mililitro (ml)' },
+  { valor: 'un', nome: 'Unidade (un)' },
+  { valor: 'dz', nome: 'Dúzia (dz)' },
+  { valor: 'pct', nome: 'Pacote (pct)' },
+] as const;
+
+export function qtdMinimaAtacado(p: Produto): number {
+  return p.quantidadeMinimaAtacado > 0 ? p.quantidadeMinimaAtacado : 5;
+}
+
+export function ehAtacado(p: Produto, qtd: number): boolean {
+  return p.precoAtacado > 0 && qtd >= qtdMinimaAtacado(p);
+}
+
+export function precoPorQtd(p: Produto, qtd: number): number {
+  return ehAtacado(p, qtd) ? p.precoAtacado : p.precoVarejo;
 }
 
 export const produtoService = {

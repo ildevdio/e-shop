@@ -33,6 +33,10 @@ namespace Multigrao.Api.Models
 
         public decimal PrecoAtacado { get; set; }
 
+        public decimal QuantidadeMinimaAtacado { get; set; } = 5;
+
+        public bool VendidoAGranel { get; set; }
+
         [StringLength(50)]
         public string? Embalagem { get; set; }
 

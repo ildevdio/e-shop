@@ -5,7 +5,7 @@ import { getSlug } from '../services/tenantSetup';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
-import { produtoService, type Produto } from '../services/produtoService';
+import { produtoService, precoPorQtd, type Produto } from '../services/produtoService';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import SearchAutocomplete from '../components/SearchAutocomplete';
@@ -217,6 +217,9 @@ export default function ComercialPedidos() {
   const atualizarItem = (index: number, campo: keyof ItemForm, valor: number) => {
     const atualizados = [...itensPedido];
     (atualizados[index] as any)[campo] = valor;
+    if (campo === 'quantidade' && atualizados[index].produto) {
+      atualizados[index].precoUnitario = precoPorQtd(atualizados[index].produto, valor);
+    }
     setItensPedido(atualizados);
   };
 
@@ -304,7 +307,13 @@ export default function ComercialPedidos() {
       return;
     }
     setErroProduto('');
-    setItensPedido(prev => prev.map((item, i) => selecionadosPedido.has(i) ? { ...item, quantidade: valor } : item));
+    setItensPedido(prev => prev.map((item, i) => selecionadosPedido.has(i)
+      ? {
+          ...item,
+          quantidade: valor,
+          precoUnitario: item.produto ? precoPorQtd(item.produto, valor) : item.precoUnitario,
+        }
+      : item));
   };
 
   const pesoTotalItens = itensPedido.reduce((acc, item) => acc + (item.produto?.pesoUnidade ?? 0) * item.quantidade, 0);
@@ -582,7 +591,7 @@ export default function ComercialPedidos() {
                             >
                               <span className="font-medium text-gray-900 truncate">{p.nome}</span>
                               <span className="text-[11px] text-gray-400 shrink-0">
-                                R$ {p.precoVarejo.toFixed(2)} · Est.: {formatEstoque(p.estoque)}{p.unidadeVenda ? ` ${p.unidadeVenda.toLowerCase()}` : ''}{p.estoque <= 0 ? ' (esgotado)' : ''}
+                                R$ {p.precoVarejo.toFixed(2)}{p.precoAtacado > 0 ? ` · Atac. R$ ${p.precoAtacado.toFixed(2)} (${p.quantidadeMinimaAtacado > 0 ? p.quantidadeMinimaAtacado : 5}+ un.)` : ''} · Est.: {formatEstoque(p.estoque)}{p.unidadeVenda ? ` ${p.unidadeVenda.toLowerCase()}` : ''}{p.estoque <= 0 ? ' (esgotado)' : ''}
                               </span>
                             </div>
                           ))

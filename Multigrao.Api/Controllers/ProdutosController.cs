@@ -137,6 +137,8 @@ namespace Multigrao.Api.Controllers
                 MarcaId = dto.MarcaId,
                 PrecoVarejo = dto.PrecoVarejo,
                 PrecoAtacado = dto.PrecoAtacado,
+                QuantidadeMinimaAtacado = dto.QuantidadeMinimaAtacado <= 0 ? 5 : dto.QuantidadeMinimaAtacado,
+                VendidoAGranel = dto.VendidoAGranel,
                 Embalagem = dto.Embalagem,
                 UnidadeVenda = dto.UnidadeVenda,
                 ImagemUrl = dto.ImagemUrl,
@@ -163,6 +165,8 @@ namespace Multigrao.Api.Controllers
             produto.MarcaId = dto.MarcaId;
             produto.PrecoVarejo = dto.PrecoVarejo;
             produto.PrecoAtacado = dto.PrecoAtacado;
+            produto.QuantidadeMinimaAtacado = dto.QuantidadeMinimaAtacado <= 0 ? 5 : dto.QuantidadeMinimaAtacado;
+            produto.VendidoAGranel = dto.VendidoAGranel;
             produto.Embalagem = dto.Embalagem;
             produto.UnidadeVenda = dto.UnidadeVenda;
             produto.ImagemUrl = dto.ImagemUrl;

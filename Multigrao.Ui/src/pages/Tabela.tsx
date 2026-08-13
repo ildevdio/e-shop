@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2 } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
-import { produtoService, type Produto, type Categoria, type Marca } from '../services/produtoService';
+import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
@@ -106,7 +106,7 @@ function CardEcommerce({
   onAbrir: () => void;
   showMarca?: boolean;
 }) {
-  const isAtacado = qtd >= 5;
+  const isAtacado = ehAtacado(produto, qtd);
   return (
     <div className="group bg-ecom-card rounded-2xl border border-ecom-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface border-b border-ecom-border text-left">
@@ -115,8 +115,11 @@ function CardEcommerce({
         ) : (
           <span className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
+        {produto.vendidoAGranel && (
+          <span className="absolute top-2 left-2 bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">A granel</span>
+        )}
         {isAtacado && (
-          <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Atacado</span>
+          <span className={`absolute bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${produto.vendidoAGranel ? 'top-8 left-2' : 'top-2 left-2'}`}>Atacado</span>
         )}
         {produto.estoque <= 0 && (
           <span className="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Esgotado</span>
@@ -143,7 +146,7 @@ function CardEcommerce({
             <>
               <p className="text-[10px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
               <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-ecom-muted mt-0.5">Atacado · 5+ un.</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-ecom-muted mt-0.5">Atacado · {qtdMinimaAtacado(produto)}+ un.</p>
             </>
           ) : (
             <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoVarejo)}</p>
@@ -176,7 +179,7 @@ function CardCarrossel({
   onQtd: (q: number) => void;
   onAbrir: () => void;
 }) {
-  const isAtacado = qtd >= 5;
+  const isAtacado = ehAtacado(produto, qtd);
   return (
     <div className="relative aspect-[4/5] rounded-3xl overflow-hidden group bg-ecom-surface border border-ecom-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-all">
       <button onClick={onAbrir} aria-label={`Ver ${produto.nome}`} className="absolute inset-0 w-full h-full block text-left cursor-pointer">
@@ -187,8 +190,11 @@ function CardCarrossel({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
       </button>
+      {produto.vendidoAGranel && (
+        <span className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">A granel</span>
+      )}
       {isAtacado && (
-        <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Atacado</span>
+        <span className={`absolute bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${produto.vendidoAGranel ? 'top-14 left-3' : 'top-3 left-3'}`}>Atacado</span>
       )}
       {produto.estoque <= 0 && (
         <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Esgotado</span>
@@ -474,9 +480,6 @@ const [erroAcesso, setErroAcesso] = useState('');
     const t = normalizar(filtro);
     return normalizar(p.nome).includes(t) || normalizar(p.marca?.nome ?? '').includes(t);
   };
-
-  const precoPorQtd = (produto: Produto, qtd: number) =>
-    qtd >= 5 ? produto.precoAtacado : produto.precoVarejo;
 
   const TAXA_EMBALAGEM = 2;
 
@@ -918,6 +921,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <p className="text-xs uppercase tracking-widest font-semibold text-ecom-muted mb-5">
                   {produtoDetalhe.embalagem && `${produtoDetalhe.embalagem} `}
                   {produtoDetalhe.unidadeVenda && `· ${produtoDetalhe.unidadeVenda}`}
+                  {produtoDetalhe.vendidoAGranel && ' · A granel'}
                 </p>
 
                 {produtoDetalhe.estoque <= 0 && (
@@ -929,25 +933,25 @@ const [erroAcesso, setErroAcesso] = useState('');
 
                 <div className="rounded-2xl bg-ecom-surface border border-ecom-border p-4 mb-6">
                   <div className="flex items-end justify-between gap-4">
-                    {qtdDetalhe >= 5 ? (
+                    {ehAtacado(produtoDetalhe, qtdDetalhe) ? (
                       <div>
                         <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(produtoDetalhe.precoVarejo)}</p>
                         <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoAtacado)}</p>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-ecom-muted mt-1.5">Preço atacado (5+ un.)</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ecom-muted mt-1.5">Preço atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.)</p>
                       </div>
                     ) : (
                       <div>
                         <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-1">Preço varejo</p>
                         <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoVarejo)}</p>
                         {produtoDetalhe.precoAtacado > 0 && (
-                          <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado (5+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
+                          <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
                         )}
                       </div>
                     )}
                     <p className="text-xs font-bold text-ecom-muted text-right shrink-0">
                       Total
                       <span className="block text-lg font-black text-ecom-text">
-                        {formatPreco((qtdDetalhe >= 5 ? produtoDetalhe.precoAtacado : produtoDetalhe.precoVarejo) * qtdDetalhe)}
+                        {formatPreco(precoPorQtd(produtoDetalhe, qtdDetalhe) * qtdDetalhe)}
                       </span>
                     </p>
                   </div>
