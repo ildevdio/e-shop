@@ -16,9 +16,82 @@ export interface ConfiguracaoSistema {
   logoUrl: string;
   videoUrl: string | null;
   corPrincipal: string;
+  fonte: string;
+  corSecundaria: string;
+  corFonte: string;
+  designEcommerce: string;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
+
+export const FONTES_ECOMMERCE: Record<string, { nome: string; heading: string; corpo: string }> = {
+  classica: {
+    nome: 'Clássica',
+    heading: "'Playfair Display', Georgia, 'Times New Roman', serif",
+    corpo: "'Source Sans 3', 'Segoe UI', system-ui, sans-serif",
+  },
+  moderna: {
+    nome: 'Moderna',
+    heading: "'Poppins', 'Segoe UI', sans-serif",
+    corpo: "'Inter', 'Segoe UI', sans-serif",
+  },
+  redonda: {
+    nome: 'Redonda',
+    heading: "'Nunito Sans', 'Segoe UI', sans-serif",
+    corpo: "'Nunito Sans', 'Segoe UI', sans-serif",
+  },
+  serifa: {
+    nome: 'Serifada',
+    heading: "'Lora', Georgia, 'Times New Roman', serif",
+    corpo: "'Source Sans 3', 'Segoe UI', system-ui, sans-serif",
+  },
+  condensada: {
+    nome: 'Condensada',
+    heading: "'Oswald', 'Arial Narrow', sans-serif",
+    corpo: "'Inter', 'Segoe UI', sans-serif",
+  },
+  minimalista: {
+    nome: 'Minimalista',
+    heading: "'Inter', 'Segoe UI', sans-serif",
+    corpo: "'Inter', 'Segoe UI', sans-serif",
+  },
+};
+
+export const DESIGNS_ECOMMERCE: Record<string, { nome: string; bg: string; card: string; surface: string; fill: string; text: string; muted: string; border: string; strong: string }> = {
+  claro: {
+    nome: 'Clássico',
+    bg: '#f7f5f2',
+    card: '#ffffff',
+    surface: '#f7f5f2',
+    fill: '#f4f4f5',
+    text: '#18181b',
+    muted: '#71717a',
+    border: 'rgba(24, 24, 27, 0.12)',
+    strong: '#18181b',
+  },
+  escuro: {
+    nome: 'Escuro',
+    bg: '#0b0b0d',
+    card: '#17171a',
+    surface: '#101013',
+    fill: '#242428',
+    text: '#f4f4f5',
+    muted: '#9d9da6',
+    border: 'rgba(255, 255, 255, 0.12)',
+    strong: '#f4f4f5',
+  },
+  moderno: {
+    nome: 'Moderno',
+    bg: '#fafafa',
+    card: '#ffffff',
+    surface: '#f4f4f5',
+    fill: '#e4e4e7',
+    text: '#111827',
+    muted: '#6b7280',
+    border: 'rgba(17, 24, 39, 0.10)',
+    strong: '#111827',
+  },
+};
 
 export const CONFIG_PADRAO: ConfiguracaoSistema = {
   slug: 'multigraos',
@@ -35,6 +108,10 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   logoUrl: '/multigraos-logo.png',
   videoUrl: '/multigraosvid.mp4',
   corPrincipal: '#0a0a0a',
+  fonte: 'classica',
+  corSecundaria: '#f97316',
+  corFonte: '',
+  designEcommerce: 'claro',
 };
 
 function luminancia(hex: string): number {
@@ -75,7 +152,7 @@ interface SistemaStore {
   carregar: () => Promise<void>;
   atualizar: (dados: Partial<ConfiguracaoSistema>) => void;
   salvar: (dados?: Partial<ConfiguracaoSistema>) => Promise<boolean>;
-  aplicarTema: (corPrincipal?: string) => void;
+  aplicarTema: () => void;
 }
 
 export const useSistemaStore = create<SistemaStore>((set, get) => ({
@@ -105,9 +182,13 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           logoUrl: data.logoUrl || CONFIG_PADRAO.logoUrl,
           videoUrl: data.videoUrl ?? null,
           corPrincipal: data.corPrincipal || CONFIG_PADRAO.corPrincipal,
+          fonte: data.fonte || CONFIG_PADRAO.fonte,
+          corSecundaria: data.corSecundaria || CONFIG_PADRAO.corSecundaria,
+          corFonte: data.corFonte ?? CONFIG_PADRAO.corFonte,
+          designEcommerce: data.designEcommerce || CONFIG_PADRAO.designEcommerce,
         };
         set({ config, carregada: true });
-        get().aplicarTema(config.corPrincipal);
+        get().aplicarTema();
       }
     } catch {
       set({ carregada: true });
@@ -119,7 +200,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
   atualizar: (dados) => {
     const config = { ...get().config, ...dados };
     set({ config });
-    if (dados.corPrincipal) get().aplicarTema(dados.corPrincipal);
+    get().aplicarTema();
   },
 
   salvar: async (dados) => {
@@ -142,6 +223,10 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           logoUrl: config.logoUrl,
           videoUrl: config.videoUrl,
           corPrincipal: config.corPrincipal,
+          fonte: config.fonte,
+          corSecundaria: config.corSecundaria,
+          corFonte: config.corFonte,
+          designEcommerce: config.designEcommerce,
         }),
       });
       if (!resp.ok) return false;
@@ -161,21 +246,34 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         logoUrl: data.logoUrl || config.logoUrl,
         videoUrl: data.videoUrl ?? null,
         corPrincipal: data.corPrincipal || config.corPrincipal,
+        fonte: data.fonte || config.fonte,
+        corSecundaria: data.corSecundaria || config.corSecundaria,
+        corFonte: data.corFonte ?? config.corFonte,
+        designEcommerce: data.designEcommerce || config.designEcommerce,
       };
       set({ config: atualizada });
-      get().aplicarTema(atualizada.corPrincipal);
+      get().aplicarTema();
       return true;
     } catch {
       return false;
     }
   },
 
-  aplicarTema: (corPrincipal) => {
-    const cor = corPrincipal ?? get().config.corPrincipal;
+  aplicarTema: () => {
+    const config = get().config;
+    const cor = config.corPrincipal || CONFIG_PADRAO.corPrincipal;
     const foreground = luminancia(cor) > 0.55 ? '#0a0a0a' : '#fafafa';
     const active = shade(cor, luminancia(cor) > 0.55 ? -0.14 : 0.16);
     const border = rgba(foreground, 0.14);
     const muted = rgba(foreground, 0.6);
+
+    const secundaria = config.corSecundaria || CONFIG_PADRAO.corSecundaria;
+    const secundariaForeground = luminancia(secundaria) > 0.55 ? '#0a0a0a' : '#ffffff';
+
+    const design = DESIGNS_ECOMMERCE[config.designEcommerce] ?? DESIGNS_ECOMMERCE.claro;
+    const corFonte = config.corFonte || design.text;
+    const fonte = FONTES_ECOMMERCE[config.fonte] ?? FONTES_ECOMMERCE.classica;
+
     const root = document.documentElement;
     root.style.setProperty('--color-primary', cor);
     root.style.setProperty('--color-primary-foreground', foreground);
@@ -188,5 +286,17 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
     root.style.setProperty('--color-sidebar-border', border);
     root.style.setProperty('--color-sidebar-muted', muted);
     root.style.setProperty('--color-sidebar-accent', foreground);
+    root.style.setProperty('--color-ecom-bg', design.bg);
+    root.style.setProperty('--color-ecom-card', design.card);
+    root.style.setProperty('--color-ecom-surface', design.surface);
+    root.style.setProperty('--color-ecom-fill', design.fill);
+    root.style.setProperty('--color-ecom-text', corFonte);
+    root.style.setProperty('--color-ecom-muted', design.muted);
+    root.style.setProperty('--color-ecom-border', design.border);
+    root.style.setProperty('--color-ecom-strong', design.strong);
+    root.style.setProperty('--color-ecom-secondary', secundaria);
+    root.style.setProperty('--color-ecom-secondary-foreground', secundariaForeground);
+    root.style.setProperty('--font-heading', fonte.heading);
+    root.style.setProperty('--font-body', fonte.corpo);
   },
 }));

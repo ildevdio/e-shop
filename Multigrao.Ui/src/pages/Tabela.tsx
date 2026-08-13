@@ -70,7 +70,7 @@ const statusClasse: Record<string, string> = {
 };
 
 const labelStatus = (s: string) => rotuloStatus[s] ?? s;
-const corStatus = (s: string) => statusClasse[s] ?? 'bg-zinc-100 text-zinc-700';
+const corStatus = (s: string) => statusClasse[s] ?? 'bg-ecom-fill text-ecom-text';
 
 function corClara(hex?: string | null): boolean {
   if (!hex) return false;
@@ -108,12 +108,12 @@ function CardEcommerce({
 }) {
   const isAtacado = qtd >= 5;
   return (
-    <div className="group bg-white rounded-2xl border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
-      <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-[#F7F5F2] border-b border-zinc-900/10 text-left">
+    <div className="group bg-ecom-card rounded-2xl border border-ecom-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] hover:-translate-y-1 transition-all flex flex-col h-full overflow-hidden">
+      <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface border-b border-ecom-border text-left">
         {produtoImagemUrl(produto) ? (
           <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
-          <span className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
+          <span className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
         {isAtacado && (
           <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Atacado</span>
@@ -124,12 +124,12 @@ function CardEcommerce({
       </button>
       <div className="p-3 flex-1 flex flex-col">
         {showMarca && produto.marca?.nome && (
-          <p className="text-[9px] uppercase tracking-widest font-bold text-zinc-400 mb-1 truncate">{produto.marca.nome}</p>
+          <p className="text-[9px] uppercase tracking-widest font-bold text-ecom-muted mb-1 truncate">{produto.marca.nome}</p>
         )}
         <button onClick={onAbrir} className="text-left">
-          <h3 className="font-heading font-bold text-zinc-900 text-base leading-snug line-clamp-2 hover:underline decoration-zinc-300 underline-offset-4">{produto.nome}</h3>
+          <h3 className="font-heading font-bold text-ecom-text text-base leading-snug line-clamp-2 hover:underline decoration-ecom-muted underline-offset-4">{produto.nome}</h3>
         </button>
-        <p className="text-[10px] uppercase tracking-widest font-semibold text-zinc-400 mt-1 mb-2 truncate">
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-ecom-muted mt-1 mb-2 truncate">
           {produto.embalagem && `${produto.embalagem} `}
           {produto.unidadeVenda && `· ${produto.unidadeVenda}`}
         </p>
@@ -141,18 +141,18 @@ function CardEcommerce({
         <div className="mt-auto pt-2 pb-3">
           {isAtacado ? (
             <>
-              <p className="text-[10px] font-medium text-zinc-400 line-through">{formatPreco(produto.precoVarejo)}</p>
-              <p className="text-lg font-black text-zinc-900 leading-none">{formatPreco(produto.precoAtacado)}</p>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 mt-0.5">Atacado · 5+ un.</p>
+              <p className="text-[10px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
+              <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-ecom-muted mt-0.5">Atacado · 5+ un.</p>
             </>
           ) : (
-            <p className="text-lg font-black text-zinc-900 leading-none">{formatPreco(produto.precoVarejo)}</p>
+            <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoVarejo)}</p>
           )}
         </div>
         {qtd > 0 ? (
           <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between" />
         ) : produto.estoque <= 0 ? (
-          <button disabled className="w-full py-2.5 bg-zinc-100 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed">
+          <button disabled className="w-full py-2.5 bg-ecom-fill text-ecom-muted font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed">
             Produto esgotado
           </button>
         ) : (
@@ -178,12 +178,12 @@ function CardCarrossel({
 }) {
   const isAtacado = qtd >= 5;
   return (
-    <div className="relative aspect-[4/5] rounded-3xl overflow-hidden group bg-[#F7F5F2] border border-zinc-900/15 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-all">
+    <div className="relative aspect-[4/5] rounded-3xl overflow-hidden group bg-ecom-surface border border-ecom-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-all">
       <button onClick={onAbrir} aria-label={`Ver ${produto.nome}`} className="absolute inset-0 w-full h-full block text-left cursor-pointer">
         {produtoImagemUrl(produto) ? (
           <img src={produtoImagemUrl(produto)} alt={produto.nome} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-bold uppercase tracking-widest">Sem foto</div>
+          <div className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
       </button>
@@ -217,9 +217,9 @@ function CardCarrossel({
             )}
           </div>
           {qtd > 0 ? (
-            <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-white shrink-0" />
+            <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="bg-ecom-card shrink-0" />
           ) : produto.estoque <= 0 ? (
-            <button disabled className="px-4 py-2 bg-zinc-200 text-zinc-400 font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed shrink-0">Esgotado</button>
+            <button disabled className="px-4 py-2 bg-ecom-fill text-ecom-muted font-bold uppercase tracking-widest text-[10px] rounded-full cursor-not-allowed shrink-0">Esgotado</button>
           ) : (
             <button onClick={onAbrir} className="px-4 py-2 bg-white text-zinc-900 font-bold uppercase tracking-widest text-[10px] rounded-full hover:bg-zinc-100 transition-colors shrink-0">Ver Produto</button>
           )}
@@ -276,11 +276,11 @@ function CampoQuantidade({
   const noLimite = max !== undefined && valor >= max;
 
   return (
-    <div className={`flex items-center rounded-full border border-zinc-900/20 bg-zinc-50 ${grande ? 'p-1.5' : 'p-1'} ${className ?? ''}`}>
+    <div className={`flex items-center rounded-full border border-ecom-border bg-ecom-surface ${grande ? 'p-1.5' : 'p-1'} ${className ?? ''}`}>
       <button
         type="button"
         onClick={aoDecrementar}
-        className={`rounded-full text-zinc-700 hover:bg-white hover:shadow-sm transition-colors ${grande ? 'p-3' : 'p-1.5'}`}
+        className={`rounded-full text-ecom-text hover:bg-ecom-card hover:shadow-sm transition-colors ${grande ? 'p-3' : 'p-1.5'}`}
       >
         <Minus size={grande ? 18 : 14} />
       </button>
@@ -292,13 +292,13 @@ function CampoQuantidade({
         onChange={e => setTexto(e.target.value.replace(/\D/g, '').slice(0, 5))}
         onBlur={() => { setFocado(false); commit(); }}
         onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-        className={`text-center font-bold text-zinc-900 bg-transparent focus:outline-none ${grande ? 'w-14 text-lg font-black' : 'w-10 text-sm'}`}
+        className={`text-center font-bold text-ecom-text bg-transparent focus:outline-none ${grande ? 'w-14 text-lg font-black' : 'w-10 text-sm'}`}
       />
       <button
         type="button"
         onClick={() => aoAplicar(valor + 1)}
         disabled={noLimite}
-        className={`rounded-full transition-colors ${noLimite ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'} ${grande ? 'p-3' : 'p-1.5'}`}
+        className={`rounded-full transition-colors ${noLimite ? 'bg-ecom-fill text-ecom-muted cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'} ${grande ? 'p-3' : 'p-1.5'}`}
       >
         <Plus size={grande ? 18 : 14} />
       </button>
@@ -312,31 +312,31 @@ function FaixaMarca({ marca, total }: { marca: Marca | null; total: number }) {
   const logoMarca = marcaImagemUrl(marca);
   if (!marca) {
     return (
-      <div className="flex items-center gap-3 px-5 sm:px-8 py-4 rounded-2xl border border-zinc-900/20 bg-white">
+      <div className="flex items-center gap-3 px-5 sm:px-8 py-4 rounded-2xl border border-ecom-border bg-ecom-card">
         <div className="h-8 w-2 bg-primary rounded-full" />
-        <h3 className="font-heading font-bold text-xl sm:text-2xl text-zinc-900">Diversos</h3>
+        <h3 className="font-heading font-bold text-xl sm:text-2xl text-ecom-text">Diversos</h3>
         <div className="flex-1" />
-        <span className="hidden sm:block text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+        <span className="hidden sm:block text-[11px] font-bold uppercase tracking-widest text-ecom-muted">
           {total} {total === 1 ? 'produto' : 'produtos'}
         </span>
       </div>
     );
   }
   return (
-    <div className="relative flex items-center justify-between gap-4 px-5 sm:px-8 py-5 rounded-2xl border-2 border-zinc-900 overflow-hidden shadow-sm" style={{ backgroundColor: bandBg }}>
-      <div className={`flex items-center gap-4 min-w-0 ${bandClara ? 'text-zinc-900' : 'text-white'}`}>
+    <div className="relative flex items-center justify-between gap-4 px-5 sm:px-8 py-5 rounded-2xl border-2 border-ecom-strong overflow-hidden shadow-sm" style={{ backgroundColor: bandBg }}>
+      <div className={`flex items-center gap-4 min-w-0 ${bandClara ? 'text-ecom-text' : 'text-white'}`}>
         <div className="flex items-center justify-center shrink-0">
           {logoMarca ? (
             <img src={logoMarca} alt={marca.nome} className="h-16 sm:h-20 w-auto object-contain" />
           ) : (
-            <span className={`font-heading font-bold text-2xl ${bandClara ? 'text-zinc-900' : 'text-white'}`}>{marca.nome?.[0] ?? 'M'}</span>
+            <span className={`font-heading font-bold text-2xl ${bandClara ? 'text-ecom-text' : 'text-white'}`}>{marca.nome?.[0] ?? 'M'}</span>
           )}
         </div>
         <div className="min-w-0">
           <h3 className="font-heading font-bold text-2xl sm:text-3xl truncate">{marca.nome}</h3>
         </div>
       </div>
-      <div className={`hidden sm:block shrink-0 text-[11px] font-bold uppercase tracking-widest ${bandClara ? 'text-zinc-900/70' : 'text-white/80'}`}>
+      <div className={`hidden sm:block shrink-0 text-[11px] font-bold uppercase tracking-widest ${bandClara ? 'text-ecom-text/70' : 'text-white/80'}`}>
         {total} {total === 1 ? 'produto' : 'produtos'}
       </div>
     </div>
@@ -796,7 +796,7 @@ const [erroAcesso, setErroAcesso] = useState('');
   }, [carrinho, acessado, cpfAcessado]);
 
   return (
-    <div className="min-h-screen bg-[#F7F5F2]">
+    <div className="min-h-screen bg-ecom-bg">
       
       {/* ── Nav fixa (dock) — detalhe geral do sistema ── */}
       {
@@ -820,13 +820,13 @@ const [erroAcesso, setErroAcesso] = useState('');
                       onChange={setFiltro}
                       sugestoes={sugestoes}
                       aoSelecionar={s => setFiltro(s.rotulo)}
-                      classNameInput="h-10 pl-10 pr-4 bg-white border border-primary rounded-full focus:outline-none text-sm transition-all"
+                      classNameInput="h-10 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
                       onBuscar={buscarECatalogo}
                     />
                   </div>
                   <button
                     onClick={() => setMenuCategorias(true)}
-                    className={`flex items-center gap-2 h-10 px-5 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${categoriaFiltrada !== null ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-white text-primary hover:bg-primary/10'}`}
+                    className={`flex items-center gap-2 h-10 px-5 rounded-full font-bold uppercase tracking-widest text-xs shadow-sm transition-colors ${categoriaFiltrada !== null ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-ecom-card text-primary hover:bg-primary/10'}`}
                   >
                     <LayoutGrid size={16} />
                     <span className="max-w-28 truncate">{categoriaFiltradaNome ?? 'Categorias'}</span>
@@ -862,7 +862,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   onChange={setFiltro}
                   sugestoes={sugestoes}
                   aoSelecionar={s => setFiltro(s.rotulo)}
-                  classNameInput="w-full h-10 pl-10 pr-4 bg-white border border-primary rounded-full focus:outline-none text-sm transition-all"
+                  classNameInput="w-full h-10 pl-10 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm transition-all"
                   onBuscar={buscarECatalogo}
                 />
               </div>
@@ -884,11 +884,11 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
               <div>
-                <div className="aspect-square rounded-3xl bg-[#F7F5F2] border border-zinc-900/10 overflow-hidden flex items-center justify-center md:sticky md:top-24">
+                <div className="aspect-square rounded-3xl bg-ecom-surface border border-ecom-border overflow-hidden flex items-center justify-center md:sticky md:top-24">
                   {produtoImagemUrl(produtoDetalhe) ? (
                     <img src={produtoImagemUrl(produtoDetalhe)} alt={produtoDetalhe.nome} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-zinc-300 text-xs font-bold uppercase tracking-widest">Sem foto</span>
+                    <span className="text-ecom-muted text-xs font-bold uppercase tracking-widest">Sem foto</span>
                   )}
                 </div>
               </div>
@@ -898,14 +898,14 @@ const [erroAcesso, setErroAcesso] = useState('');
                   const corClaraEmpresa = corClara(produtoDetalhe.marca.cor);
                   return (
                     <div
-                      className={`flex items-center gap-3 mb-5 rounded-xl px-4 py-3 border border-zinc-900 overflow-hidden ${corClaraEmpresa ? 'text-zinc-900' : 'text-white'}`}
+                      className={`flex items-center gap-3 mb-5 rounded-xl px-4 py-3 border border-ecom-strong overflow-hidden ${corClaraEmpresa ? 'text-ecom-text' : 'text-white'}`}
                       style={{ backgroundColor: produtoDetalhe.marca.cor ?? '#18181b' }}
                     >
                       <div className="flex items-center justify-center shrink-0">
                         {logoEmpresa ? (
                           <img src={logoEmpresa} alt={produtoDetalhe.marca.nome} className="h-12 w-auto object-contain" />
                         ) : (
-                          <span className={`font-heading font-bold text-base ${corClaraEmpresa ? 'text-zinc-900' : 'text-white'}`}>{produtoDetalhe.marca.nome[0]}</span>
+                          <span className={`font-heading font-bold text-base ${corClaraEmpresa ? 'text-ecom-text' : 'text-white'}`}>{produtoDetalhe.marca.nome[0]}</span>
                         )}
                       </div>
                       <div className="min-w-0">
@@ -914,8 +914,8 @@ const [erroAcesso, setErroAcesso] = useState('');
                     </div>
                   );
                 })()}
-                <h2 className="font-heading font-bold text-2xl sm:text-3xl text-zinc-900 leading-tight mb-3">{produtoDetalhe.nome}</h2>
-                <p className="text-xs uppercase tracking-widest font-semibold text-zinc-400 mb-5">
+                <h2 className="font-heading font-bold text-2xl sm:text-3xl text-ecom-text leading-tight mb-3">{produtoDetalhe.nome}</h2>
+                <p className="text-xs uppercase tracking-widest font-semibold text-ecom-muted mb-5">
                   {produtoDetalhe.embalagem && `${produtoDetalhe.embalagem} `}
                   {produtoDetalhe.unidadeVenda && `· ${produtoDetalhe.unidadeVenda}`}
                 </p>
@@ -927,26 +927,26 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </div>
                 )}
 
-                <div className="rounded-2xl bg-[#F7F5F2] border border-zinc-900/10 p-4 mb-6">
+                <div className="rounded-2xl bg-ecom-surface border border-ecom-border p-4 mb-6">
                   <div className="flex items-end justify-between gap-4">
                     {qtdDetalhe >= 5 ? (
                       <div>
-                        <p className="text-xs text-zinc-400 line-through mb-0.5">{formatPreco(produtoDetalhe.precoVarejo)}</p>
-                        <p className="text-3xl font-black text-zinc-900 leading-none">{formatPreco(produtoDetalhe.precoAtacado)}</p>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mt-1.5">Preço atacado (5+ un.)</p>
+                        <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(produtoDetalhe.precoVarejo)}</p>
+                        <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoAtacado)}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ecom-muted mt-1.5">Preço atacado (5+ un.)</p>
                       </div>
                     ) : (
                       <div>
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Preço varejo</p>
-                        <p className="text-3xl font-black text-zinc-900 leading-none">{formatPreco(produtoDetalhe.precoVarejo)}</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-1">Preço varejo</p>
+                        <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoVarejo)}</p>
                         {produtoDetalhe.precoAtacado > 0 && (
-                          <p className="text-[10px] font-semibold text-zinc-500 mt-1.5">Atacado (5+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
+                          <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado (5+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
                         )}
                       </div>
                     )}
-                    <p className="text-xs font-bold text-zinc-500 text-right shrink-0">
+                    <p className="text-xs font-bold text-ecom-muted text-right shrink-0">
                       Total
-                      <span className="block text-lg font-black text-zinc-900">
+                      <span className="block text-lg font-black text-ecom-text">
                         {formatPreco((qtdDetalhe >= 5 ? produtoDetalhe.precoAtacado : produtoDetalhe.precoVarejo) * qtdDetalhe)}
                       </span>
                     </p>
@@ -955,7 +955,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Quantidade</p>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted">Quantidade</p>
                     {produtoDetalhe.estoque > 0 && (
                       <p className="text-[11px] font-semibold text-emerald-600">
                         Disponível: {formatEstoque(produtoDetalhe.estoque)}{produtoDetalhe.unidadeVenda ? ` ${produtoDetalhe.unidadeVenda.toLowerCase()}` : ''}
@@ -966,7 +966,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
 
                 {produtoDetalhe.estoque <= 0 ? (
-                  <button disabled className="w-full py-4 bg-zinc-200 text-zinc-400 font-bold uppercase tracking-widest text-sm rounded-full cursor-not-allowed">
+                  <button disabled className="w-full py-4 bg-ecom-fill text-ecom-muted font-bold uppercase tracking-widest text-sm rounded-full cursor-not-allowed">
                     Produto esgotado
                   </button>
                 ) : (
@@ -975,19 +975,19 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </button>
                 )}
 
-                <div className="mt-8 border-t border-zinc-900/10 pt-6">
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-3">Informações do produto</p>
+                <div className="mt-8 border-t border-ecom-border pt-6">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-3">Informações do produto</p>
                   {descricaoProduto(produtoDetalhe).length > 0 ? (
-                    <dl className="divide-y divide-zinc-900/10 border border-zinc-900/10 rounded-2xl overflow-hidden">
+                    <dl className="divide-y divide-ecom-border border border-ecom-border rounded-2xl overflow-hidden">
                       {descricaoProduto(produtoDetalhe).map(item => (
-                        <div key={item.rotulo} className="flex justify-between gap-4 px-4 py-2.5 bg-white text-sm">
-                          <dt className="font-semibold text-zinc-500">{item.rotulo}</dt>
-                          <dd className="font-bold text-zinc-900 text-right">{item.valor}</dd>
+                        <div key={item.rotulo} className="flex justify-between gap-4 px-4 py-2.5 bg-ecom-card text-sm">
+                          <dt className="font-semibold text-ecom-muted">{item.rotulo}</dt>
+                          <dd className="font-bold text-ecom-text text-right">{item.valor}</dd>
                         </div>
                       ))}
                     </dl>
                   ) : (
-                    <p className="text-sm text-zinc-500 italic">Sem informações adicionais disponíveis.</p>
+                    <p className="text-sm text-ecom-muted italic">Sem informações adicionais disponíveis.</p>
                   )}
                 </div>
               </div>
@@ -1003,7 +1003,7 @@ const [erroAcesso, setErroAcesso] = useState('');
             >
               <ArrowLeft size={16} /> Voltar
             </button>
-            <h1 className="font-heading text-2xl text-zinc-900">Seu Pedido</h1>
+            <h1 className="font-heading text-2xl text-ecom-text">Seu Pedido</h1>
           </div>
           <div className="max-w-6xl mx-auto w-full px-4 py-6 flex-1 min-h-0">
             {pedidoCriado ? (
@@ -1011,19 +1011,19 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 bg-primary">
                   <CheckCircle2 size={40} className="text-primary-foreground" />
                 </div>
-                <h2 className="font-heading text-3xl font-bold text-zinc-900">Pedido enviado!</h2>
-                <p className="mt-3 text-zinc-500 font-medium">Recebemos seu pedido com sucesso. Em breve entraremos em contato para confirmar.</p>
+                <h2 className="font-heading text-3xl font-bold text-ecom-text">Pedido enviado!</h2>
+                <p className="mt-3 text-ecom-muted font-medium">Recebemos seu pedido com sucesso. Em breve entraremos em contato para confirmar.</p>
                 <button onClick={() => { setPedidoCriado(false); setVista('catalogo'); }} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
                   Voltar ao catálogo
                 </button>
               </div>
             ) : carrinho.size === 0 ? (
               <div className="text-center py-16">
-                <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 bg-white border border-zinc-900">
-                  <ShoppingCart size={36} className="text-zinc-900" />
+                <div className="mx-auto h-20 w-20 flex items-center justify-center rounded-full mb-6 bg-ecom-card border border-ecom-strong">
+                  <ShoppingCart size={36} className="text-ecom-text" />
                 </div>
-                <h2 className="font-heading text-2xl font-bold text-zinc-900">Seu carrinho está vazio</h2>
-                <p className="mt-2 text-zinc-500 font-medium">Navegue pelo catálogo e adicione produtos ao carrinho.</p>
+                <h2 className="font-heading text-2xl font-bold text-ecom-text">Seu carrinho está vazio</h2>
+                <p className="mt-2 text-ecom-muted font-medium">Navegue pelo catálogo e adicione produtos ao carrinho.</p>
                 <button onClick={() => setVista('catalogo')} className="mt-8 px-10 py-4 font-bold uppercase tracking-widest text-sm transition-colors shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-full">
                   Ver produtos
                 </button>
@@ -1039,7 +1039,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       if (!produto) return null;
                       const preco = precoPorQtd(produto, quantidade);
                       return (
-                        <div key={produtoId} className="relative overflow-hidden rounded-2xl border border-zinc-900/10">
+                        <div key={produtoId} className="relative overflow-hidden rounded-2xl border border-ecom-border">
                           <button
                             type="button"
                             onClick={() => { setQtdCarrinho(produtoId, 0); setAbrirExclusao(null); }}
@@ -1050,29 +1050,29 @@ const [erroAcesso, setErroAcesso] = useState('');
                               <Trash2 size={22} />
                             </span>
                           </button>
-                          <div className={`relative bg-white rounded-2xl transition-transform duration-300 ease-out ${abrirExclusao === produtoId ? '-translate-x-16' : ''}`}>
+                          <div className={`relative bg-ecom-card rounded-2xl transition-transform duration-300 ease-out ${abrirExclusao === produtoId ? '-translate-x-16' : ''}`}>
                             <div className="p-3">
                           <div className="flex items-start gap-3">
-                            <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-[#F7F5F2] border border-zinc-900/10 flex items-center justify-center">
+                            <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-ecom-surface border border-ecom-border flex items-center justify-center">
                               {produtoImagemUrl(produto) ? (
                                 <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover" />
                               ) : (
-                                <span className="text-zinc-300 text-[8px] font-bold uppercase tracking-widest text-center">Sem foto</span>
+                                <span className="text-ecom-muted text-[8px] font-bold uppercase tracking-widest text-center">Sem foto</span>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
-                                <p className="font-bold truncate text-zinc-900 text-sm">{produto.nome}</p>
+                                <p className="font-bold truncate text-ecom-text text-sm">{produto.nome}</p>
                                 <button
                                   type="button"
                                   onClick={() => setAbrirExclusao(prev => prev === produtoId ? null : produtoId)}
-                                  className={`transition-colors shrink-0 ${abrirExclusao === produtoId ? 'text-red-600 bg-red-50 rounded-full p-1.5' : 'text-zinc-300 hover:text-red-600'}`}
+                                  className={`transition-colors shrink-0 ${abrirExclusao === produtoId ? 'text-red-600 bg-red-50 rounded-full p-1.5' : 'text-ecom-muted hover:text-red-600'}`}
                                   title={abrirExclusao === produtoId ? 'Fechar' : 'Remover'}
                                 >
                                   {abrirExclusao === produtoId ? <ChevronRight size={16} /> : <Trash2 size={16} />}
                                 </button>
                               </div>
-                              <p className="text-sm text-zinc-500 font-medium">{formatPreco(preco)} / un.</p>
+                              <p className="text-sm text-ecom-muted font-medium">{formatPreco(preco)} / un.</p>
                               <div className="mt-2 flex items-center justify-between gap-2">
                                 <CampoQuantidade
                                   valor={quantidade}
@@ -1080,7 +1080,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                                   onChange={q => setQtdCarrinho(produtoId, q)}
                                   aoRemover={() => setQtdCarrinho(produtoId, 0)}
                                 />
-                                <span className="font-bold shrink-0 text-zinc-900">{formatPreco(preco * quantidade)}</span>
+                                <span className="font-bold shrink-0 text-ecom-text">{formatPreco(preco * quantidade)}</span>
                               </div>
                             </div>
                           </div>
@@ -1094,7 +1094,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                               <button
                                 type="button"
                                 onClick={() => setQtdCarrinho(produtoId, 2)}
-                                className="shrink-0 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors bg-amber-500 hover:bg-amber-600 text-white rounded-full"
+                                className="shrink-0 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors bg-ecom-secondary hover:bg-ecom-secondary/90 text-ecom-secondary-foreground rounded-full"
                               >
                                 Levar 2kg
                               </button>
@@ -1106,28 +1106,28 @@ const [erroAcesso, setErroAcesso] = useState('');
                       );
                     })}
                     </div>
-                    <div className="p-4 mt-3 space-y-3 text-base shrink-0 bg-[#F7F5F2] rounded-2xl border border-zinc-900/10">
+                    <div className="p-4 mt-3 space-y-3 text-base shrink-0 bg-ecom-surface rounded-2xl border border-ecom-border">
                     {totalTaxaEmbalagem > 0 && (
                       <>
-                        <div className="pt-3 mt-3 flex justify-between text-sm border-t border-zinc-900 text-zinc-500 font-medium">
+                        <div className="pt-3 mt-3 flex justify-between text-sm border-t border-ecom-strong text-ecom-muted font-medium">
                           <span>Subtotal</span>
                           <span>{formatPreco([...carrinho.entries()].reduce((acc, [id, qtd]) => {
                             const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
                             return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
                           }, 0))}</span>
                         </div>
-                        <div className="flex justify-between text-sm text-zinc-500 font-medium">
+                        <div className="flex justify-between text-sm text-ecom-muted font-medium">
                           <span>Taxa de embalagem</span>
                           <span>{formatPreco(totalTaxaEmbalagem)}</span>
                         </div>
                       </>
                     )}
-                    <div className="pt-3 mt-3 flex justify-between font-bold text-lg border-t border-zinc-900 text-zinc-900">
+                    <div className="pt-3 mt-3 flex justify-between font-bold text-lg border-t border-ecom-strong text-ecom-text">
                       <span>Total</span>
                       <span>{formatPreco(valorTotalCarrinho)}</span>
                     </div>
                     {pesoTotalCarrinho > 0 && (
-                      <div className="pt-2 flex justify-between text-sm text-zinc-500 font-medium">
+                      <div className="pt-2 flex justify-between text-sm text-ecom-muted font-medium">
                         <span>Peso total</span>
                         <span>{pesoTotalCarrinho.toFixed(2)} kg</span>
                       </div>
@@ -1140,34 +1140,34 @@ const [erroAcesso, setErroAcesso] = useState('');
                   {/* Dados do solicitante */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2">
-                      <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Nome completo *</label>
-                      <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Seu nome" />
+                      <label className="text-sm font-bold block mb-1 text-ecom-text uppercase text-[11px] tracking-[0.15em]">Nome completo *</label>
+                      <input value={solicitante.nome} onChange={e => setSolicitante({ ...solicitante, nome: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="Seu nome" />
                     </div>
                     <div>
-                      <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">CPF / CNPJ *</label>
-                      <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="000.000.000-00" />
+                      <label className="text-sm font-bold block mb-1 text-ecom-text uppercase text-[11px] tracking-[0.15em]">CPF / CNPJ *</label>
+                      <input value={solicitante.cpfCnpj} onChange={e => setSolicitante({ ...solicitante, cpfCnpj: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="000.000.000-00" />
                     </div>
                     <div>
-                      <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Telefone</label>
-                      <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="(81) 99999-9999" />
+                      <label className="text-sm font-bold block mb-1 text-ecom-text uppercase text-[11px] tracking-[0.15em]">Telefone</label>
+                      <input value={solicitante.telefone} onChange={e => setSolicitante({ ...solicitante, telefone: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="(81) 99999-9999" />
                     </div>
                   </div>
 
                   {/* Tipo de Entrega */}
                   <div>
-                    <label className="text-sm font-bold block mb-2 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Opção de Recebimento *</label>
+                    <label className="text-sm font-bold block mb-2 text-ecom-text uppercase text-[11px] tracking-[0.15em]">Opção de Recebimento *</label>
                     <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={() => setTipoEntrega('Entrega')}
-                        className={`flex-1 py-3 text-sm font-bold transition-all border rounded-full ${tipoEntrega === 'Entrega' ? primaryBorderActive : 'bg-white text-zinc-600 border-zinc-300 hover:border-zinc-900'}`}
+                        className={`flex-1 py-3 text-sm font-bold transition-all border rounded-full ${tipoEntrega === 'Entrega' ? primaryBorderActive : 'bg-ecom-card text-ecom-muted border-ecom-border hover:border-ecom-text'}`}
                       >
                         Entrega
                       </button>
                       <button
                         type="button"
                         onClick={() => setTipoEntrega('Retirada')}
-                        className={`flex-1 py-3 text-sm font-bold transition-all border rounded-full ${tipoEntrega === 'Retirada' ? primaryBorderActive : 'bg-white text-zinc-600 border-zinc-300 hover:border-zinc-900'}`}
+                        className={`flex-1 py-3 text-sm font-bold transition-all border rounded-full ${tipoEntrega === 'Retirada' ? primaryBorderActive : 'bg-ecom-card text-ecom-muted border-ecom-border hover:border-ecom-text'}`}
                       >
                         Retirada
                       </button>
@@ -1175,11 +1175,11 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </div>
 
                   <div>
-                    <label className="text-sm font-bold block mb-1 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Forma de Pagamento</label>
+                    <label className="text-sm font-bold block mb-1 text-ecom-text uppercase text-[11px] tracking-[0.15em]">Forma de Pagamento</label>
                     <select
                       value={pagamento}
                       onChange={e => setPagamento(e.target.value)}
-                      className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white"
+                      className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card"
                     >
                       <option value="">Selecione na entrega/retirada</option>
                       <option value="Dinheiro">Dinheiro</option>
@@ -1187,7 +1187,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       <option value="Boleto">Boleto</option>
                     </select>
                     {pagamento === 'Boleto' && (
-                      <p className="text-xs text-zinc-500 mt-2">
+                      <p className="text-xs text-ecom-muted mt-2">
                         O vencimento do boleto será definido após análise e confirmação do pedido pela nossa equipe.
                       </p>
                     )}
@@ -1196,36 +1196,36 @@ const [erroAcesso, setErroAcesso] = useState('');
                   {/* Endereço */}
                   {tipoEntrega === 'Entrega' && (
                     <div className="pt-2">
-                      <p className="text-sm font-bold mb-3 text-zinc-900 uppercase text-[11px] tracking-[0.15em]">Endereço de entrega *</p>
+                      <p className="text-sm font-bold mb-3 text-ecom-text uppercase text-[11px] tracking-[0.15em]">Endereço de entrega *</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="sm:col-span-2">
-                          <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Rua, Avenida..." />
+                          <input value={solicitante.logradouro} onChange={e => setSolicitante({ ...solicitante, logradouro: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="Rua, Avenida..." />
                         </div>
                         <div>
-                          <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Número" />
+                          <input value={solicitante.numero} onChange={e => setSolicitante({ ...solicitante, numero: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="Número" />
                         </div>
                         <div>
-                          <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Complemento" />
+                          <input value={solicitante.complemento} onChange={e => setSolicitante({ ...solicitante, complemento: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="Complemento" />
                         </div>
                         <div>
                           <div className="relative">
-                            <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full bg-white p-3 outline-none text-base transition-colors ${buscandoCEP ? 'pr-10' : ''} border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white`} placeholder="CEP" />
+                            <input value={solicitante.cep} onChange={e => setSolicitante({ ...solicitante, cep: e.target.value })} onBlur={handleBuscarCEP} className={`w-full bg-ecom-card p-3 outline-none text-base transition-colors ${buscandoCEP ? 'pr-10' : ''} border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card`} placeholder="CEP" />
                             {buscandoCEP && <Loader2 size={18} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
                           </div>
                         </div>
                         <div>
-                          <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Bairro" />
+                          <input value={solicitante.bairro} onChange={e => setSolicitante({ ...solicitante, bairro: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="Bairro" />
                         </div>
                         <div>
-                          <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="Cidade" />
+                          <input value={solicitante.cidade} onChange={e => setSolicitante({ ...solicitante, cidade: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="Cidade" />
                         </div>
                         <div>
-                          <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full bg-white p-3 outline-none text-base transition-colors border border-zinc-300 rounded-xl focus:border-zinc-900 bg-white" placeholder="UF" maxLength={2} />
+                          <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="UF" maxLength={2} />
                         </div>
                       </div>
                     </div>
                   )}
-                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md rounded-full ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'}`}>
+                  <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md rounded-full ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : 'bg-ecom-fill text-ecom-muted cursor-not-allowed'}`}>
                     {enviando ? 'Enviando...' : 'Confirmar Pedido'}
                   </button>
                   </div>
@@ -1237,7 +1237,7 @@ const [erroAcesso, setErroAcesso] = useState('');
       ) : (
         <>
       {/* ── Hero ── */}
-      <div className="relative overflow-hidden shadow-sm h-screen rounded-none bg-white">
+      <div className="relative overflow-hidden shadow-sm h-screen rounded-none bg-ecom-card">
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
           <source src="/multigraosvid.mp4" type="video/mp4" />
         </video>
@@ -1276,11 +1276,11 @@ const [erroAcesso, setErroAcesso] = useState('');
       <div ref={tickerRef} className="bg-primary text-primary-foreground">
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]">
             <span>{config.nomeEmpresa}</span>
-            <span className="text-orange-500">●</span>
+            <span className="text-ecom-secondary">●</span>
             <span>Varejo & Atacado</span>
-            <span className="text-orange-500">●</span>
+            <span className="text-ecom-secondary">●</span>
             <span>{config.endereco}</span>
-            <span className="text-orange-500">●</span>
+            <span className="text-ecom-secondary">●</span>
             <span>(81) 98859-3757</span>
           </div>
         </div>
@@ -1293,13 +1293,13 @@ const [erroAcesso, setErroAcesso] = useState('');
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
         <div className="h-8 w-2 bg-primary rounded-full" />
-                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-zinc-900">Destaques</h2>
+                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-ecom-text">Destaques</h2>
               </div>
               <div className="hidden sm:flex items-center gap-2">
-                <button onClick={() => rolarCarrossel(-1)} className="h-10 w-10 flex items-center justify-center bg-white border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
+                <button onClick={() => rolarCarrossel(-1)} className="h-10 w-10 flex items-center justify-center bg-ecom-card border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
                   <ChevronLeft size={20} />
                 </button>
-                <button onClick={() => rolarCarrossel(1)} className="h-10 w-10 flex items-center justify-center bg-white border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
+                <button onClick={() => rolarCarrossel(1)} className="h-10 w-10 flex items-center justify-center bg-ecom-card border border-primary rounded-full hover:bg-primary hover:text-primary-foreground transition-colors">
                   <ChevronRight size={20} />
                 </button>
               </div>
@@ -1341,8 +1341,8 @@ const [erroAcesso, setErroAcesso] = useState('');
                       <div key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="h-7 w-2 shrink-0 bg-primary rounded-full" />
-                          <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">{categoria.nome}</h2>
-                          <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">{produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'}</span>
+                          <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-ecom-text">{categoria.nome}</h2>
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-ecom-muted">{produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'}</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                           {produtos.map(p => (
@@ -1366,7 +1366,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <section key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="h-8 w-2 shrink-0 bg-primary rounded-full" />
-                    <h2 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">
+                    <h2 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-ecom-text">
                       {categoria.nome}
                     </h2>
                   </div>
@@ -1421,7 +1421,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <span className="text-sm font-bold text-white/80">
                   {valorTotalCarrinho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
-                <span className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap bg-white text-primary rounded-full">
+                <span className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest whitespace-nowrap bg-ecom-card text-primary rounded-full">
                   <ShoppingBag size={16} /> Finalizar
                 </span>
               </span>
@@ -1437,7 +1437,7 @@ const [erroAcesso, setErroAcesso] = useState('');
       {contaAberta && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setContaAberta(false)} />
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-[#F7F5F2] shadow-2xl flex flex-col">
+          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-ecom-surface shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
               <h2 className="font-heading font-bold text-xl">Minha Conta</h2>
               <button onClick={() => setContaAberta(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
@@ -1446,14 +1446,14 @@ const [erroAcesso, setErroAcesso] = useState('');
               {!acessado ? (
                 <div>
                   <div className="flex flex-col items-center text-center mb-6 mt-2">
-                    <div className="h-16 w-16 rounded-full bg-white border border-zinc-900/15 flex items-center justify-center mb-4">
-                      <User size={28} className="text-zinc-900" />
+                    <div className="h-16 w-16 rounded-full bg-ecom-card border border-ecom-border flex items-center justify-center mb-4">
+                      <User size={28} className="text-ecom-text" />
                     </div>
-                    <p className="font-heading font-bold text-zinc-900 text-lg">Acesse sua conta</p>
-                    <p className="text-sm text-zinc-500 mt-1">Informe seu CPF ou CNPJ para consultar seus dados e pedidos.</p>
+                    <p className="font-heading font-bold text-ecom-text text-lg">Acesse sua conta</p>
+                    <p className="text-sm text-ecom-muted mt-1">Informe seu CPF ou CNPJ para consultar seus dados e pedidos.</p>
                   </div>
                   <div className="relative">
-                    <IdCard size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <IdCard size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ecom-muted" />
                     <input
                       type="text"
                       inputMode="numeric"
@@ -1461,7 +1461,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       onChange={e => setCpfAcesso(mascaraCpfCnpj(e.target.value))}
                       onKeyDown={e => { if (e.key === 'Enter') acessarConta(); }}
                       placeholder="CPF ou CNPJ"
-                      className="w-full h-12 pl-11 pr-4 bg-white border border-primary rounded-full focus:outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 transition-all focus:ring-2 focus:ring-primary"
+                      className="w-full h-12 pl-11 pr-4 bg-ecom-card border border-primary rounded-full focus:outline-none text-sm font-medium text-ecom-text placeholder:text-ecom-muted transition-all focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   {erroAcesso && <p className="text-xs text-red-600 font-medium mt-2">{erroAcesso}</p>}
@@ -1476,86 +1476,86 @@ const [erroAcesso, setErroAcesso] = useState('');
               ) : (
                 <div>
                   {clienteAcesso ? (
-                  <div className="bg-white rounded-2xl border border-zinc-900/15 p-4">
+                  <div className="bg-ecom-card rounded-2xl border border-ecom-border p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-heading font-bold text-zinc-900 text-lg leading-tight truncate">{clienteAcesso.nomeFantasia || clienteAcesso.razaoSocialNome}</p>
-                        <p className="text-xs text-zinc-500 mt-0.5">{clienteAcesso.cpfCnpj}</p>
+                        <p className="font-heading font-bold text-ecom-text text-lg leading-tight truncate">{clienteAcesso.nomeFantasia || clienteAcesso.razaoSocialNome}</p>
+                        <p className="text-xs text-ecom-muted mt-0.5">{clienteAcesso.cpfCnpj}</p>
                       </div>
-                      <button onClick={sairConta} title="Sair" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-bold rounded-full transition-colors shrink-0">
+                      <button onClick={sairConta} title="Sair" className="flex items-center gap-1.5 px-3 py-2 bg-ecom-fill hover:bg-ecom-fill text-ecom-text text-xs font-bold rounded-full transition-colors shrink-0">
                         <LogOut size={13} /> Sair
                       </button>
                     </div>
                     {(clienteAcesso.telefone || clienteAcesso.email) && (
-                      <div className="mt-3 space-y-1 text-sm text-zinc-600">
-                        {clienteAcesso.telefone && <p className="flex items-center gap-2"><Phone size={14} className="text-zinc-400 shrink-0" /> {clienteAcesso.telefone}</p>}
+                      <div className="mt-3 space-y-1 text-sm text-ecom-muted">
+                        {clienteAcesso.telefone && <p className="flex items-center gap-2"><Phone size={14} className="text-ecom-muted shrink-0" /> {clienteAcesso.telefone}</p>}
                         {clienteAcesso.email && <p className="flex items-center gap-2 truncate">{clienteAcesso.email}</p>}
                       </div>
                     )}
                     {clienteAcesso.logradouro && (
-                      <p className="mt-3 text-sm text-zinc-600 flex items-center gap-2">
-                        <MapPin size={14} className="text-zinc-400 shrink-0" />
+                      <p className="mt-3 text-sm text-ecom-muted flex items-center gap-2">
+                        <MapPin size={14} className="text-ecom-muted shrink-0" />
                         {[clienteAcesso.logradouro, clienteAcesso.numero, clienteAcesso.bairro, clienteAcesso.cidade, clienteAcesso.estado].filter(Boolean).join(', ')}
                       </p>
                     )}
                     {clienteAcesso.vendedor?.nome && (
-                      <p className="mt-3 text-xs text-zinc-500 font-medium">Vendedor: {clienteAcesso.vendedor.nome}</p>
+                      <p className="mt-3 text-xs text-ecom-muted font-medium">Vendedor: {clienteAcesso.vendedor.nome}</p>
                     )}
                   </div>
                   ) : (
-                  <div className="bg-white rounded-2xl border border-zinc-900/15 p-4">
+                  <div className="bg-ecom-card rounded-2xl border border-ecom-border p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-heading font-bold text-zinc-900 text-lg leading-tight truncate">Conta do cliente</p>
-                        <p className="text-xs text-zinc-500 mt-0.5">{cpfAcesso}</p>
+                        <p className="font-heading font-bold text-ecom-text text-lg leading-tight truncate">Conta do cliente</p>
+                        <p className="text-xs text-ecom-muted mt-0.5">{cpfAcesso}</p>
                       </div>
-                      <button onClick={sairConta} title="Sair" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-bold rounded-full transition-colors shrink-0">
+                      <button onClick={sairConta} title="Sair" className="flex items-center gap-1.5 px-3 py-2 bg-ecom-fill hover:bg-ecom-fill text-ecom-text text-xs font-bold rounded-full transition-colors shrink-0">
                         <LogOut size={13} /> Sair
                       </button>
                     </div>
                   </div>
                   )}
 
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mt-6 mb-2 flex items-center gap-2">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mt-6 mb-2 flex items-center gap-2">
                     <Package size={14} /> Meus Pedidos ({pedidosAcesso.length})
                   </p>
                   {pedidosAcesso.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-dashed border-zinc-300 p-8 text-center">
-                      <Package size={28} className="mx-auto text-zinc-300 mb-2" />
-                      <p className="text-sm text-zinc-500 font-medium">Nenhum pedido encontrado.</p>
+                    <div className="bg-ecom-card rounded-2xl border border-dashed border-ecom-border p-8 text-center">
+                      <Package size={28} className="mx-auto text-ecom-muted mb-2" />
+                      <p className="text-sm text-ecom-muted font-medium">Nenhum pedido encontrado.</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {pedidosAcesso.map(p => (
-                        <div key={p.id} className="bg-white rounded-2xl border border-zinc-900/15 overflow-hidden">
+                        <div key={p.id} className="bg-ecom-card rounded-2xl border border-ecom-border overflow-hidden">
                           <button
                             onClick={() => setPedidoAberto(pedidoAberto === p.id ? null : p.id)}
-                            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-zinc-50 transition-colors"
+                            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-ecom-surface transition-colors"
                           >
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-zinc-900">Pedido #{p.id}</p>
-                              <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5"><CalendarDays size={12} /> {formatarData(p.dataCriacao)} · {p.tipoEntrega}</p>
+                              <p className="text-sm font-bold text-ecom-text">Pedido #{p.id}</p>
+                              <p className="text-xs text-ecom-muted flex items-center gap-1 mt-0.5"><CalendarDays size={12} /> {formatarData(p.dataCriacao)} · {p.tipoEntrega}</p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${corStatus(p.status)}`}>{labelStatus(p.status)}</span>
-                              <ChevronRight size={16} className={`text-zinc-400 transition-transform ${pedidoAberto === p.id ? 'rotate-90' : ''}`} />
+                              <ChevronRight size={16} className={`text-ecom-muted transition-transform ${pedidoAberto === p.id ? 'rotate-90' : ''}`} />
                             </div>
                           </button>
                           {pedidoAberto === p.id && (
-                            <div className="border-t border-zinc-900/10 px-4 py-3 bg-zinc-50">
+                            <div className="border-t border-ecom-border px-4 py-3 bg-ecom-surface">
                               <div className="space-y-1.5">
                                 {p.itens.map(i => (
                                   <div key={i.id} className="flex items-center justify-between gap-3 text-sm">
-                                    <span className="text-zinc-700 min-w-0 truncate">{i.quantidade}x {i.produto?.nome ?? `Produto #${i.produtoId}`}</span>
-                                    <span className="text-zinc-900 font-bold shrink-0">{formatPreco((i.precoUnitario || 0) * i.quantidade)}</span>
+                                    <span className="text-ecom-text min-w-0 truncate">{i.quantidade}x {i.produto?.nome ?? `Produto #${i.produtoId}`}</span>
+                                    <span className="text-ecom-text font-bold shrink-0">{formatPreco((i.precoUnitario || 0) * i.quantidade)}</span>
                                   </div>
                                 ))}
                               </div>
-                              {p.pagamento && <p className="text-xs text-zinc-500 mt-2">Pagamento: {p.pagamento}</p>}
-                              {p.observacao && <p className="text-xs text-zinc-500 mt-1">Obs.: {p.observacao}</p>}
-                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-900/10">
-                                <span className="text-xs text-zinc-500 font-medium">Total</span>
-                                <span className="text-lg font-black text-zinc-900">{formatPreco(p.valorFinal || p.valorTotal)}</span>
+                              {p.pagamento && <p className="text-xs text-ecom-muted mt-2">Pagamento: {p.pagamento}</p>}
+                              {p.observacao && <p className="text-xs text-ecom-muted mt-1">Obs.: {p.observacao}</p>}
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-ecom-border">
+                                <span className="text-xs text-ecom-muted font-medium">Total</span>
+                                <span className="text-lg font-black text-ecom-text">{formatPreco(p.valorFinal || p.valorTotal)}</span>
                               </div>
                             </div>
                           )}
@@ -1573,17 +1573,17 @@ const [erroAcesso, setErroAcesso] = useState('');
       {menuCategorias && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMenuCategorias(false)} />
-          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-[#F7F5F2] shadow-2xl flex flex-col">
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-ecom-surface shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
               <h2 className="font-heading font-bold text-xl">Categorias</h2>
               <button onClick={() => setMenuCategorias(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors"><X size={22} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-2">Filtrar por</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-2">Filtrar por</p>
               <div className="space-y-2">
                 <button
                   onClick={() => aplicarFiltroCategoria(null)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-zinc-900/15 hover:border-primary'}`}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
                 >
                   <span className="font-bold text-sm">Todas as categorias</span>
                   {categoriaFiltrada === null && <Check size={16} className="shrink-0" />}
@@ -1592,11 +1592,11 @@ const [erroAcesso, setErroAcesso] = useState('');
                   <button
                     key={c.id}
                     onClick={() => aplicarFiltroCategoria(c.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-zinc-900/15 hover:border-primary'}`}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
                   >
                     <span className="font-bold text-sm">{c.nome}</span>
-                    {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-zinc-400 shrink-0" />}
-                  </button>
+                    {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-ecom-muted shrink-0" />}
+                </button>
                 ))}
               </div>
             </div>

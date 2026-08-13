@@ -5,6 +5,29 @@ using Multigrao.Api.Data;
 using Multigrao.Api.Hubs;
 using System.Text;
 
+var envFilePath = Path.Combine(AppContext.BaseDirectory, ".env");
+if (!File.Exists(envFilePath))
+    envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+
+if (File.Exists(envFilePath))
+{
+    foreach (var rawLine in File.ReadAllLines(envFilePath))
+    {
+        var line = rawLine.Trim();
+        if (string.IsNullOrEmpty(line) || line.StartsWith('#'))
+            continue;
+
+        var eqIndex = line.IndexOf('=');
+        if (eqIndex <= 0)
+            continue;
+
+        var key = line[..eqIndex].Trim();
+        var value = line[(eqIndex + 1)..].Trim();
+        if (Environment.GetEnvironmentVariable(key) == null)
+            Environment.SetEnvironmentVariable(key, value);
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(options =>

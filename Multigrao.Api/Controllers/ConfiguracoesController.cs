@@ -69,6 +69,10 @@ namespace Multigrao.Api.Controllers
             config.LogoUrl = dto.LogoUrl;
             config.VideoUrl = dto.VideoUrl;
             config.CorPrincipal = string.IsNullOrWhiteSpace(dto.CorPrincipal) ? "#0a0a0a" : dto.CorPrincipal;
+            config.Fonte = string.IsNullOrWhiteSpace(dto.Fonte) ? "classica" : dto.Fonte;
+            config.CorSecundaria = string.IsNullOrWhiteSpace(dto.CorSecundaria) ? "#f97316" : dto.CorSecundaria;
+            config.CorFonte = dto.CorFonte;
+            config.DesignEcommerce = string.IsNullOrWhiteSpace(dto.DesignEcommerce) ? "claro" : dto.DesignEcommerce;
 
             await _context.SaveChangesAsync();
 
@@ -109,6 +113,10 @@ namespace Multigrao.Api.Controllers
                 LogoUrl = dto.LogoUrl,
                 VideoUrl = dto.VideoUrl,
                 CorPrincipal = string.IsNullOrWhiteSpace(dto.CorPrincipal) ? "#0a0a0a" : dto.CorPrincipal,
+                Fonte = string.IsNullOrWhiteSpace(dto.Fonte) ? "classica" : dto.Fonte,
+                CorSecundaria = string.IsNullOrWhiteSpace(dto.CorSecundaria) ? "#f97316" : dto.CorSecundaria,
+                CorFonte = dto.CorFonte,
+                DesignEcommerce = string.IsNullOrWhiteSpace(dto.DesignEcommerce) ? "claro" : dto.DesignEcommerce,
                 Ativo = true
             };
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
@@ -169,6 +177,10 @@ namespace Multigrao.Api.Controllers
                     logoUrl = c.LogoUrl,
                     videoUrl = c.VideoUrl,
                     corPrincipal = c.CorPrincipal,
+                    fonte = c.Fonte,
+                    corSecundaria = c.CorSecundaria,
+                    corFonte = c.CorFonte,
+                    designEcommerce = c.DesignEcommerce,
                     ativo = c.Ativo
                 })
                 .ToListAsync();
@@ -232,6 +244,18 @@ namespace Multigrao.Api.Controllers
             if (!string.IsNullOrWhiteSpace(dto.CorPrincipal))
                 config.CorPrincipal = dto.CorPrincipal;
 
+            if (!string.IsNullOrWhiteSpace(dto.Fonte))
+                config.Fonte = dto.Fonte;
+
+            if (!string.IsNullOrWhiteSpace(dto.CorSecundaria))
+                config.CorSecundaria = dto.CorSecundaria;
+
+            if (dto.CorFonte != null)
+                config.CorFonte = dto.CorFonte;
+
+            if (!string.IsNullOrWhiteSpace(dto.DesignEcommerce))
+                config.DesignEcommerce = dto.DesignEcommerce;
+
             if (dto.Ativo.HasValue)
                 config.Ativo = dto.Ativo.Value;
 
@@ -271,6 +295,10 @@ namespace Multigrao.Api.Controllers
                 logoUrl = config.LogoUrl,
                 videoUrl = config.VideoUrl,
                 corPrincipal = config.CorPrincipal,
+                fonte = config.Fonte,
+                corSecundaria = config.CorSecundaria,
+                corFonte = config.CorFonte,
+                designEcommerce = config.DesignEcommerce,
                 ativo = config.Ativo
             });
         }
@@ -292,7 +320,11 @@ namespace Multigrao.Api.Controllers
                 estado = config.Estado,
                 logoUrl = config.LogoUrl,
                 videoUrl = config.VideoUrl,
-                corPrincipal = config.CorPrincipal
+                corPrincipal = config.CorPrincipal,
+                fonte = config.Fonte,
+                corSecundaria = config.CorSecundaria,
+                corFonte = config.CorFonte,
+                designEcommerce = config.DesignEcommerce
             };
         }
 

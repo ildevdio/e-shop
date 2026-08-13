@@ -25,3 +25,11 @@ export const CORES_DISPONIVEIS: { cor: string; nome: string }[] = [
   { cor: '#92400e', nome: 'Marrom' },
   { cor: '#78350f', nome: 'Marrom escuro' },
 ];
+
+export const CORES_GRADE: { cor: string; nome: string }[] = [
+  { cor: '#0a0a0a', nome: 'Preto' },
+  { cor: '#2563eb', nome: 'Azul' },
+  { cor: '#059669', nome: 'Verde' },
+  { cor: '#dc2626', nome: 'Vermelho' },
+  { cor: '#ea580c', nome: 'Laranja' },
+];

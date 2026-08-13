@@ -35,6 +35,17 @@
   --color-sidebar-accent: #ffffff;
   --color-sidebar-active: #171717;
 
+  --color-ecom-bg: #f7f5f2;
+  --color-ecom-card: #ffffff;
+  --color-ecom-surface: #f7f5f2;
+  --color-ecom-fill: #f4f4f5;
+  --color-ecom-text: #18181b;
+  --color-ecom-muted: #71717a;
+  --color-ecom-border: rgba(24, 24, 27, 0.12);
+  --color-ecom-strong: #18181b;
+  --color-ecom-secondary: #f97316;
+  --color-ecom-secondary-foreground: #ffffff;
+
   --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
 }

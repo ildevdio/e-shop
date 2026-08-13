@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, UploadCloud, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
-import { useSistemaStore } from '../store/sistemaStore';
+import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE } from '../store/sistemaStore';
 import { tenantHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
-import { CORES_DISPONIVEIS } from '../services/cores';
+import { CORES_GRADE } from '../services/cores';
 import { midiaUrl } from '../utils/imageUrl';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
@@ -28,6 +28,42 @@ function mascaraCnpj(v: string) {
     .replace(/(\d{4})(\d)/, '$1-$2');
 }
 
+function SeletorCor({
+  valor,
+  onChange,
+  valorPadrao,
+}: {
+  valor: string;
+  onChange: (valor: string) => void;
+  valorPadrao?: string;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-2 w-fit">
+      {CORES_GRADE.map(({ cor, nome }) => (
+        <button
+          key={cor}
+          onClick={() => onChange(cor)}
+          className={`w-9 h-9 rounded-xl transition-all hover:scale-110 ${valor === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+          style={{ backgroundColor: cor }}
+          title={nome}
+        />
+      ))}
+      <label
+        className="relative w-9 h-9 rounded-xl cursor-pointer border border-gray-200"
+        style={{ background: 'conic-gradient(from 90deg, #f87171, #fbbf24, #4ade80, #38bdf8, #a78bfa, #f87171)' }}
+        title="Cor personalizada"
+      >
+        <input
+          type="color"
+          value={valorPadrao ?? valor}
+          onChange={e => onChange(e.target.value)}
+          className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+        />
+      </label>
+    </div>
+  );
+}
+
 export default function Configuracoes() {
   const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
@@ -41,6 +77,10 @@ export default function Configuracoes() {
   const [setoresConfig, setSetoresConfig] = useState({ maxPorUsuario: 2, timeoutSessao: 480 });
   const [notificacoes, setNotificacoes] = useState({ email: true, push: true, pedido: false });
   const [corPrincipal, setCorPrincipal] = useState('#000000');
+  const [corSecundaria, setCorSecundaria] = useState('#f97316');
+  const [corFonte, setCorFonte] = useState('');
+  const [fonte, setFonte] = useState('classica');
+  const [designEcommerce, setDesignEcommerce] = useState('claro');
   const [corSalva, setCorSalva] = useState(false);
 
   const configSistema = useSistemaStore((state) => state.config);
@@ -56,6 +96,10 @@ export default function Configuracoes() {
   useEffect(() => {
     if (carregada) {
       setCorPrincipal(configSistema.corPrincipal);
+      setCorSecundaria(configSistema.corSecundaria);
+      setCorFonte(configSistema.corFonte);
+      setFonte(configSistema.fonte);
+      setDesignEcommerce(configSistema.designEcommerce);
       setFormEmpresa({
         nomeEmpresa: configSistema.nomeEmpresa,
         cnpj: configSistema.cnpj,
@@ -241,6 +285,10 @@ export default function Configuracoes() {
       logoUrl: formEmpresa.logoUrl,
       videoUrl: formEmpresa.videoUrl,
       corPrincipal,
+      corSecundaria,
+      corFonte,
+      fonte,
+      designEcommerce,
     });
     setSalvandoConfig(false);
     if (ok) {
@@ -584,27 +632,59 @@ export default function Configuracoes() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cor Principal</label>
-                  <div className="flex flex-wrap gap-2">
-                    {CORES_DISPONIVEIS.map(({ cor, nome }) => (
-                      <button
-                        key={cor}
-                        onClick={() => { setCorPrincipal(cor); atualizarConfig({ corPrincipal: cor }); }}
-                        className={`w-9 h-9 rounded-xl transition-all hover:scale-110 ${corPrincipal === cor ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
-                        style={{ backgroundColor: cor }}
-                        title={nome}
-                      />
-                    ))}
-                    <div className="relative">
-                      <input
-                        type="color"
-                        value={corPrincipal}
-                        onChange={e => { setCorPrincipal(e.target.value); atualizarConfig({ corPrincipal: e.target.value }); }}
-                        className="w-9 h-9 rounded-xl cursor-pointer border border-gray-200 bg-white p-0"
-                        title="Cor personalizada"
-                      />
-                    </div>
-                  </div>
+                  <SeletorCor
+                    valor={corPrincipal}
+                    onChange={v => { setCorPrincipal(v); atualizarConfig({ corPrincipal: v }); }}
+                  />
                   <p className="text-[11px] text-gray-400 mt-2 italic">A cor é aplicada imediatamente em todo o sistema.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Design do e-commerce</label>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(DESIGNS_ECOMMERCE).map(([key, d]) => (
+                      <button
+                        key={key}
+                        onClick={() => { setDesignEcommerce(key); atualizarConfig({ designEcommerce: key }); }}
+                        className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${designEcommerce === key ? 'bg-primary text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+                      >
+                        {d.nome}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-2 italic">Estilo visual da loja: fundo, cards, bordas e tons de texto do e-commerce.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Fonte</label>
+                  <select
+                    value={fonte}
+                    onChange={e => { setFonte(e.target.value); atualizarConfig({ fonte: e.target.value }); }}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                  >
+                    {Object.entries(FONTES_ECOMMERCE).map(([key, f]) => (
+                      <option key={key} value={key}>{f.nome}</option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-gray-400 mt-2 italic">Tipografia dos títulos e do corpo do e-commerce.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cor Secundária</label>
+                  <SeletorCor
+                    valor={corSecundaria}
+                    onChange={v => { setCorSecundaria(v); atualizarConfig({ corSecundaria: v }); }}
+                  />
+                  <p className="text-[11px] text-gray-400 mt-2 italic">Cor de destaque do e-commerce: separadores, avisos e botões secundários.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Fonte</label>
+                  <SeletorCor
+                    valor={corFonte}
+                    onChange={v => { setCorFonte(v); atualizarConfig({ corFonte: v }); }}
+                    valorPadrao="#18181b"
+                  />
+                  <button onClick={() => { setCorFonte(''); atualizarConfig({ corFonte: '' }); }} className="text-[11px] text-gray-500 hover:underline mt-2 italic">
+                    Usar cor padrão do design
+                  </button>
+                  <p className="text-[11px] text-gray-400 mt-2 italic">Cor dos títulos e textos principais da loja.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Vídeo / Foto de Fundo</label>

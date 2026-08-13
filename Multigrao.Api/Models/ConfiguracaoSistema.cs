@@ -17,6 +17,10 @@ namespace Multigrao.Api.Models
         public string? LogoUrl { get; set; }
         public string? VideoUrl { get; set; }
         public string CorPrincipal { get; set; } = "#0a0a0a";
+        public string Fonte { get; set; } = "classica";
+        public string CorSecundaria { get; set; } = "#f97316";
+        public string? CorFonte { get; set; }
+        public string DesignEcommerce { get; set; } = "claro";
         public bool Ativo { get; set; } = true;
     }
 }

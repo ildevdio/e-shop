@@ -330,6 +330,10 @@ namespace Multigrao.Api.DTOs
         public string? LogoUrl { get; set; }
         public string? VideoUrl { get; set; }
         public string CorPrincipal { get; set; } = "#0a0a0a";
+        public string Fonte { get; set; } = "classica";
+        public string CorSecundaria { get; set; } = "#f97316";
+        public string? CorFonte { get; set; }
+        public string DesignEcommerce { get; set; } = "claro";
     }
 
     public class CriarEmpresaDto
@@ -347,6 +351,10 @@ namespace Multigrao.Api.DTOs
         public string? LogoUrl { get; set; }
         public string? VideoUrl { get; set; }
         public string? CorPrincipal { get; set; }
+        public string? Fonte { get; set; }
+        public string? CorSecundaria { get; set; }
+        public string? CorFonte { get; set; }
+        public string? DesignEcommerce { get; set; }
         public string? Login { get; set; }
         public string? Senha { get; set; }
     }
@@ -366,6 +374,10 @@ namespace Multigrao.Api.DTOs
         public string? LogoUrl { get; set; }
         public string? VideoUrl { get; set; }
         public string? CorPrincipal { get; set; }
+        public string? Fonte { get; set; }
+        public string? CorSecundaria { get; set; }
+        public string? CorFonte { get; set; }
+        public string? DesignEcommerce { get; set; }
         public string? Slug { get; set; }
         public bool? Ativo { get; set; }
     }
