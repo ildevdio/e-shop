@@ -44,6 +44,7 @@ namespace Multigrao.Api.Data
         public DbSet<Notificacao> Notificacoes { get; set; }
 
         public DbSet<ConfiguracaoSistema> ConfiguracoesSistema { get; set; }
+        public DbSet<ArquivoUpload> ArquivosUpload { get; set; }
 
         public override int SaveChanges()
         {
@@ -70,6 +71,10 @@ namespace Multigrao.Api.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<ArquivoUpload>()
+                .HasIndex(a => a.FileName)
+                .IsUnique();
+
             // Filtros globais de multi-tenancy
             modelBuilder.Entity<ConfiguracaoSistema>()
                 .HasQueryFilter(c => c.Id == _tenant.EmpresaId);
@@ -95,6 +100,7 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<OpcaoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<VotoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Notificacao>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<ArquivoUpload>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });
