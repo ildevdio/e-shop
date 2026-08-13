@@ -995,7 +995,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           >
           <div className="px-4 py-3 sm:py-4">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 flex items-center justify-start gap-2 sm:gap-3">
+                <div className="flex-1 flex items-center justify-start gap-3 sm:gap-4">
                   {config.tipoMenu === 'dock' ? (
                     <>
                       <div className="hidden md:block w-44 lg:w-52">
@@ -1043,7 +1043,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     </button>
                   )}
                 </div>
-                <h1 className="font-heading font-bold text-white text-xl sm:text-2xl tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
+                <h1 className="font-heading font-bold text-white text-2xl sm:text-3xl -mt-1 tracking-wide drop-shadow-md whitespace-nowrap">{config.nomeEmpresa}</h1>
                 <div className="flex-1 flex items-center justify-end gap-2">
                   {config.tipoMenu === 'dock' && (
                     <>
