@@ -349,6 +349,69 @@ namespace Multigrao.Api.Controllers
             });
         }
 
+        [HttpDelete("empresas/{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> ExcluirEmpresa(int id)
+        {
+            if (_tenant.Slug != "focus")
+                return Forbid();
+
+            var config = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (config == null)
+                return NotFound(new { message = "Empresa não encontrada." });
+
+            if (config.Slug == "focus")
+                return BadRequest(new { message = "A plataforma Focus não pode ser excluída." });
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // Ordem: filhos -> pais, respeitando as restrições de chave estrangeira.
+            await _context.VotosEnquete.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.OpcoesEnquete.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Enquetes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+
+            var idsUsuarios = await _context.Usuarios
+                .IgnoreQueryFilters()
+                .Where(u => u.EmpresaId == id)
+                .Select(u => u.Id)
+                .ToListAsync();
+            if (idsUsuarios.Count > 0)
+                await _context.UsuarioSetores.IgnoreQueryFilters().Where(us => idsUsuarios.Contains(us.UsuarioId)).ExecuteDeleteAsync();
+
+            await _context.ItensPedido.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.EntregasPedidos.IgnoreQueryFilters()
+                .Where(ep =>
+                    _context.Entregas.IgnoreQueryFilters().Where(e => e.EmpresaId == id).Select(e => e.Id).Contains(ep.EntregaId) ||
+                    _context.Pedidos.IgnoreQueryFilters().Where(p => p.EmpresaId == id).Select(p => p.Id).Contains(ep.PedidoId))
+                .ExecuteDeleteAsync();
+            await _context.Entregas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Pedidos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.AtendimentoLeads.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Mensagens.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Conversas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.CarrinhoItens.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Carrinhos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Notificacoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Avisos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Contatos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Clientes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Produtos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Categorias.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Marcas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Rotas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Veiculos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Usuarios.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.ArquivosUpload.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.ConfiguracoesSistema.IgnoreQueryFilters().Where(c => c.Id == id).ExecuteDeleteAsync();
+
+            await transaction.CommitAsync();
+
+            return Ok(new { id = config.Id, slug = config.Slug, nomeEmpresa = config.NomeEmpresa });
+        }
+
         private static object ConfigDto(ConfiguracaoSistema config)
         {
             return new

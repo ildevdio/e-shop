@@ -56,6 +56,9 @@ export default function Empresas() {
   const [erroEdicao, setErroEdicao] = useState('');
   const [buscandoCepEdicao, setBuscandoCepEdicao] = useState(false);
   const [enviandoLogo, setEnviandoLogo] = useState(false);
+  const [excluindo, setExcluindo] = useState<Empresa | null>(null);
+  const [salvandoExclusao, setSalvandoExclusao] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState('');
 
   const carregarEmpresas = async () => {
     setCarregandoEmpresas(true);
@@ -133,6 +136,32 @@ export default function Empresas() {
       setErroEdicao('Falha de conexão ao enviar a logo.');
     } finally {
       setEnviandoLogo(false);
+    }
+  };
+
+  const excluirEmpresa = async () => {
+    if (!excluindo) return;
+    setSalvandoExclusao(true);
+    setErroExclusao('');
+
+    try {
+      const response = await fetch(`${API_URL}/Configuracoes/empresas/${excluindo.id}`, {
+        method: 'DELETE',
+        headers: headersJson(),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        setErroExclusao(data?.message ?? `Erro ${response.status} ao excluir.`);
+        return;
+      }
+
+      setEmpresas((lista) => lista.filter((emp) => emp.id !== excluindo.id));
+      setExcluindo(null);
+    } catch {
+      setErroExclusao('Falha de conexão com o servidor.');
+    } finally {
+      setSalvandoExclusao(false);
     }
   };
 
@@ -267,14 +296,28 @@ export default function Empresas() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        type="button"
-                        onClick={() => abrirEdicao(emp)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
-                        title="Editar empresa"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => abrirEdicao(emp)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                          title="Editar empresa"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setErroExclusao('');
+                            setExcluindo(emp);
+                          }}
+                          disabled={emp.slug === 'focus'}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"
+                          title={emp.slug === 'focus' ? 'A plataforma Focus não pode ser excluída' : 'Excluir empresa'}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -501,6 +544,51 @@ export default function Empresas() {
                   Salvar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {excluindo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !salvandoExclusao && setExcluindo(null)}
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Excluir empresa</h2>
+                <p className="text-sm text-gray-500">Esta ação é permanente e não pode ser desfeita.</p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+              <strong className="font-semibold">{excluindo.nomeEmpresa}</strong> e todos os dados associados
+              (usuários, produtos, pedidos, clientes, catálogo etc.) serão <strong>apagados definitivamente</strong>.
+            </div>
+
+            {erroExclusao && <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-2.5 text-sm text-red-600">{erroExclusao}</p>}
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setExcluindo(null)}
+                disabled={salvandoExclusao}
+                className="rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={excluirEmpresa}
+                disabled={salvandoExclusao}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+              >
+                {salvandoExclusao ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                {salvandoExclusao ? 'Excluindo...' : 'Excluir empresa'}
+              </button>
             </div>
           </div>
         </div>

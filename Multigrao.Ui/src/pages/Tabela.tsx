@@ -1176,8 +1176,9 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <button onClick={() => setMenuLateral(true)} className="lg:hidden h-9 w-9 flex items-center justify-center rounded-full border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10 transition-colors shrink-0" title="Menu">
                   <Menu size={18} />
                 </button>
-                <button onClick={scrollParaCatalogo} className="flex items-center shrink-0">
+                <button onClick={scrollParaCatalogo} className="flex items-center gap-2 shrink-0">
                   <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-9 w-auto max-w-[120px] sm:max-w-[160px] object-contain" />
+                  <span className="hidden xl:inline font-heading font-black text-lg tracking-tight whitespace-nowrap" style={{ color: config.corPrincipal }}>{config.nomeEmpresa}</span>
                 </button>
                 <div className="flex-1 flex justify-center px-1 sm:px-2 min-w-0">
                   <SearchAutocomplete
