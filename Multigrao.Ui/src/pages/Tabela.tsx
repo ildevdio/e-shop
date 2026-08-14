@@ -594,7 +594,7 @@ const [erroAcesso, setErroAcesso] = useState('');
   const design = DESIGNS_ECOMMERCE[config.designEcommerce] ?? DESIGNS_ECOMMERCE.claro;
   const ds = design.estilos;
   const isWild = config.designEcommerce === 'wild';
-  const headerOffsetClasse = isWild ? 'pt-[9.5rem] sm:pt-[10.5rem]' : 'pt-36 sm:pt-28';
+  const headerOffsetClasse = isWild ? 'pt-32 sm:pt-36' : 'pt-36 sm:pt-28';
   const navAlpha = Math.min(1, ds.navAlphaMin + (vista === 'catalogo' ? opacidadeNav : 1) * ds.navAlphaMax);
   
   // Theme Variables
@@ -1172,12 +1172,12 @@ const [erroAcesso, setErroAcesso] = useState('');
             }}
           >
             <div className="max-w-7xl mx-auto px-4">
-              <div className="flex items-center gap-3 sm:gap-5 h-16">
-                <button onClick={() => setMenuLateral(true)} className="lg:hidden h-10 w-10 flex items-center justify-center rounded-full border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10 transition-colors shrink-0" title="Menu">
-                  <Menu size={20} />
+              <div className="flex items-center gap-3 sm:gap-5 h-14">
+                <button onClick={() => setMenuLateral(true)} className="lg:hidden h-9 w-9 flex items-center justify-center rounded-full border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10 transition-colors shrink-0" title="Menu">
+                  <Menu size={18} />
                 </button>
                 <button onClick={scrollParaCatalogo} className="flex items-center shrink-0">
-                  <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-11 w-auto max-w-[130px] sm:max-w-[180px] object-contain" />
+                  <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-9 w-auto max-w-[120px] sm:max-w-[160px] object-contain" />
                 </button>
                 <div className="flex-1 flex justify-center px-1 sm:px-2 min-w-0">
                   <SearchAutocomplete
@@ -1186,15 +1186,15 @@ const [erroAcesso, setErroAcesso] = useState('');
                     onChange={setFiltro}
                     sugestoes={sugestoes}
                     aoSelecionar={s => setFiltro(s.rotulo)}
-                    classNameInput="w-full max-w-xl h-11 pl-11 pr-4 bg-[#f4efe4] border border-transparent focus:border-[#1f7a4d]/40 rounded-full focus:outline-none text-sm transition-all"
+                    classNameInput="w-full max-w-xl h-10 pl-11 pr-4 bg-[#f4efe4] border border-transparent focus:border-[#1f7a4d]/40 rounded-full focus:outline-none text-sm transition-all"
                     onBuscar={buscarECatalogo}
                   />
                 </div>
-                <button onClick={() => setContaAberta(true)} className={`hidden sm:flex items-center gap-2 h-11 px-4 rounded-full text-sm font-bold ${ds.navBtnConta} transition-colors shrink-0`}>
-                  <User size={17} /> Conta
+                <button onClick={() => setContaAberta(true)} className={`hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-full text-sm font-bold ${ds.navBtnConta} transition-colors shrink-0`}>
+                  <User size={16} /> Conta
                 </button>
-                <button onClick={abrirCarrinho} className={`relative flex items-center gap-2 h-11 px-4 rounded-full text-sm font-bold ${ds.navBtnCarrinho} transition-colors shrink-0`}>
-                  <ShoppingCart size={18} />
+                <button onClick={abrirCarrinho} className={`relative flex items-center gap-2 h-10 px-3.5 rounded-full text-sm font-bold ${ds.navBtnCarrinho} transition-colors shrink-0`}>
+                  <ShoppingCart size={16} />
                   <span className="hidden md:inline">Carrinho</span>
                   {totalItensCarrinho > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 h-6 min-w-6 px-1.5 bg-[#eab308] text-[#2c3a2b] text-[11px] font-black border-2 border-white rounded-full flex items-center justify-center">
@@ -1203,10 +1203,10 @@ const [erroAcesso, setErroAcesso] = useState('');
                   )}
                 </button>
               </div>
-              <div className="hidden lg:flex items-center gap-2 pb-3 overflow-x-auto scrollbar-hide">
+              <div className="hidden lg:flex items-center gap-2 pb-2 overflow-x-auto scrollbar-hide">
                 <button
                   onClick={() => { setFiltro(''); aplicarFiltroCategoria(null); }}
-                  className={`px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
                 >
                   Todos
                 </button>
@@ -1216,7 +1216,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     <button
                       key={c.id}
                       onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
-                      className={`px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                      className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
                     >
                       {c.nome}
                     </button>
@@ -1228,7 +1228,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     <button
                       key={m.id}
                       onClick={() => { setFiltro(''); aplicarFiltroMarca(m.id); }}
-                      className={`px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#2c3a2b] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                      className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#2c3a2b] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
                     >
                       {m.nome}
                     </button>
