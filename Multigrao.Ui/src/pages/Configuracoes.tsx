@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE } from '../store/sistemaStore';
@@ -230,7 +230,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const carregada = useSistemaStore((state) => state.carregada);
   const atualizarConfig = useSistemaStore((state) => state.atualizar);
   const salvarConfig = useSistemaStore((state) => state.salvar);
-  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina' });
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '' });
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [enviandoVideo, setEnviandoVideo] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
@@ -261,6 +261,8 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         exibirNomeAbaixoLogo: configSistema.exibirNomeAbaixoLogo,
         tipoMenu: configSistema.tipoMenu,
         tipoCarrinho: configSistema.tipoCarrinho,
+        linksBio: configSistema.linksBio ?? '',
+        redirecionamentos: configSistema.redirecionamentos ?? '',
       });
     }
   }, [carregada]);
@@ -442,6 +444,8 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       exibirNomeAbaixoLogo: formEmpresa.exibirNomeAbaixoLogo,
       tipoMenu: formEmpresa.tipoMenu,
       tipoCarrinho: formEmpresa.tipoCarrinho,
+      linksBio: formEmpresa.linksBio,
+      redirecionamentos: formEmpresa.redirecionamentos,
     });
     setSalvandoConfig(false);
     if (ok) {
@@ -732,6 +736,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
             </div>
 
             {sistemaTab === 'empresa' && (
+              <>
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Building2 size={18} className="text-black" /> Dados da Empresa</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -839,7 +844,48 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                   <input type="text" value={formEmpresa.videoUrl} onChange={e => setFormEmpresa({ ...formEmpresa, videoUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Ou cole a URL do vídeo/foto" />
                 </div>
               </div>
-            </div>
+              </div>
+              
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2"><Link size={18} className="text-black" /> Links da Bio (Instagram)</h3>
+                  <a href={`/${configSistema.slug}/links`} target="_blank" rel="noopener noreferrer" className="text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm text-gray-700"><ExternalLink size={14}/> Ver Página</a>
+                </div>
+                <p className="text-[12px] text-gray-500 mb-4">Gerencie a página estilo Linktree que você pode colocar na Bio do seu Instagram para centralizar o acesso à sua loja, WhatsApp e site oficial.</p>
+                
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Configuração dos Links (Formato JSON avançado)</label>
+                  <textarea 
+                    rows={5} 
+                    value={formEmpresa.linksBio} 
+                    onChange={e => setFormEmpresa({ ...formEmpresa, linksBio: e.target.value })} 
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white font-mono text-gray-600" 
+                    placeholder={`[\n  { "titulo": "Acessar Loja", "url": "/${configSistema.slug}/commerce" },\n  { "titulo": "WhatsApp", "url": "https://wa.me/55..." }\n]`} 
+                  />
+                  <p className="text-[11px] mt-1.5 text-gray-400">Insira um array JSON válido. Deixe em branco para usar o padrão.</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2"><Route size={18} className="text-black" /> Links de Redirecionamento</h3>
+                  <a href={`/${configSistema.slug}/r/exemplo`} target="_blank" rel="noopener noreferrer" className="text-xs font-bold bg-white border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm text-gray-700"><ExternalLink size={14}/> Testar URL</a>
+                </div>
+                <p className="text-[12px] text-gray-500 mb-4">Crie atalhos de URL para campanhas e materiais impressos, tipo <span className="font-semibold text-gray-700">/{configSistema.slug}/r/SEU-ALIAS</span>. Redirecionam para um produto, categoria, ofertas ou um link externo.</p>
+
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Configuração dos Redirecionamentos (Formato JSON)</label>
+                  <textarea
+                    rows={6}
+                    value={formEmpresa.redirecionamentos}
+                    onChange={e => setFormEmpresa({ ...formEmpresa, redirecionamentos: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white font-mono text-gray-600"
+                    placeholder={`[\n  { "alias": "amendoim-torrado", "tipo": "produto", "destino": "Amendoim Torrado" },\n  { "alias": "ofertas", "tipo": "oferta" },\n  { "alias": "categoria-graos", "tipo": "categoria", "destino": "Grãos" },\n  { "alias": "whatsapp", "tipo": "externo", "url": "https://wa.me/5581999999999" }\n]`}
+                  />
+                  <p className="text-[11px] mt-1.5 text-gray-400">Tipos: <span className="font-mono">produto</span> (destino = nome do produto), <span className="font-mono">categoria</span> (destino = nome da categoria), <span className="font-mono">oferta</span> (abre as ofertas), <span className="font-mono">externo</span> (url = link completo). Deixe em branco para desativar.</p>
+                </div>
+              </div>
+              </>
             )}
 
             {sistemaTab === 'loja' && (

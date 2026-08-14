@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search, Leaf, Truck, MessageCircle, BadgePercent, Home } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
@@ -98,6 +99,116 @@ function descricaoProduto(p: Produto): { rotulo: string; valor: string }[] {
   return itens;
 }
 
+function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
+  const pct = isAtacado && (produto.precoAtacado ?? 0) > 0 && produto.precoAtacado < (produto.precoVarejo ?? 0)
+    ? Math.round((1 - produto.precoAtacado / produto.precoVarejo) * 100)
+    : 0;
+  return (
+    <div className={`group bg-white transition-all flex flex-col h-full overflow-hidden border border-[#2c3a2b]/10 rounded-2xl shadow-[0_2px_14px_rgba(44,58,43,0.06)] hover:shadow-[0_16px_32px_rgba(31,122,77,0.18)] hover:-translate-y-1`}>
+      <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-[#efe9da] rounded-t-2xl text-left">
+        {produtoImagemUrl(produto) ? (
+          <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center text-[#74806f] text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
+        )}
+        <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start">
+          {pct > 0 && <span className="bg-[#eab308] text-[#2c3a2b] text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pct}%</span>}
+          {produto.vendidoAGranel && <span className="bg-[#1f7a4d] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">A granel</span>}
+          {isAtacado && <span className="bg-[#2c3a2b] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Atacado</span>}
+        </div>
+        {produto.estoque <= 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Esgotado</span>}
+      </button>
+      <div className="p-3.5 sm:p-4 flex-1 flex flex-col">
+        {showMarca && produto.marca?.nome && <p className="text-[11px] font-bold text-[#1f7a4d] mb-1.5 truncate uppercase tracking-wide">{produto.marca.nome}</p>}
+        <button onClick={onAbrir} className="text-left mb-1">
+          <h3 className={`font-sans font-bold text-[#2c3a2b] text-sm sm:text-base leading-snug line-clamp-2 hover:text-[#1f7a4d] transition-colors`}>{produto.nome}</h3>
+        </button>
+        <p className="text-[11px] text-[#74806f] mb-3 truncate">
+          {produto.embalagem && `${produto.embalagem} `}
+          {produto.unidadeVenda && `· ${produto.unidadeVenda}`}
+        </p>
+
+        <div className="mt-auto pt-2 pb-4">
+          <div className="flex flex-col gap-0.5">
+            {isAtacado && (produto.precoAtacado ?? 0) < (produto.precoVarejo ?? 0) && (
+              <p className="text-[11px] font-medium text-[#74806f] line-through">{formatPreco(produto.precoVarejo)}</p>
+            )}
+            <div className="flex items-baseline gap-1.5">
+              <p className="text-xl font-black text-[#2c3a2b] leading-none">{formatPreco(isAtacado ? produto.precoAtacado : produto.precoVarejo)}</p>
+              {isAtacado && <span className="text-[10px] font-bold text-[#1f7a4d]">no atacado</span>}
+            </div>
+            {isAtacado && <p className="text-[10px] font-medium text-[#74806f] mt-1">A partir de {qtdMinimaAtacado(produto)} un.</p>}
+            <p className="text-[10px] text-[#a3ad9e] mt-1">Pix, dinheiro ou boleto</p>
+          </div>
+        </div>
+
+        {qtd > 0 ? (
+          <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between bg-[#f4efe4] border-[#e5dcc6]" grande={true} />
+        ) : produto.estoque <= 0 ? (
+          <button disabled className={`w-full py-3 bg-[#e5dcc6] text-[#74806f] font-bold text-[13px] rounded-full cursor-not-allowed`}>
+            Esgotado
+          </button>
+        ) : (
+          <button onClick={onAbrir} className={`w-full py-3 bg-[#1f7a4d] hover:bg-[#185c39] text-white font-bold text-[13px] rounded-full uppercase tracking-wider transition-all shadow-sm shadow-[#1f7a4d]/30 active:scale-95`}>
+            Adicionar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CardPop({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
+  return (
+    <div className={`group bg-ecom-card transition-all flex flex-col h-full overflow-hidden border-2 border-ecom-border rounded-[2rem] p-1.5 shadow-[0_4px_14px_rgba(194,120,60,0.15)] hover:shadow-[0_14px_30px_rgba(194,120,60,0.25)] hover:-translate-y-1`}>
+      <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface rounded-[1.5rem] text-left">
+        {produtoImagemUrl(produto) ? (
+          <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
+        )}
+        {produto.vendidoAGranel && <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">A granel</span>}
+        {isAtacado && <span className={`absolute bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full shadow-sm ${produto.vendidoAGranel ? 'top-9 left-2' : 'top-2 left-2'}`}>Atacado</span>}
+        {produto.estoque <= 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">Esgotado</span>}
+      </button>
+      <div className="px-3 pt-3 pb-2 flex-1 flex flex-col items-center text-center">
+        {showMarca && produto.marca?.nome && <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-1 truncate">{produto.marca.nome}</p>}
+        <button onClick={onAbrir}>
+          <h3 className={`font-heading font-bold text-ecom-text text-base leading-snug line-clamp-2`}>{produto.nome}</h3>
+        </button>
+        <p className="text-[11px] font-medium text-ecom-muted mt-1 mb-2 truncate">
+          {produto.embalagem && `${produto.embalagem} `}
+          {produto.unidadeVenda && `· ${produto.unidadeVenda}`}
+        </p>
+
+        <div className="mt-auto pt-2 pb-3 w-full">
+          {isAtacado ? (
+            <>
+              <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
+              <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
+              <p className="text-[10px] font-bold text-ecom-muted mt-1 bg-ecom-fill py-0.5 px-2 rounded-full inline-block">Atacado a partir de {qtdMinimaAtacado(produto)}</p>
+            </>
+          ) : (
+            <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoVarejo)}</p>
+          )}
+        </div>
+
+        {qtd > 0 ? (
+          <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between !rounded-full" />
+        ) : produto.estoque <= 0 ? (
+          <button disabled className={`w-full py-2.5 bg-ecom-fill text-ecom-muted font-bold text-xs rounded-full cursor-not-allowed`}>
+            Esgotado
+          </button>
+        ) : (
+          <button onClick={onAbrir} className={`w-full py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-full transition-transform active:scale-95 shadow-md`}>
+            Adicionar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CardEcommerce({
   produto,
   qtd,
@@ -113,6 +224,15 @@ function CardEcommerce({
 }) {
   const isAtacado = ehAtacado(produto, qtd);
   const ds = useDesign();
+  const designStr = useSistemaStore(s => s.config.designEcommerce);
+
+  if (designStr === 'wild') {
+    return <CardWild produto={produto} qtd={qtd} onQtd={onQtd} onAbrir={onAbrir} showMarca={showMarca} isAtacado={isAtacado} ds={ds} />;
+  }
+  if (designStr === 'pop') {
+    return <CardPop produto={produto} qtd={qtd} onQtd={onQtd} onAbrir={onAbrir} showMarca={showMarca} isAtacado={isAtacado} />;
+  }
+
   return (
     <div className={`group bg-ecom-card ${ds.cardClasse} ${ds.cardSombra} transition-all flex flex-col h-full overflow-hidden`}>
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface border-b border-ecom-border text-left">
@@ -473,6 +593,8 @@ const [erroAcesso, setErroAcesso] = useState('');
   const carregadaConfig = useSistemaStore((state) => state.carregada);
   const design = DESIGNS_ECOMMERCE[config.designEcommerce] ?? DESIGNS_ECOMMERCE.claro;
   const ds = design.estilos;
+  const isWild = config.designEcommerce === 'wild';
+  const headerOffsetClasse = isWild ? 'pt-[9.5rem] sm:pt-[10.5rem]' : 'pt-36 sm:pt-28';
   const navAlpha = Math.min(1, ds.navAlphaMin + (vista === 'catalogo' ? opacidadeNav : 1) * ds.navAlphaMax);
   
   // Theme Variables
@@ -544,6 +666,45 @@ const [erroAcesso, setErroAcesso] = useState('');
   useEffect(() => { carregar(); }, []);
 
   const normalizar = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const [searchParams] = useSearchParams();
+  const aplicadoRedirect = useRef(false);
+
+  useEffect(() => {
+    if (aplicadoRedirect.current || carregando || categorias.length === 0) return;
+    aplicadoRedirect.current = true;
+    const todos = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos));
+    const paramOferta = searchParams.get('oferta');
+    const paramCat = searchParams.get('cat');
+    const paramProduto = searchParams.get('produto');
+    if (paramOferta === '1') {
+      const el = document.getElementById('wild-ofertas');
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 80);
+      return;
+    }
+    if (paramCat) {
+      const alvo = categorias.find(c => normalizar(c.categoria.nome) === normalizar(paramCat))
+        ?? categorias.find(c => normalizar(c.categoria.nome).includes(normalizar(paramCat)));
+      if (alvo) {
+        setCategoriaFiltrada(alvo.categoria.id);
+        setMenuFiltros(false);
+        setTimeout(() => {
+          const el = document.getElementById(`cat-${alvo.categoria.id}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+      return;
+    }
+    if (paramProduto) {
+      const alvo = todos.find(p => normalizar(p.nome) === normalizar(paramProduto))
+        ?? todos.find(p => normalizar(p.nome).includes(normalizar(paramProduto)));
+      if (alvo) {
+        setQtdDetalhe(qtdNoCarrinho(alvo.id) || 1);
+        setProdutoDetalhe(alvo);
+        setVista('produto');
+      }
+    }
+  }, [carregando, categorias, searchParams]);
 
   const marcas = [...new Map(
     categorias
@@ -994,6 +1155,90 @@ const [erroAcesso, setErroAcesso] = useState('');
       )}
 
       {/* ── Nav fixa (dock / hamburguer / lateral) ── */}
+      {isWild ? (
+        <div className={`fixed top-0 z-40 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'inset-x-0'}`}>
+          <div className="bg-[#1f7a4d] text-white">
+            <div className="max-w-7xl mx-auto px-4 h-8 flex items-center justify-center sm:justify-between gap-4 text-[11px] font-medium">
+              <span className="hidden sm:flex items-center gap-1.5 truncate"><MapPin size={12} className="shrink-0 text-white/70" /> {config.endereco}</span>
+              <span className="flex items-center gap-1.5"><Phone size={12} className="shrink-0 text-white/70" /> (81) 98859-3757 · Varejo & Atacado</span>
+            </div>
+          </div>
+          <div
+            className="border-b border-[#2c3a2b]/10 backdrop-blur-xl"
+            style={{
+              backgroundColor: `rgba(255,255,255,0.98)`,
+              backdropFilter: 'blur(20px) saturate(160%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+            }}
+          >
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="flex items-center gap-3 sm:gap-5 h-16">
+                <button onClick={() => setMenuLateral(true)} className="lg:hidden h-10 w-10 flex items-center justify-center rounded-full border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10 transition-colors shrink-0" title="Menu">
+                  <Menu size={20} />
+                </button>
+                <button onClick={scrollParaCatalogo} className="flex items-center shrink-0">
+                  <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-11 w-auto max-w-[130px] sm:max-w-[180px] object-contain" />
+                </button>
+                <div className="flex-1 flex justify-center px-1 sm:px-2 min-w-0">
+                  <SearchAutocomplete
+                    placeholder="Buscar produtos, categorias, marcas..."
+                    valor={filtro}
+                    onChange={setFiltro}
+                    sugestoes={sugestoes}
+                    aoSelecionar={s => setFiltro(s.rotulo)}
+                    classNameInput="w-full max-w-xl h-11 pl-11 pr-4 bg-[#f4efe4] border border-transparent focus:border-[#1f7a4d]/40 rounded-full focus:outline-none text-sm transition-all"
+                    onBuscar={buscarECatalogo}
+                  />
+                </div>
+                <button onClick={() => setContaAberta(true)} className={`hidden sm:flex items-center gap-2 h-11 px-4 rounded-full text-sm font-bold ${ds.navBtnConta} transition-colors shrink-0`}>
+                  <User size={17} /> Conta
+                </button>
+                <button onClick={abrirCarrinho} className={`relative flex items-center gap-2 h-11 px-4 rounded-full text-sm font-bold ${ds.navBtnCarrinho} transition-colors shrink-0`}>
+                  <ShoppingCart size={18} />
+                  <span className="hidden md:inline">Carrinho</span>
+                  {totalItensCarrinho > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 h-6 min-w-6 px-1.5 bg-[#eab308] text-[#2c3a2b] text-[11px] font-black border-2 border-white rounded-full flex items-center justify-center">
+                      {totalItensCarrinho}
+                    </span>
+                  )}
+                </button>
+              </div>
+              <div className="hidden lg:flex items-center gap-2 pb-3 overflow-x-auto scrollbar-hide">
+                <button
+                  onClick={() => { setFiltro(''); aplicarFiltroCategoria(null); }}
+                  className={`px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                >
+                  Todos
+                </button>
+                {todasCategorias.filter(c => c.id !== 0).slice(0, 8).map(c => {
+                  const ativa = categoriaFiltrada === c.id && marcaFiltradaId === null;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
+                      className={`px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                    >
+                      {c.nome}
+                    </button>
+                  );
+                })}
+                {marcas.slice(0, 4).map(m => {
+                  const ativa = marcaFiltradaId === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => { setFiltro(''); aplicarFiltroMarca(m.id); }}
+                      className={`px-4 py-2 rounded-full text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#2c3a2b] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                    >
+                      {m.nome}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className={`fixed top-0 z-40 px-3 sm:px-4 pt-3 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'inset-x-0'}`}>
           <div
             className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
@@ -1110,6 +1355,7 @@ const [erroAcesso, setErroAcesso] = useState('');
             </div>
           </div>
           </div>
+      )}
 
       {/* ── Slider lateral (hamburguer / lateral) — menu deslizante ── */}
       {menuLateral && (
@@ -1165,7 +1411,7 @@ const [erroAcesso, setErroAcesso] = useState('');
       )}
 
       {vista === 'produto' && produtoDetalhe ? (
-        <div className="min-h-screen pb-10 pt-36 sm:pt-28">
+        <div className={`min-h-screen pb-10 ${headerOffsetClasse}`}>
           <div className="max-w-7xl mx-auto px-4">
             <button
               onClick={() => { setProdutoDetalhe(null); setVista('catalogo'); }}
@@ -1289,7 +1535,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
         </div>
       ) : vista === 'carrinho' ? (
-        <div className="min-h-screen flex flex-col lg:h-screen lg:overflow-hidden pt-36 sm:pt-28">
+        <div className={`min-h-screen flex flex-col lg:h-screen lg:overflow-hidden ${headerOffsetClasse}`}>
           <div className="max-w-6xl mx-auto w-full px-4 flex items-center gap-3 shrink-0">
             <button
               onClick={() => { setVista('catalogo'); setPedidoCriado(false); }}
@@ -1531,6 +1777,67 @@ const [erroAcesso, setErroAcesso] = useState('');
       ) : (
         <>
       {/* ── Hero ── */}
+      {isWild ? (
+        <div className="relative overflow-hidden bg-[#1a2b1d] min-h-[92vh] flex items-end">
+          <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+            <source src="/multigraosvid.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1a2b1d]/95 via-[#1a2b1d]/65 to-[#1a2b1d]/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
+
+          <div className="relative z-10 w-full">
+            <div className="max-w-7xl mx-auto px-4 py-16 md:py-20 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-10 lg:gap-14 items-end">
+              <div className="text-left text-white">
+                <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest text-[#c8f0d8]">
+                  <Leaf size={13} /> Empório Natural · Varejo & Atacado
+                </span>
+                <img
+                  src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)}
+                  alt={config.nomeEmpresa}
+                  className="h-auto object-contain mt-6 mb-1 brightness-110 w-[9.4rem] md:w-[11.4rem]"
+                />
+                {config.exibirNomeAbaixoLogo && (
+                  <p className="text-[#c8f0d8] text-sm font-bold uppercase tracking-[0.25em] drop-shadow">{config.nomeEmpresa}</p>
+                )}
+                <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight mt-2 drop-shadow-lg">
+                  {config.tituloHero || config.nomeEmpresa}
+                </h1>
+                <p className="text-white/85 mt-5 font-medium drop-shadow text-sm md:text-base max-w-xl">
+                  {config.subtextoHero || config.slogan}
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 mt-8">
+                  <button onClick={scrollParaCatalogo} className="px-8 py-3.5 bg-[#1f7a4d] hover:bg-[#185c39] text-white font-bold text-xs uppercase tracking-wider rounded-full shadow-[0_8px_24px_rgba(31,122,77,0.45)] active:scale-95 transition-all">
+                    Ver Produtos
+                  </button>
+                  <a href="https://wa.me/5581988593757" target="_blank" rel="noopener noreferrer" className="px-8 py-3.5 border border-white/30 text-white font-bold text-xs uppercase tracking-wider rounded-full hover:bg-white/10 transition-colors">
+                    WhatsApp
+                  </a>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-xs text-white/85 font-medium">
+                  <span className="flex items-center gap-2"><Truck size={15} className="text-[#7fd9a8]" /> Entrega local</span>
+                  <span className="flex items-center gap-2"><BadgePercent size={15} className="text-[#eab308]" /> Varejo & atacado</span>
+                  <span className="flex items-center gap-2"><Leaf size={15} className="text-[#7fd9a8]" /> Produtos naturais</span>
+                </div>
+              </div>
+
+              <div className="hidden lg:block pb-4">
+                {produtosDestaque[0] && (
+                  <div className="max-w-[330px] ml-auto -rotate-1">
+                    <CardCarrossel
+                      produto={produtosDestaque[0]}
+                      qtd={qtdNoCarrinho(produtosDestaque[0].id)}
+                      onQtd={q => setQtdCarrinho(produtosDestaque[0].id, q)}
+                      onAbrir={() => abrirDetalhe(produtosDestaque[0])}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="relative overflow-hidden shadow-sm h-screen rounded-none bg-ecom-card">
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
           <source src="/multigraosvid.mp4" type="video/mp4" />
@@ -1571,6 +1878,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           </button>
         </div>
       </div>
+      )}
 
       <div ref={tickerRef} className={ds.tickerClasse}>
           <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]">
@@ -1584,8 +1892,81 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
         </div>
 
+      {isWild && (
+        <>
+          <section className="bg-white border-b border-[#2c3a2b]/10">
+            <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {[
+                { icon: Leaf, titulo: 'Produtos naturais', texto: 'Cereais, grãos e especiarias selecionados' },
+                { icon: BadgePercent, titulo: 'Varejo & atacado', texto: 'Preços especiais por quantidade' },
+                { icon: Truck, titulo: 'Entrega local', texto: 'Para Paulista e região' },
+                { icon: MessageCircle, titulo: 'Atendimento humano', texto: 'Fale com a gente pelo WhatsApp' },
+              ].map(({ icon: Icon, titulo, texto }) => (
+                <div key={titulo} className="flex items-start gap-3">
+                  <div className="h-11 w-11 shrink-0 rounded-full bg-[#1f7a4d]/10 text-[#1f7a4d] flex items-center justify-center">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#2c3a2b] text-sm">{titulo}</p>
+                    <p className="text-[11px] text-[#74806f] mt-0.5 leading-relaxed">{texto}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="max-w-7xl mx-auto px-4 pt-10 pb-4">
+            <div className="mb-5">
+              <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#2c3a2b]">Nossas categorias</h2>
+              <p className="text-sm text-[#74806f] mt-1">Navegue pelo que temos de melhor</p>
+            </div>
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
+              {todasCategorias.filter(c => c.id !== 0).map(c => {
+                const total = categorias.find(x => x.categoria.id === c.id)?.grupos.reduce((a, g) => a + g.produtos.length, 0) ?? 0;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
+                    className={`shrink-0 w-[10.5rem] rounded-2xl border p-4 text-left transition-all ${categoriaFiltrada === c.id ? 'border-[#1f7a4d] bg-[#1f7a4d]/5' : 'border-[#2c3a2b]/10 bg-white hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(44,58,43,0.08)]'}`}
+                  >
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-3 ${categoriaFiltrada === c.id ? 'bg-[#1f7a4d] text-white' : 'bg-[#efe9da] text-[#1f7a4d]'}`}>
+                      <LayoutGrid size={18} />
+                    </div>
+                    <p className="font-bold text-[#2c3a2b] text-sm leading-tight line-clamp-2">{c.nome}</p>
+                    <p className="text-[11px] font-medium text-[#74806f] mt-1">{total} {total === 1 ? 'produto' : 'produtos'}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {(() => {
+            const produtosOferta = categorias
+              .flatMap(c => c.grupos.flatMap(g => g.produtos))
+              .filter(p => (p.precoAtacado ?? 0) > 0 && (p.precoVarejo ?? 0) > (p.precoAtacado ?? 0) && p.ativo)
+              .slice(0, 5);
+            if (produtosOferta.length === 0) return null;
+            return (
+              <section id="wild-ofertas" className="max-w-7xl mx-auto px-4 pt-10 pb-4 scroll-mt-40">
+                <div className="rounded-3xl overflow-hidden border border-[#eab308]/30 bg-[#fffbea]">
+                  <div className="flex items-center justify-between px-5 sm:px-8 py-4 bg-[#eab308] text-[#2c3a2b]">
+                    <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight">Ofertas em atacado</h2>
+                    <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest"><BadgePercent size={15} /> Preços por unidade</span>
+                  </div>
+                  <div className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                    {produtosOferta.map(p => (
+                      <CardEcommerce key={p.id} produto={p} qtd={qtdNoCarrinho(p.id)} onQtd={q => setQtdCarrinho(p.id, q)} onAbrir={() => abrirDetalhe(p)} />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          })()}
+        </>
+      )}
+
       {/* ── Conteúdo ── */}
-      <div className="max-w-7xl mx-auto px-4 py-12 pb-32">
+      <div className={`max-w-7xl mx-auto px-4 py-12 ${isWild ? 'pb-40' : 'pb-32'}`}>
         
         {categoriaFiltrada === null && produtosDestaque.length > 0 && (
           <section className="mb-10">
@@ -1674,10 +2055,17 @@ const [erroAcesso, setErroAcesso] = useState('');
                       {[...grupos]
                         .sort((a, b) => (a.marca ? 0 : 1) - (b.marca ? 0 : 1))
                         .map((grupo, gi) => {
+                          const isWild = config.designEcommerce === 'wild';
+                          const isPop = config.designEcommerce === 'pop';
+                          
+                          let gridClasses = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 mt-5";
+                          if (isWild) gridClasses = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 mt-6";
+                          if (isPop) gridClasses = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 mt-6";
+
                           return (
                           <div key={gi}>
                             <FaixaMarca marca={grupo.marca} total={grupo.produtos.length} />
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 mt-5">
+                            <div className={gridClasses}>
                               {grupo.produtos.map(p => (
                                 <CardEcommerce
                                   key={p.id}
@@ -1702,7 +2090,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
       {/* Mini barra de finalizar pedido */}
       {totalItensCarrinho > 0 && !pedidoCriado && (
-        <div className="fixed bottom-4 inset-x-0 z-40 px-4 pointer-events-none">
+        <div className={`fixed ${isWild ? 'bottom-20' : 'bottom-4'} inset-x-0 z-40 px-4 pointer-events-none`}>
           <div className="max-w-7xl mx-auto pointer-events-auto">
             <button
               onClick={abrirCarrinho}
@@ -1727,6 +2115,75 @@ const [erroAcesso, setErroAcesso] = useState('');
             </button>
           </div>
         </div>
+      )}
+
+      {isWild && (
+        <footer className="bg-[#1c2b1e] text-white/80">
+          <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            <div className="lg:col-span-2">
+              <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-12 w-auto object-contain brightness-0 invert" />
+              <p className="mt-4 text-sm text-white/60 max-w-sm leading-relaxed">{config.slogan || config.subtextoHero}</p>
+              {config.endereco && (
+                <p className="mt-4 text-sm text-white/70 flex items-center gap-2"><MapPin size={14} className="text-[#7fd9a8] shrink-0" /> {config.endereco}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Categorias</h3>
+              <ul className="space-y-2.5 text-sm">
+                {todasCategorias.filter(c => c.id !== 0).slice(0, 6).map(c => (
+                  <li key={c.id}>
+                    <button onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }} className="hover:text-white transition-colors text-left">{c.nome}</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Atendimento</h3>
+              <ul className="space-y-2.5 text-sm">
+                <li><a href="https://wa.me/5581988593757" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors"><MessageCircle size={14} className="text-[#7fd9a8] shrink-0" /> WhatsApp</a></li>
+                <li className="flex items-center gap-2"><Phone size={14} className="text-[#7fd9a8] shrink-0" /> (81) 98859-3757</li>
+                <li><button onClick={abrirCarrinho} className="flex items-center gap-2 hover:text-white transition-colors"><ShoppingCart size={14} className="text-[#7fd9a8] shrink-0" /> Meu pedido</button></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/10">
+            <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-white/40">
+              <span>© {new Date().getFullYear()} {config.nomeEmpresa}. Todos os direitos reservados.</span>
+              <span>Varejo & Atacado</span>
+            </div>
+          </div>
+        </footer>
+      )}
+
+      {isWild && (
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#2c3a2b]/10">
+          <div className="grid grid-cols-5">
+            <button
+              onClick={() => { setVista('catalogo'); setFiltro(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]"
+            >
+              <Home size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Início</span>
+            </button>
+            <button onClick={() => setMenuFiltros(true)} className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+              <LayoutGrid size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Categorias</span>
+            </button>
+            <button onClick={() => setMenuLateral(true)} className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+              <Search size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Buscar</span>
+            </button>
+            <button onClick={abrirCarrinho} className="relative flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+              <ShoppingCart size={19} />
+              {totalItensCarrinho > 0 && (
+                <span className="absolute top-0.5 right-1/2 translate-x-4 h-4 min-w-4 px-1 bg-[#eab308] text-[#2c3a2b] text-[9px] font-black rounded-full flex items-center justify-center">
+                  {totalItensCarrinho}
+                </span>
+              )}
+              <span className="text-[9px] font-bold uppercase tracking-wider">Carrinho</span>
+            </button>
+            <button onClick={() => setContaAberta(true)} className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+              <User size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Conta</span>
+            </button>
+          </div>
+        </nav>
       )}
 
         </>

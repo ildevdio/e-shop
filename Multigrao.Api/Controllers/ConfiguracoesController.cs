@@ -85,6 +85,10 @@ namespace Multigrao.Api.Controllers
                 config.TipoMenu = dto.TipoMenu;
             if (!string.IsNullOrWhiteSpace(dto.TipoCarrinho))
                 config.TipoCarrinho = dto.TipoCarrinho;
+            if (dto.LinksBio != null)
+                config.LinksBio = dto.LinksBio;
+            if (dto.Redirecionamentos != null)
+                config.Redirecionamentos = dto.Redirecionamentos;
 
             await _context.SaveChangesAsync();
 
@@ -371,7 +375,9 @@ namespace Multigrao.Api.Controllers
                 subtextoHero = config.SubtextoHero,
                 exibirNomeAbaixoLogo = config.ExibirNomeAbaixoLogo,
                 tipoMenu = config.TipoMenu,
-                tipoCarrinho = config.TipoCarrinho
+                tipoCarrinho = config.TipoCarrinho,
+                linksBio = config.LinksBio,
+                redirecionamentos = config.Redirecionamentos
             };
         }
 

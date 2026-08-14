@@ -25,6 +25,8 @@ import Logistica from './pages/Logistica';
 import Entregas from './pages/Entregas';
 import Conferencia from './pages/Conferencia';
 import Financeiro from './pages/Financeiro';
+import Links from './pages/Links';
+import RedirectLink from './pages/RedirectLink';
 import { useAuthStore } from './store/authStore';
 import { useSistemaStore, CONFIG_PADRAO } from './store/sistemaStore';
 import { isShopDomain } from './services/tenantSetup';
@@ -118,6 +120,9 @@ function App() {
         <Route path="/:slug/commerce" element={<CommerceRoute><LayoutPublico /></CommerceRoute>}>
           <Route index element={<Tabela />} />
         </Route>
+        
+        <Route path="/:slug/links" element={<CommerceRoute><Links /></CommerceRoute>} />
+        <Route path="/:slug/r/:alias" element={<CommerceRoute><RedirectLink /></CommerceRoute>} />
       </Routes>
     </BrowserRouter>
   );

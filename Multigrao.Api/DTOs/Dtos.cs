@@ -339,6 +339,8 @@ namespace Multigrao.Api.DTOs
         public bool? ExibirNomeAbaixoLogo { get; set; }
         public string? TipoMenu { get; set; }
         public string? TipoCarrinho { get; set; }
+        public string? LinksBio { get; set; }
+        public string? Redirecionamentos { get; set; }
     }
 
     public class CriarEmpresaDto

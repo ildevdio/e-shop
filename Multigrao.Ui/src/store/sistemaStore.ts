@@ -25,6 +25,8 @@ export interface ConfiguracaoSistema {
   exibirNomeAbaixoLogo: boolean;
   tipoMenu: string;
   tipoCarrinho: string;
+  linksBio?: string | null;
+  redirecionamentos?: string | null;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
@@ -144,32 +146,32 @@ export const DESIGNS_ECOMMERCE: Record<string, DesignEcommerce> = {
       tituloTransform: '',
     },
   },
-  bold: {
-    nome: 'Bold',
-    descricao: 'Alto contraste, títulos em caixa alta e bordas marcantes. Inspirado na Zynon.',
-    bg: '#fafafa',
+  wild: {
+    nome: 'Wild (Naturais)',
+    descricao: 'Empório natural com energia comercial: tons terrosos, verde vivo, navegação de categorias em destaque e foco total nas fotos dos produtos.',
+    bg: '#f7f4ec',
     card: '#ffffff',
-    surface: '#f1f1f3',
-    fill: '#e4e4e7',
-    text: '#0a0a0a',
-    muted: '#52525b',
-    border: 'rgba(10, 10, 10, 0.18)',
-    strong: '#0a0a0a',
+    surface: '#efe9da',
+    fill: '#e5dcc6',
+    text: '#2c3a2b',
+    muted: '#74806f',
+    border: 'rgba(44, 58, 43, 0.14)',
+    strong: '#1f7a4d',
     estilos: {
-      navRgb: '10,10,10',
-      navAlphaMax: 1,
+      navRgb: '255,255,255',
+      navAlphaMax: 0.98,
       navAlphaMin: 0,
-      navTexto: '#ffffff',
-      navBtnConta: 'bg-white/10 border border-white/25 text-white hover:bg-white/20',
-      navBtnCarrinho: 'bg-white text-black hover:bg-zinc-200',
-      navBtnMenu: 'bg-white/10 border border-white/25 text-white hover:bg-white/20',
-      cardClasse: 'rounded-xl border-2 border-ecom-strong',
-      cardSombra: 'shadow-none hover:shadow-[0_10px_28px_rgba(0,0,0,0.16)] hover:-translate-y-0.5',
-      botaoClasse: 'rounded-lg uppercase tracking-wide',
-      stepperClasse: 'rounded-lg',
-      heroOverlay: 'bg-black/55',
-      tickerClasse: 'bg-black text-white',
-      tituloTransform: 'uppercase',
+      navTexto: '#2c3a2b',
+      navBtnConta: 'bg-white/80 border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10',
+      navBtnCarrinho: 'bg-[#1f7a4d] text-white hover:bg-[#185c39]',
+      navBtnMenu: 'bg-white/80 border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10',
+      cardClasse: 'rounded-2xl bg-ecom-card border border-[#2c3a2b]/10',
+      cardSombra: 'shadow-[0_2px_14px_rgba(44,58,43,0.06)] hover:shadow-[0_16px_32px_rgba(31,122,77,0.18)] hover:-translate-y-1',
+      botaoClasse: 'rounded-full uppercase tracking-wider',
+      stepperClasse: 'rounded-full',
+      heroOverlay: 'bg-gradient-to-t from-black/75 via-black/25 to-transparent',
+      tickerClasse: 'bg-[#1f7a4d] text-white',
+      tituloTransform: '',
     },
   },
   pop: {
@@ -301,10 +303,12 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           corFonte: data.corFonte ?? CONFIG_PADRAO.corFonte,
           designEcommerce: data.designEcommerce || CONFIG_PADRAO.designEcommerce,
           tituloHero: data.tituloHero || CONFIG_PADRAO.tituloHero,
-          subtextoHero: data.subtextoHero || CONFIG_PADRAO.subtextoHero,
-          exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? CONFIG_PADRAO.exibirNomeAbaixoLogo,
+          subtextoHero: data.subtextoHero ?? null,
+          exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? true,
           tipoMenu: data.tipoMenu || CONFIG_PADRAO.tipoMenu,
           tipoCarrinho: data.tipoCarrinho || CONFIG_PADRAO.tipoCarrinho,
+          linksBio: data.linksBio ?? null,
+          redirecionamentos: data.redirecionamentos ?? null,
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -353,6 +357,8 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           exibirNomeAbaixoLogo: config.exibirNomeAbaixoLogo,
           tipoMenu: config.tipoMenu,
           tipoCarrinho: config.tipoCarrinho,
+          linksBio: config.linksBio,
+          redirecionamentos: config.redirecionamentos,
         }),
       });
       if (!resp.ok) return false;
@@ -377,10 +383,12 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         corFonte: data.corFonte ?? config.corFonte,
         designEcommerce: data.designEcommerce || config.designEcommerce,
         tituloHero: data.tituloHero || config.tituloHero,
-        subtextoHero: data.subtextoHero || config.subtextoHero,
+        subtextoHero: data.subtextoHero ?? config.subtextoHero,
         exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? config.exibirNomeAbaixoLogo,
         tipoMenu: data.tipoMenu || config.tipoMenu,
         tipoCarrinho: data.tipoCarrinho || config.tipoCarrinho,
+        linksBio: data.linksBio ?? config.linksBio,
+        redirecionamentos: data.redirecionamentos ?? config.redirecionamentos,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);
