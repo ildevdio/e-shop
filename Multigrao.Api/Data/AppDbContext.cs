@@ -46,6 +46,9 @@ namespace Multigrao.Api.Data
         public DbSet<ConfiguracaoSistema> ConfiguracoesSistema { get; set; }
         public DbSet<ArquivoUpload> ArquivosUpload { get; set; }
 
+        public DbSet<Promocao> Promocoes { get; set; }
+        public DbSet<PromocaoProduto> PromocoesProduto { get; set; }
+
         public override int SaveChanges()
         {
             AplicarEmpresa();
@@ -101,6 +104,8 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<VotoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Notificacao>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<ArquivoUpload>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Promocao>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<PromocaoProduto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });
@@ -192,6 +197,18 @@ namespace Multigrao.Api.Data
                 .HasOne(ci => ci.Produto)
                 .WithMany()
                 .HasForeignKey(ci => ci.ProdutoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PromocaoProduto>()
+                .HasOne(pp => pp.Promocao)
+                .WithMany(p => p.Produtos)
+                .HasForeignKey(pp => pp.PromocaoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PromocaoProduto>()
+                .HasOne(pp => pp.Produto)
+                .WithMany()
+                .HasForeignKey(pp => pp.ProdutoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Seed: Setores

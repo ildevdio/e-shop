@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search, Leaf, Truck, MessageCircle, BadgePercent, Home } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
+import { promocaoService, precoPromocional, pctDesconto, type PromocaoAtiva } from '../services/promocaoService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
@@ -27,6 +28,11 @@ function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemCo
 
 function formatPreco(v: number) {
   return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+}
+
+function precoComPromo(preco: number, promo: PromocaoAtiva | undefined, produtoId: number): number {
+  const precoPorProduto = promo?.produtos?.find(x => x.produtoId === produtoId)?.precoPromocional;
+  return precoPromocional(preco, promo, precoPorProduto) ?? preco;
 }
 
 function mascaraCpfCnpj(v: string) {
@@ -99,10 +105,14 @@ function descricaoProduto(p: Produto): { rotulo: string; valor: string }[] {
   return itens;
 }
 
-function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
+function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado, promo }: any) {
   const pct = isAtacado && (produto.precoAtacado ?? 0) > 0 && produto.precoAtacado < (produto.precoVarejo ?? 0)
     ? Math.round((1 - produto.precoAtacado / produto.precoVarejo) * 100)
     : 0;
+  const precoBase = isAtacado ? (produto.precoAtacado ?? 0) : (produto.precoVarejo ?? 0);
+  const precoPromo = precoComPromo(precoBase, promo, produto.id);
+  const temPromo = precoPromo < precoBase;
+  const pctPromo = temPromo ? pctDesconto(precoBase, precoPromo) : 0;
   return (
     <div className={`group bg-white transition-all flex flex-col h-full overflow-hidden border border-[#2c3a2b]/10 rounded-2xl shadow-[0_2px_14px_rgba(44,58,43,0.06)] hover:shadow-[0_16px_32px_rgba(31,122,77,0.18)] hover:-translate-y-1`}>
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-[#efe9da] rounded-t-2xl text-left">
@@ -112,9 +122,10 @@ function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
           <span className="absolute inset-0 flex items-center justify-center text-[#74806f] text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
         <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start">
-          {pct > 0 && <span className="bg-[#eab308] text-[#2c3a2b] text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pct}%</span>}
+          {pctPromo > 0 && <span className="bg-[#dc2626] text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pctPromo}%</span>}
+          {!temPromo && pct > 0 && <span className="bg-[#eab308] text-[#2c3a2b] text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pct}%</span>}
           {produto.vendidoAGranel && <span className="bg-[#1f7a4d] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">A granel</span>}
-          {isAtacado && <span className="bg-[#2c3a2b] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Atacado</span>}
+          {isAtacado && !temPromo && <span className="bg-[#2c3a2b] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Atacado</span>}
         </div>
         {produto.estoque <= 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Esgotado</span>}
       </button>
@@ -130,12 +141,14 @@ function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
 
         <div className="mt-auto pt-2 pb-4">
           <div className="flex flex-col gap-0.5">
-            {isAtacado && (produto.precoAtacado ?? 0) < (produto.precoVarejo ?? 0) && (
+            {temPromo && <p className="text-[11px] font-medium text-[#74806f] line-through">{formatPreco(precoBase)}</p>}
+            {!temPromo && isAtacado && (produto.precoAtacado ?? 0) < (produto.precoVarejo ?? 0) && (
               <p className="text-[11px] font-medium text-[#74806f] line-through">{formatPreco(produto.precoVarejo)}</p>
             )}
             <div className="flex items-baseline gap-1.5">
-              <p className="text-xl font-black text-[#2c3a2b] leading-none">{formatPreco(isAtacado ? produto.precoAtacado : produto.precoVarejo)}</p>
-              {isAtacado && <span className="text-[10px] font-bold text-[#1f7a4d]">no atacado</span>}
+              <p className={`text-xl font-black leading-none ${temPromo ? 'text-[#dc2626]' : 'text-[#2c3a2b]'}`}>{formatPreco(precoPromo)}</p>
+              {temPromo && <span className="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider">Promo</span>}
+              {isAtacado && !temPromo && <span className="text-[10px] font-bold text-[#1f7a4d]">no atacado</span>}
             </div>
             {isAtacado && <p className="text-[10px] font-medium text-[#74806f] mt-1">A partir de {qtdMinimaAtacado(produto)} un.</p>}
             <p className="text-[10px] text-[#a3ad9e] mt-1">Pix, dinheiro ou boleto</p>
@@ -158,7 +171,11 @@ function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
   );
 }
 
-function CardPop({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
+function CardPop({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado, promo }: any) {
+  const precoBase = isAtacado ? (produto.precoAtacado ?? 0) : (produto.precoVarejo ?? 0);
+  const precoPromo = precoComPromo(precoBase, promo, produto.id);
+  const temPromo = precoPromo < precoBase;
+  const pctPromo = temPromo ? pctDesconto(precoBase, precoPromo) : 0;
   return (
     <div className={`group bg-ecom-card transition-all flex flex-col h-full overflow-hidden border-2 border-ecom-border rounded-[2rem] p-1.5 shadow-[0_4px_14px_rgba(194,120,60,0.15)] hover:shadow-[0_14px_30px_rgba(194,120,60,0.25)] hover:-translate-y-1`}>
       <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface rounded-[1.5rem] text-left">
@@ -167,8 +184,9 @@ function CardPop({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
         ) : (
           <span className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
-        {produto.vendidoAGranel && <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">A granel</span>}
-        {isAtacado && <span className={`absolute bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full shadow-sm ${produto.vendidoAGranel ? 'top-9 left-2' : 'top-2 left-2'}`}>Atacado</span>}
+        {pctPromo > 0 && <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-sm">-{pctPromo}%</span>}
+        {produto.vendidoAGranel && <span className={`absolute bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm ${pctPromo > 0 ? 'top-9 left-2' : 'top-2 left-2'}`}>A granel</span>}
+        {isAtacado && <span className={`absolute bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full shadow-sm ${pctPromo > 0 ? 'top-16 left-2' : produto.vendidoAGranel ? 'top-9 left-2' : 'top-2 left-2'}`}>Atacado</span>}
         {produto.estoque <= 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">Esgotado</span>}
       </button>
       <div className="px-3 pt-3 pb-2 flex-1 flex flex-col items-center text-center">
@@ -184,9 +202,25 @@ function CardPop({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado }: any) {
         <div className="mt-auto pt-2 pb-3 w-full">
           {isAtacado ? (
             <>
-              <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
-              <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
-              <p className="text-[10px] font-bold text-ecom-muted mt-1 bg-ecom-fill py-0.5 px-2 rounded-full inline-block">Atacado a partir de {qtdMinimaAtacado(produto)}</p>
+              {temPromo ? (
+                <>
+                  <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>
+                  <p className="text-xl font-black text-red-500 leading-none">{formatPreco(precoPromo)}</p>
+                  <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-wider">Promo</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
+                  <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
+                  <p className="text-[10px] font-bold text-ecom-muted mt-1 bg-ecom-fill py-0.5 px-2 rounded-full inline-block">Atacado a partir de {qtdMinimaAtacado(produto)}</p>
+                </>
+              )}
+            </>
+          ) : temPromo ? (
+            <>
+              <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>
+              <p className="text-xl font-black text-red-500 leading-none">{formatPreco(precoPromo)}</p>
+              <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-wider">Promo</p>
             </>
           ) : (
             <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoVarejo)}</p>
@@ -215,22 +249,28 @@ function CardEcommerce({
   onQtd,
   onAbrir,
   showMarca,
+  promo,
 }: {
   produto: Produto;
   qtd: number;
   onQtd: (q: number) => void;
   onAbrir: () => void;
   showMarca?: boolean;
+  promo?: PromocaoAtiva;
 }) {
   const isAtacado = ehAtacado(produto, qtd);
   const ds = useDesign();
   const designStr = useSistemaStore(s => s.config.designEcommerce);
+  const precoBase = isAtacado ? (produto.precoAtacado ?? 0) : (produto.precoVarejo ?? 0);
+  const precoPromo = precoComPromo(precoBase, promo, produto.id);
+  const temPromo = precoPromo < precoBase;
+  const pctPromo = temPromo ? pctDesconto(precoBase, precoPromo) : 0;
 
   if (designStr === 'wild') {
-    return <CardWild produto={produto} qtd={qtd} onQtd={onQtd} onAbrir={onAbrir} showMarca={showMarca} isAtacado={isAtacado} ds={ds} />;
+    return <CardWild produto={produto} qtd={qtd} onQtd={onQtd} onAbrir={onAbrir} showMarca={showMarca} isAtacado={isAtacado} promo={promo} ds={ds} />;
   }
   if (designStr === 'pop') {
-    return <CardPop produto={produto} qtd={qtd} onQtd={onQtd} onAbrir={onAbrir} showMarca={showMarca} isAtacado={isAtacado} />;
+    return <CardPop produto={produto} qtd={qtd} onQtd={onQtd} onAbrir={onAbrir} showMarca={showMarca} isAtacado={isAtacado} promo={promo} />;
   }
 
   return (
@@ -241,10 +281,13 @@ function CardEcommerce({
         ) : (
           <span className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
-        {produto.vendidoAGranel && (
+        {pctPromo > 0 && (
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">-{pctPromo}%</span>
+        )}
+        {!temPromo && produto.vendidoAGranel && (
           <span className="absolute top-2 left-2 bg-emerald-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">A granel</span>
         )}
-        {isAtacado && (
+        {isAtacado && !temPromo && (
           <span className={`absolute bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${produto.vendidoAGranel ? 'top-8 left-2' : 'top-2 left-2'}`}>Atacado</span>
         )}
         {produto.estoque <= 0 && (
@@ -268,7 +311,13 @@ function CardEcommerce({
           </p>
         )}
         <div className="mt-auto pt-2 pb-3">
-          {isAtacado ? (
+          {temPromo ? (
+            <>
+              <p className="text-[10px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>
+              <p className="text-lg font-black text-red-600 leading-none">{formatPreco(precoPromo)}</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-red-600 mt-0.5">Promo · -{pctPromo}%</p>
+            </>
+          ) : isAtacado ? (
             <>
               <p className="text-[10px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
               <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
@@ -299,14 +348,20 @@ function CardCarrossel({
   qtd,
   onQtd,
   onAbrir,
+  promo,
 }: {
   produto: Produto;
   qtd: number;
   onQtd: (q: number) => void;
   onAbrir: () => void;
+  promo?: PromocaoAtiva;
 }) {
   const isAtacado = ehAtacado(produto, qtd);
   const ds = useDesign();
+  const precoBase = isAtacado ? (produto.precoAtacado ?? 0) : (produto.precoVarejo ?? 0);
+  const precoPromo = precoComPromo(precoBase, promo, produto.id);
+  const temPromo = precoPromo < precoBase;
+  const pctPromo = temPromo ? pctDesconto(precoBase, precoPromo) : 0;
   return (
     <div className={`relative aspect-[4/5] overflow-hidden group bg-ecom-surface ${ds.cardClasse} ${ds.cardSombra} transition-all`}>
       <button onClick={onAbrir} aria-label={`Ver ${produto.nome}`} className="absolute inset-0 w-full h-full block text-left cursor-pointer">
@@ -317,10 +372,13 @@ function CardCarrossel({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
       </button>
-      {produto.vendidoAGranel && (
+      {pctPromo > 0 && (
+        <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">-{pctPromo}%</span>
+      )}
+      {!temPromo && produto.vendidoAGranel && (
         <span className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">A granel</span>
       )}
-      {isAtacado && (
+      {isAtacado && !temPromo && (
         <span className={`absolute bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${produto.vendidoAGranel ? 'top-14 left-3' : 'top-3 left-3'}`}>Atacado</span>
       )}
       {produto.estoque <= 0 && (
@@ -340,7 +398,12 @@ function CardCarrossel({
         )}
         <div className="mt-2.5 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            {isAtacado ? (
+            {temPromo ? (
+              <>
+                <p className="text-[10px] font-medium text-white/60 line-through">{formatPreco(precoBase)}</p>
+                <p className="text-xl font-black text-red-300 leading-none">{formatPreco(precoPromo)}</p>
+              </>
+            ) : isAtacado ? (
               <>
                 <p className="text-[10px] font-medium text-white/60 line-through">{formatPreco(produto.precoVarejo)}</p>
                 <p className="text-xl font-black text-white leading-none">{formatPreco(produto.precoAtacado)}</p>
@@ -555,6 +618,7 @@ interface CategoriaComProdutos {
 export default function Tabela() {
   const [categorias, setCategorias] = useState<CategoriaComProdutos[]>([]);
   const [todasCategorias, setTodasCategorias] = useState<Categoria[]>([]);
+  const [promosAtivas, setPromosAtivas] = useState<PromocaoAtiva[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState('');
   const [categoriaAberta, setCategoriaAberta] = useState<number | null>(null);
@@ -619,11 +683,13 @@ const [erroAcesso, setErroAcesso] = useState('');
 
   const carregar = async () => {
     setCarregando(true);
-    const [produtos, cats] = await Promise.all([
+    const [produtos, cats, promos] = await Promise.all([
       produtoService.getCatalogo(),
       categoriaService.getCategorias(),
+      promocaoService.getAtivas(),
     ]);
     setTodasCategorias(cats);
+    setPromosAtivas(promos);
 
     const map = new Map<number, CategoriaComProdutos>();
     const semCategoria: Produto[] = [];
@@ -678,7 +744,7 @@ const [erroAcesso, setErroAcesso] = useState('');
     const paramCat = searchParams.get('cat');
     const paramProduto = searchParams.get('produto');
     if (paramOferta === '1') {
-      const el = document.getElementById('wild-ofertas');
+      const el = document.getElementById('wild-ofertas') ?? document.getElementById('promocoes');
       if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 80);
       return;
     }
@@ -749,6 +815,22 @@ const [erroAcesso, setErroAcesso] = useState('');
   const totalItensCarrinho = carrinho.size;
   const limparCarrinho = () => setCarrinho(new Map());
 
+  const promoPorProduto = useMemo(() => {
+    const map: Record<number, PromocaoAtiva> = {};
+    for (const promo of promosAtivas) {
+      for (const pp of promo.produtos) {
+        if (!(pp.produtoId in map)) map[pp.produtoId] = promo;
+      }
+    }
+    return map;
+  }, [promosAtivas]);
+
+  const precoComPromoProduto = useCallback(
+    (produto: Produto, qtd: number) =>
+      precoComPromo(precoPorQtd(produto, qtd), promoPorProduto[produto.id], produto.id),
+    [promoPorProduto]
+  );
+
   const abrirCarrinho = () => {
     if (config.tipoCarrinho === 'drawer') {
       setVista('catalogo');
@@ -770,8 +852,8 @@ const [erroAcesso, setErroAcesso] = useState('');
   );
 
   const valorTotalCarrinho = useMemo(
-    () => produtosCarrinho.reduce((acc, i) => acc + precoPorQtd(i.produto, i.quantidade) * i.quantidade, 0) + totalTaxaEmbalagem,
-    [produtosCarrinho, totalTaxaEmbalagem]
+    () => produtosCarrinho.reduce((acc, i) => acc + precoComPromoProduto(i.produto, i.quantidade) * i.quantidade, 0) + totalTaxaEmbalagem,
+    [produtosCarrinho, totalTaxaEmbalagem, precoComPromoProduto]
   );
 
   const pesoTotalCarrinho = useMemo(
@@ -826,6 +908,13 @@ const [erroAcesso, setErroAcesso] = useState('');
     }
     return resultado;
   }, [categorias]);
+
+  const produtosPromo = useMemo(
+    () => categorias
+      .flatMap(c => c.grupos.flatMap(g => g.produtos))
+      .filter(p => p.ativo && promoPorProduto[p.id]),
+    [categorias, promoPorProduto]
+  );
 
   const rolarCarrossel = (direcao: number) => {
     const el = carrosselRef.current;
@@ -954,7 +1043,7 @@ const [erroAcesso, setErroAcesso] = useState('');
     setEnviando(true);
     const itens = [...carrinho.entries()].map(([produtoId, quantidade]) => {
       const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(p => p.id === produtoId);
-      return { produtoId, quantidade, precoUnitario: produto ? precoPorQtd(produto, quantidade) : 0, pesoUnitario: produto?.pesoUnidade ?? 0 };
+      return { produtoId, quantidade, precoUnitario: produto ? precoComPromoProduto(produto, quantidade) : 0, pesoUnitario: produto?.pesoUnidade ?? 0 };
     });
     const valorTotal = itens.reduce((acc, i) => acc + i.precoUnitario * i.quantidade, 0) + totalTaxaEmbalagem;
     await pedidoService.solicitarCatalogo({
@@ -1177,7 +1266,9 @@ const [erroAcesso, setErroAcesso] = useState('');
                   <Menu size={18} />
                 </button>
                 <button onClick={scrollParaCatalogo} className="flex items-center gap-2 shrink-0">
-                  <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-9 w-auto max-w-[120px] sm:max-w-[160px] object-contain" />
+                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#1f7a4d] shadow-sm shrink-0 overflow-hidden">
+                    <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-10 w-auto max-w-10 object-contain" />
+                  </span>
                   <span className="hidden xl:inline font-heading font-black text-lg tracking-tight whitespace-nowrap" style={{ color: config.corPrincipal }}>{config.nomeEmpresa}</span>
                 </button>
                 <div className="flex-1 flex justify-center px-1 sm:px-2 min-w-0">
@@ -1203,38 +1294,6 @@ const [erroAcesso, setErroAcesso] = useState('');
                     </span>
                   )}
                 </button>
-              </div>
-              <div className="hidden lg:flex items-center gap-2 pb-2 overflow-x-auto scrollbar-hide">
-                <button
-                  onClick={() => { setFiltro(''); aplicarFiltroCategoria(null); }}
-                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
-                >
-                  Todos
-                </button>
-                {todasCategorias.filter(c => c.id !== 0).slice(0, 8).map(c => {
-                  const ativa = categoriaFiltrada === c.id && marcaFiltradaId === null;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
-                      className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
-                    >
-                      {c.nome}
-                    </button>
-                  );
-                })}
-                {marcas.slice(0, 4).map(m => {
-                  const ativa = marcaFiltradaId === m.id;
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => { setFiltro(''); aplicarFiltroMarca(m.id); }}
-                      className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#2c3a2b] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
-                    >
-                      {m.nome}
-                    </button>
-                  );
-                })}
               </div>
             </div>
           </div>
@@ -1470,27 +1529,45 @@ const [erroAcesso, setErroAcesso] = useState('');
 
                 <div className="rounded-2xl bg-ecom-surface border border-ecom-border p-4 mb-6">
                   <div className="flex items-end justify-between gap-4">
-                    {ehAtacado(produtoDetalhe, qtdDetalhe) ? (
-                      <div>
-                        <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(produtoDetalhe.precoVarejo)}</p>
-                        <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoAtacado)}</p>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-ecom-muted mt-1.5">Preço atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.)</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-1">Preço varejo</p>
-                        <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoVarejo)}</p>
-                        {produtoDetalhe.precoAtacado > 0 && (
-                          <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
-                        )}
-                      </div>
-                    )}
-                    <p className="text-xs font-bold text-ecom-muted text-right shrink-0">
-                      Total
-                      <span className="block text-lg font-black text-ecom-text">
-                        {formatPreco(precoPorQtd(produtoDetalhe, qtdDetalhe) * qtdDetalhe)}
-                      </span>
-                    </p>
+                    {(() => {
+                      const ehAtacadoDetalhe = ehAtacado(produtoDetalhe, qtdDetalhe);
+                      const precoBase = ehAtacadoDetalhe ? (produtoDetalhe.precoAtacado ?? 0) : (produtoDetalhe.precoVarejo ?? 0);
+                      const precoPromo = precoComPromo(precoBase, promoPorProduto[produtoDetalhe.id], produtoDetalhe.id);
+                      const temPromo = precoPromo < precoBase;
+                      return (
+                        <>
+                          {temPromo ? (
+                            <div>
+                              <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(precoBase)}</p>
+                              <p className="text-3xl font-black text-red-600 leading-none">{formatPreco(precoPromo)}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-red-600 mt-1.5">
+                                {ehAtacadoDetalhe ? `Preço promoção (atacado ${qtdMinimaAtacado(produtoDetalhe)}+ un.)` : 'Preço promoção'}
+                              </p>
+                            </div>
+                          ) : ehAtacadoDetalhe ? (
+                            <div>
+                              <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(produtoDetalhe.precoVarejo)}</p>
+                              <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoAtacado)}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-ecom-muted mt-1.5">Preço atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.)</p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-1">Preço varejo</p>
+                              <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoVarejo)}</p>
+                              {produtoDetalhe.precoAtacado > 0 && (
+                                <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
+                              )}
+                            </div>
+                          )}
+                          <p className="text-xs font-bold text-ecom-muted text-right shrink-0">
+                            Total
+                            <span className="block text-lg font-black text-ecom-text">
+                              {formatPreco(precoPromo * qtdDetalhe)}
+                            </span>
+                          </p>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -1578,7 +1655,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     {[...carrinho.entries()].map(([produtoId, quantidade]) => {
                       const produto = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(p => p.id === produtoId);
                       if (!produto) return null;
-                      const preco = precoPorQtd(produto, quantidade);
+                      const preco = precoComPromoProduto(produto, quantidade);
                       return (
                         <div key={produtoId} className="relative overflow-hidden rounded-2xl border border-ecom-border">
                           <button
@@ -1654,7 +1731,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                           <span>Subtotal</span>
                           <span>{formatPreco([...carrinho.entries()].reduce((acc, [id, qtd]) => {
                             const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
-                            return acc + (p ? precoPorQtd(p, qtd) * qtd : 0);
+                            return acc + (p ? precoComPromoProduto(p, qtd) * qtd : 0);
                           }, 0))}</span>
                         </div>
                         <div className="flex justify-between text-sm text-ecom-muted font-medium">
@@ -1776,10 +1853,48 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
         </div>
       ) : (
-        <>
+        <div className={isWild ? 'pt-[89px]' : ''}>
+          {isWild && (
+            <div className="hidden lg:block sticky top-[89px] z-30 bg-white border-b border-[#2c3a2b]/10">
+              <div className="max-w-7xl mx-auto px-4">
+                <div className="flex items-center gap-2 py-2 overflow-x-auto scrollbar-hide">
+                  <button
+                    onClick={() => { setFiltro(''); aplicarFiltroCategoria(null); }}
+                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                  >
+                    Todos
+                  </button>
+                  {todasCategorias.filter(c => c.id !== 0).slice(0, 8).map(c => {
+                    const ativa = categoriaFiltrada === c.id && marcaFiltradaId === null;
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
+                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                      >
+                        {c.nome}
+                      </button>
+                    );
+                  })}
+                  {marcas.slice(0, 4).map(m => {
+                    const ativa = marcaFiltradaId === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => { setFiltro(''); aplicarFiltroMarca(m.id); }}
+                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#2c3a2b] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                      >
+                        {m.nome}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
       {/* ── Hero ── */}
       {isWild ? (
-        <div className="relative overflow-hidden bg-[#1a2b1d] min-h-[92vh] flex items-end">
+        <div className="relative overflow-hidden bg-[#1a2b1d] min-h-[calc(100vh-135px)] lg:min-h-[calc(100vh-110px)] flex items-end">
           <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
             <source src="/multigraosvid.mp4" type="video/mp4" />
           </video>
@@ -1787,11 +1902,8 @@ const [erroAcesso, setErroAcesso] = useState('');
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
 
           <div className="relative z-10 w-full">
-            <div className="max-w-7xl mx-auto px-4 py-16 md:py-20 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-10 lg:gap-14 items-end">
+            <div className="max-w-7xl mx-auto px-4 py-8 md:py-12 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-10 lg:gap-14 items-end">
               <div className="text-left text-white">
-                <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest text-[#c8f0d8]">
-                  <Leaf size={13} /> Empório Natural · Varejo & Atacado
-                </span>
                 <img
                   src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)}
                   alt={config.nomeEmpresa}
@@ -1803,11 +1915,11 @@ const [erroAcesso, setErroAcesso] = useState('');
                 <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight mt-2 drop-shadow-lg">
                   {config.tituloHero || config.nomeEmpresa}
                 </h1>
-                <p className="text-white/85 mt-5 font-medium drop-shadow text-sm md:text-base max-w-xl">
+                <p className="text-white/85 mt-4 font-medium drop-shadow text-sm md:text-base max-w-xl">
                   {config.subtextoHero || config.slogan}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3 mt-8">
+                <div className="flex flex-wrap items-center gap-3 mt-6">
                   <button onClick={scrollParaCatalogo} className="px-8 py-3.5 bg-[#1f7a4d] hover:bg-[#185c39] text-white font-bold text-xs uppercase tracking-wider rounded-full shadow-[0_8px_24px_rgba(31,122,77,0.45)] active:scale-95 transition-all">
                     Ver Produtos
                   </button>
@@ -1816,7 +1928,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </a>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-xs text-white/85 font-medium">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6 text-xs text-white/85 font-medium">
                   <span className="flex items-center gap-2"><Truck size={15} className="text-[#7fd9a8]" /> Entrega local</span>
                   <span className="flex items-center gap-2"><BadgePercent size={15} className="text-[#eab308]" /> Varejo & atacado</span>
                   <span className="flex items-center gap-2"><Leaf size={15} className="text-[#7fd9a8]" /> Produtos naturais</span>
@@ -1831,6 +1943,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       qtd={qtdNoCarrinho(produtosDestaque[0].id)}
                       onQtd={q => setQtdCarrinho(produtosDestaque[0].id, q)}
                       onAbrir={() => abrirDetalhe(produtosDestaque[0])}
+                      promo={promoPorProduto[produtosDestaque[0].id]}
                     />
                   </div>
                 )}
@@ -1956,7 +2069,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </div>
                   <div className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     {produtosOferta.map(p => (
-                      <CardEcommerce key={p.id} produto={p} qtd={qtdNoCarrinho(p.id)} onQtd={q => setQtdCarrinho(p.id, q)} onAbrir={() => abrirDetalhe(p)} />
+                      <CardEcommerce key={p.id} produto={p} qtd={qtdNoCarrinho(p.id)} onQtd={q => setQtdCarrinho(p.id, q)} onAbrir={() => abrirDetalhe(p)} promo={promoPorProduto[p.id]} />
                     ))}
                   </div>
                 </div>
@@ -1969,6 +2082,22 @@ const [erroAcesso, setErroAcesso] = useState('');
       {/* ── Conteúdo ── */}
       <div className={`max-w-7xl mx-auto px-4 py-12 ${isWild ? 'pb-40' : 'pb-32'}`}>
         
+        {produtosPromo.length > 0 && (
+          <section id="promocoes" className="scroll-mt-32 mb-10">
+            <div className="rounded-3xl overflow-hidden border border-red-200 bg-red-50/60">
+              <div className="flex items-center justify-between px-5 sm:px-8 py-4 bg-red-600 text-white">
+                <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight">Promoções</h2>
+                <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest"><BadgePercent size={15} /> Preços por tempo limitado</span>
+              </div>
+              <div className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                {produtosPromo.map(p => (
+                  <CardEcommerce key={p.id} produto={p} qtd={qtdNoCarrinho(p.id)} onQtd={q => setQtdCarrinho(p.id, q)} onAbrir={() => abrirDetalhe(p)} promo={promoPorProduto[p.id]} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {categoriaFiltrada === null && produtosDestaque.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center justify-between mb-5">
@@ -1996,6 +2125,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     qtd={qtdNoCarrinho(p.id)}
                     onQtd={q => setQtdCarrinho(p.id, q)}
                     onAbrir={() => abrirDetalhe(p)}
+                    promo={promoPorProduto[p.id]}
                   />
                 </div>
               ))}
@@ -2033,6 +2163,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                               qtd={qtdNoCarrinho(p.id)}
                               onQtd={q => setQtdCarrinho(p.id, q)}
                               onAbrir={() => abrirDetalhe(p)}
+                              promo={promoPorProduto[p.id]}
                             />
                           ))}
                         </div>
@@ -2074,6 +2205,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                                   qtd={qtdNoCarrinho(p.id)}
                                   onQtd={q => setQtdCarrinho(p.id, q)}
                                   onAbrir={() => abrirDetalhe(p)}
+                                  promo={promoPorProduto[p.id]}
                                 />
                               ))}
                             </div>
@@ -2187,7 +2319,7 @@ const [erroAcesso, setErroAcesso] = useState('');
         </nav>
       )}
 
-        </>
+        </div>
       )}
 
       {/* ── Aba lateral: Conta do cliente ── */}
@@ -2382,14 +2514,14 @@ const [erroAcesso, setErroAcesso] = useState('');
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold truncate text-ecom-text text-sm">{produto.nome}</p>
-                        <p className="text-sm text-ecom-muted font-medium">{formatPreco(precoPorQtd(produto, quantidade))} / un.</p>
+                        <p className="text-sm text-ecom-muted font-medium">{formatPreco(precoComPromoProduto(produto, quantidade))} / un.</p>
                         <div className="mt-1.5 flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5">
                             <button onClick={() => setQtdCarrinho(produto.id, quantidade - 1)} className="h-7 w-7 flex items-center justify-center rounded-full border border-ecom-border bg-ecom-card hover:bg-ecom-fill transition-colors text-ecom-text"><Minus size={14} /></button>
                             <span className="w-8 text-center text-sm font-bold text-ecom-text">{quantidade}</span>
                             <button onClick={() => setQtdCarrinho(produto.id, quantidade + 1)} className="h-7 w-7 flex items-center justify-center rounded-full border border-ecom-border bg-ecom-card hover:bg-ecom-fill transition-colors text-ecom-text"><Plus size={14} /></button>
                           </div>
-                          <span className="text-sm font-bold text-ecom-text">{formatPreco(precoPorQtd(produto, quantidade) * quantidade)}</span>
+                          <span className="text-sm font-bold text-ecom-text">{formatPreco(precoComPromoProduto(produto, quantidade) * quantidade)}</span>
                         </div>
                       </div>
                     </div>

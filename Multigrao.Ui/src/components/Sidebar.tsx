@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -55,6 +55,7 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
       { icon: Contact, label: 'Contatos', path: '/comercial/contatos' },
       { icon: Users, label: 'Clientes', path: '/comercial/clientes' },
       { icon: ClipboardList, label: 'Pedidos', path: '/comercial/pedidos' },
+      { icon: BadgePercent, label: 'Promoções', path: '/comercial/promocoes' },
     );
   }
   if (isAdmin || hasSetor('Comercial')) {

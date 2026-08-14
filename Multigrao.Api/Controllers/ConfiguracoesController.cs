@@ -394,6 +394,8 @@ namespace Multigrao.Api.Controllers
             await _context.Conversas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.CarrinhoItens.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Carrinhos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.PromocoesProduto.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Promocoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Notificacoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Avisos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Contatos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();

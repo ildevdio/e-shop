@@ -343,6 +343,25 @@ namespace Multigrao.Api.DTOs
         public string? Redirecionamentos { get; set; }
     }
 
+    // Promoções (Comercial)
+    public class PromocaoProdutoDto
+    {
+        public int ProdutoId { get; set; }
+        public decimal? PrecoPromocional { get; set; }
+    }
+
+    public class CriarPromocaoDto
+    {
+        public string Titulo { get; set; } = string.Empty;
+        public string? Descricao { get; set; }
+        public string Tipo { get; set; } = "percentual";
+        public decimal Valor { get; set; }
+        public DateTime? DataInicio { get; set; }
+        public DateTime? DataFim { get; set; }
+        public bool Ativa { get; set; } = true;
+        public List<PromocaoProdutoDto> Produtos { get; set; } = new();
+    }
+
     public class CriarEmpresaDto
     {
         public string NomeEmpresa { get; set; } = string.Empty;

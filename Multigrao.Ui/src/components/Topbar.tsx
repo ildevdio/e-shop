@@ -12,6 +12,7 @@ const SECTOR_LABELS: Record<string, string> = {
   '/comercial/clientes': 'Comercial — Clientes',
   '/comercial/contatos': 'Comercial — Contatos',
   '/comercial/lista-atendimentos': 'Comercial — Atendimentos',
+  '/comercial/promocoes': 'Comercial — Promoções',
   '/separacao': 'Separação',
   '/logistica': 'Logística',
   '/conferencia': 'Conferência',
