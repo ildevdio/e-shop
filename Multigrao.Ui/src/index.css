@@ -43,6 +43,11 @@
   --color-ecom-muted: #71717a;
   --color-ecom-border: rgba(24, 24, 27, 0.12);
   --color-ecom-strong: #18181b;
+  --color-ecom-strong-escura: #14532d;
+  --color-ecom-deep: #1a2b1d;
+  --color-ecom-tint: #7fd9a8;
+  --color-ecom-warn: #eab308;
+  --color-ecom-warn-foreground: #2c3a2b;
   --color-ecom-secondary: #f97316;
   --color-ecom-secondary-foreground: #ffffff;
 

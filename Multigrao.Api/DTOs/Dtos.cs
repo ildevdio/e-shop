@@ -341,6 +341,8 @@ namespace Multigrao.Api.DTOs
         public string? TipoCarrinho { get; set; }
         public string? LinksBio { get; set; }
         public string? Redirecionamentos { get; set; }
+        public string? HeroImagemTipo { get; set; }
+        public string? MascoteUrl { get; set; }
     }
 
     // Promoções (Comercial)
@@ -386,6 +388,8 @@ namespace Multigrao.Api.DTOs
         public bool? ExibirNomeAbaixoLogo { get; set; }
         public string? TipoMenu { get; set; }
         public string? TipoCarrinho { get; set; }
+        public string? HeroImagemTipo { get; set; }
+        public string? MascoteUrl { get; set; }
         public string? Login { get; set; }
         public string? Senha { get; set; }
     }
@@ -414,6 +418,8 @@ namespace Multigrao.Api.DTOs
         public bool? ExibirNomeAbaixoLogo { get; set; }
         public string? TipoMenu { get; set; }
         public string? TipoCarrinho { get; set; }
+        public string? HeroImagemTipo { get; set; }
+        public string? MascoteUrl { get; set; }
         public string? Slug { get; set; }
         public bool? Ativo { get; set; }
     }

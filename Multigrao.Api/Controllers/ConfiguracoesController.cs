@@ -89,6 +89,10 @@ namespace Multigrao.Api.Controllers
                 config.LinksBio = dto.LinksBio;
             if (dto.Redirecionamentos != null)
                 config.Redirecionamentos = dto.Redirecionamentos;
+            if (!string.IsNullOrWhiteSpace(dto.HeroImagemTipo))
+                config.HeroImagemTipo = dto.HeroImagemTipo;
+            if (dto.MascoteUrl != null)
+                config.MascoteUrl = dto.MascoteUrl;
 
             await _context.SaveChangesAsync();
 
@@ -138,6 +142,8 @@ namespace Multigrao.Api.Controllers
                 ExibirNomeAbaixoLogo = dto.ExibirNomeAbaixoLogo ?? true,
                 TipoMenu = string.IsNullOrWhiteSpace(dto.TipoMenu) ? "dock" : dto.TipoMenu,
                 TipoCarrinho = string.IsNullOrWhiteSpace(dto.TipoCarrinho) ? "pagina" : dto.TipoCarrinho,
+                HeroImagemTipo = string.IsNullOrWhiteSpace(dto.HeroImagemTipo) ? "produto" : dto.HeroImagemTipo,
+                MascoteUrl = dto.MascoteUrl,
                 Ativo = true
             };
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
@@ -207,6 +213,8 @@ namespace Multigrao.Api.Controllers
                     exibirNomeAbaixoLogo = c.ExibirNomeAbaixoLogo,
                     tipoMenu = c.TipoMenu,
                     tipoCarrinho = c.TipoCarrinho,
+                    heroImagemTipo = c.HeroImagemTipo,
+                    mascoteUrl = c.MascoteUrl,
                     ativo = c.Ativo
                 })
                 .ToListAsync();
@@ -297,6 +305,12 @@ namespace Multigrao.Api.Controllers
             if (!string.IsNullOrWhiteSpace(dto.TipoCarrinho))
                 config.TipoCarrinho = dto.TipoCarrinho;
 
+            if (!string.IsNullOrWhiteSpace(dto.HeroImagemTipo))
+                config.HeroImagemTipo = dto.HeroImagemTipo;
+
+            if (dto.MascoteUrl != null)
+                config.MascoteUrl = dto.MascoteUrl;
+
             if (dto.Ativo.HasValue)
                 config.Ativo = dto.Ativo.Value;
 
@@ -345,6 +359,8 @@ namespace Multigrao.Api.Controllers
                 exibirNomeAbaixoLogo = config.ExibirNomeAbaixoLogo,
                 tipoMenu = config.TipoMenu,
                 tipoCarrinho = config.TipoCarrinho,
+                heroImagemTipo = config.HeroImagemTipo,
+                mascoteUrl = config.MascoteUrl,
                 ativo = config.Ativo
             });
         }
@@ -441,6 +457,8 @@ namespace Multigrao.Api.Controllers
                 exibirNomeAbaixoLogo = config.ExibirNomeAbaixoLogo,
                 tipoMenu = config.TipoMenu,
                 tipoCarrinho = config.TipoCarrinho,
+                heroImagemTipo = config.HeroImagemTipo,
+                mascoteUrl = config.MascoteUrl,
                 linksBio = config.LinksBio,
                 redirecionamentos = config.Redirecionamentos
             };

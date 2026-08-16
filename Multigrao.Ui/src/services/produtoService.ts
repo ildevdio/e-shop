@@ -148,4 +148,18 @@ export const produtoService = {
       return false;
     }
   },
+
+  importarCrm: async (arquivo: File): Promise<{ importados: number; atualizados: number; erros: number; message?: string }> => {
+    try {
+      const formData = new FormData();
+      formData.append('arquivo', arquivo);
+      const response = await axios.post(`${API_URL}/importar`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      const msg = axios.isAxiosError(error) && error.response?.data?.message;
+      throw new Error(msg || 'Falha ao importar produtos do ERP.');
+    }
+  },
 };

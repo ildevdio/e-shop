@@ -27,6 +27,8 @@ export interface ConfiguracaoSistema {
   tipoCarrinho: string;
   linksBio?: string | null;
   redirecionamentos?: string | null;
+  heroImagemTipo: string;
+  mascoteUrl: string;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
@@ -161,16 +163,16 @@ export const DESIGNS_ECOMMERCE: Record<string, DesignEcommerce> = {
       navRgb: '255,255,255',
       navAlphaMax: 0.98,
       navAlphaMin: 0,
-      navTexto: '#2c3a2b',
-      navBtnConta: 'bg-white/80 border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10',
-      navBtnCarrinho: 'bg-[#1f7a4d] text-white hover:bg-[#185c39]',
-      navBtnMenu: 'bg-white/80 border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10',
-      cardClasse: 'rounded-2xl bg-ecom-card border border-[#2c3a2b]/10',
-      cardSombra: 'shadow-[0_2px_14px_rgba(44,58,43,0.06)] hover:shadow-[0_16px_32px_rgba(31,122,77,0.18)] hover:-translate-y-1',
+      navTexto: 'var(--color-ecom-text)',
+      navBtnConta: 'bg-white/80 border border-ecom-strong/25 text-ecom-text hover:bg-ecom-strong/10',
+      navBtnCarrinho: 'bg-ecom-strong text-white hover:bg-ecom-strong-escura',
+      navBtnMenu: 'bg-white/80 border border-ecom-strong/25 text-ecom-text hover:bg-ecom-strong/10',
+      cardClasse: 'rounded-2xl bg-ecom-card border border-ecom-border',
+      cardSombra: 'shadow-[0_2px_14px] shadow-ecom-text/5 hover:shadow-[0_16px_32px] hover:shadow-ecom-strong/20 hover:-translate-y-1',
       botaoClasse: 'rounded-full uppercase tracking-wider',
       stepperClasse: 'rounded-full',
       heroOverlay: 'bg-gradient-to-t from-black/75 via-black/25 to-transparent',
-      tickerClasse: 'bg-[#1f7a4d] text-white',
+      tickerClasse: 'bg-ecom-strong text-white',
       tituloTransform: '',
     },
   },
@@ -228,6 +230,8 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   exibirNomeAbaixoLogo: true,
   tipoMenu: 'dock',
   tipoCarrinho: 'pagina',
+  heroImagemTipo: 'produto',
+  mascoteUrl: '',
 };
 
 function luminancia(hex: string): number {
@@ -259,6 +263,54 @@ function shade(hex: string, fator: number): string {
     return Math.max(0, Math.min(255, v));
   });
   return `rgb(${r}, ${g}, ${b})`;
+}
+
+function mix(hexA: string, hexB: string, pctB: number): string {
+  const a = rgb(hexA);
+  const b = rgb(hexB);
+  const c = a.map((va, i) => Math.round(va + (b[i] - va) * pctB));
+  return `#${c.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function darken(hex: string, fator: number): string {
+  const [r, g, b] = rgb(hex).map(c => Math.round(c * (1 - fator)));
+  return `#${[r, g, b].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('')}`;
+}
+
+export interface CoresWild {
+  bg: string;
+  card: string;
+  surface: string;
+  fill: string;
+  text: string;
+  muted: string;
+  border: string;
+  strong: string;
+  strongEscura: string;
+  deep: string;
+  tint: string;
+  warn: string;
+  warnForeground: string;
+}
+
+export function coresWild(cor: string, corSecundaria: string, corFonte?: string): CoresWild {
+  const text = corFonte || mix(cor, '#0a0a0a', 0.62);
+  const warnForeground = luminancia(corSecundaria) > 0.55 ? '#0a0a0a' : '#ffffff';
+  return {
+    bg: mix(cor, '#ffffff', 0.94),
+    card: '#ffffff',
+    surface: mix(cor, '#ffffff', 0.87),
+    fill: mix(cor, '#ffffff', 0.79),
+    text,
+    muted: mix(text, '#ffffff', 0.52),
+    border: rgba(text, 0.14),
+    strong: cor,
+    strongEscura: darken(cor, 0.2),
+    deep: darken(cor, 0.7),
+    tint: mix(cor, '#ffffff', 0.55),
+    warn: corSecundaria,
+    warnForeground,
+  };
 }
 
 interface SistemaStore {
@@ -309,6 +361,8 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           tipoCarrinho: data.tipoCarrinho || CONFIG_PADRAO.tipoCarrinho,
           linksBio: data.linksBio ?? null,
           redirecionamentos: data.redirecionamentos ?? null,
+          heroImagemTipo: data.heroImagemTipo || CONFIG_PADRAO.heroImagemTipo,
+          mascoteUrl: data.mascoteUrl ?? '',
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -359,6 +413,8 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           tipoCarrinho: config.tipoCarrinho,
           linksBio: config.linksBio,
           redirecionamentos: config.redirecionamentos,
+          heroImagemTipo: config.heroImagemTipo,
+          mascoteUrl: config.mascoteUrl,
         }),
       });
       if (!resp.ok) return false;
@@ -389,6 +445,8 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         tipoCarrinho: data.tipoCarrinho || config.tipoCarrinho,
         linksBio: data.linksBio ?? config.linksBio,
         redirecionamentos: data.redirecionamentos ?? config.redirecionamentos,
+        heroImagemTipo: data.heroImagemTipo || config.heroImagemTipo,
+        mascoteUrl: data.mascoteUrl ?? config.mascoteUrl,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);
@@ -414,6 +472,37 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
     const corFonte = config.corFonte || design.text;
     const fonte = FONTES_ECOMMERCE[config.fonte] ?? FONTES_ECOMMERCE.classica;
 
+    let ecomBg = design.bg;
+    let ecomCard = design.card;
+    let ecomSurface = design.surface;
+    let ecomFill = design.fill;
+    let ecomText = corFonte;
+    let ecomMuted = design.muted;
+    let ecomBorder = design.border;
+    let ecomStrong = design.strong;
+    let ecomStrongEscura = darken(ecomStrong, 0.2);
+    let ecomDeep = darken(cor, 0.7);
+    let ecomTint = mix(cor, '#ffffff', 0.55);
+    let ecomWarn = secundaria;
+    let ecomWarnForeground = secundariaForeground;
+
+    if (config.designEcommerce === 'wild') {
+      const w = coresWild(cor, secundaria, config.corFonte);
+      ecomBg = w.bg;
+      ecomCard = w.card;
+      ecomSurface = w.surface;
+      ecomFill = w.fill;
+      ecomText = w.text;
+      ecomMuted = w.muted;
+      ecomBorder = w.border;
+      ecomStrong = w.strong;
+      ecomStrongEscura = w.strongEscura;
+      ecomDeep = w.deep;
+      ecomTint = w.tint;
+      ecomWarn = w.warn;
+      ecomWarnForeground = w.warnForeground;
+    }
+
     const root = document.documentElement;
     root.style.setProperty('--color-primary', cor);
     root.style.setProperty('--color-primary-foreground', foreground);
@@ -426,14 +515,19 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
     root.style.setProperty('--color-sidebar-border', border);
     root.style.setProperty('--color-sidebar-muted', muted);
     root.style.setProperty('--color-sidebar-accent', foreground);
-    root.style.setProperty('--color-ecom-bg', design.bg);
-    root.style.setProperty('--color-ecom-card', design.card);
-    root.style.setProperty('--color-ecom-surface', design.surface);
-    root.style.setProperty('--color-ecom-fill', design.fill);
-    root.style.setProperty('--color-ecom-text', corFonte);
-    root.style.setProperty('--color-ecom-muted', design.muted);
-    root.style.setProperty('--color-ecom-border', design.border);
-    root.style.setProperty('--color-ecom-strong', design.strong);
+    root.style.setProperty('--color-ecom-bg', ecomBg);
+    root.style.setProperty('--color-ecom-card', ecomCard);
+    root.style.setProperty('--color-ecom-surface', ecomSurface);
+    root.style.setProperty('--color-ecom-fill', ecomFill);
+    root.style.setProperty('--color-ecom-text', ecomText);
+    root.style.setProperty('--color-ecom-muted', ecomMuted);
+    root.style.setProperty('--color-ecom-border', ecomBorder);
+    root.style.setProperty('--color-ecom-strong', ecomStrong);
+    root.style.setProperty('--color-ecom-strong-escura', ecomStrongEscura);
+    root.style.setProperty('--color-ecom-deep', ecomDeep);
+    root.style.setProperty('--color-ecom-tint', ecomTint);
+    root.style.setProperty('--color-ecom-warn', ecomWarn);
+    root.style.setProperty('--color-ecom-warn-foreground', ecomWarnForeground);
     root.style.setProperty('--color-ecom-secondary', secundaria);
     root.style.setProperty('--color-ecom-secondary-foreground', secundariaForeground);
     root.style.setProperty('--font-heading', fonte.heading);

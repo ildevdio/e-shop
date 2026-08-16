@@ -114,55 +114,55 @@ function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado, promo }:
   const temPromo = precoPromo < precoBase;
   const pctPromo = temPromo ? pctDesconto(precoBase, precoPromo) : 0;
   return (
-    <div className={`group bg-white transition-all flex flex-col h-full overflow-hidden border border-[#2c3a2b]/10 rounded-2xl shadow-[0_2px_14px_rgba(44,58,43,0.06)] hover:shadow-[0_16px_32px_rgba(31,122,77,0.18)] hover:-translate-y-1`}>
-      <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-[#efe9da] rounded-t-2xl text-left">
+    <div className={`group bg-white transition-all flex flex-col h-full overflow-hidden border border-ecom-border rounded-2xl shadow-[0_2px_14px] shadow-ecom-text/5 hover:shadow-[0_16px_32px] hover:shadow-ecom-strong/20 hover:-translate-y-1`}>
+      <button onClick={onAbrir} className="relative aspect-square overflow-hidden bg-ecom-surface rounded-t-2xl text-left">
         {produtoImagemUrl(produto) ? (
           <img src={produtoImagemUrl(produto)} alt={produto.nome} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         ) : (
-          <span className="absolute inset-0 flex items-center justify-center text-[#74806f] text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
+          <span className="absolute inset-0 flex items-center justify-center text-ecom-muted text-[10px] font-bold uppercase tracking-widest">Sem foto</span>
         )}
         <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start">
           {pctPromo > 0 && <span className="bg-[#dc2626] text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pctPromo}%</span>}
-          {!temPromo && pct > 0 && <span className="bg-[#eab308] text-[#2c3a2b] text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pct}%</span>}
-          {produto.vendidoAGranel && <span className="bg-[#1f7a4d] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">A granel</span>}
-          {isAtacado && !temPromo && <span className="bg-[#2c3a2b] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Atacado</span>}
+          {!temPromo && pct > 0 && <span className="bg-ecom-warn text-ecom-warn-foreground text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">-{pct}%</span>}
+          {produto.vendidoAGranel && <span className="bg-ecom-strong text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">A granel</span>}
+          {isAtacado && !temPromo && <span className="bg-ecom-text text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Atacado</span>}
         </div>
         {produto.estoque <= 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Esgotado</span>}
       </button>
       <div className="p-3.5 sm:p-4 flex-1 flex flex-col">
-        {showMarca && produto.marca?.nome && <p className="text-[11px] font-bold text-[#1f7a4d] mb-1.5 truncate uppercase tracking-wide">{produto.marca.nome}</p>}
+        {showMarca && produto.marca?.nome && <p className="text-[11px] font-bold text-ecom-strong mb-1.5 truncate uppercase tracking-wide">{produto.marca.nome}</p>}
         <button onClick={onAbrir} className="text-left mb-1">
-          <h3 className={`font-sans font-bold text-[#2c3a2b] text-sm sm:text-base leading-snug line-clamp-2 hover:text-[#1f7a4d] transition-colors`}>{produto.nome}</h3>
+          <h3 className={`font-sans font-bold text-ecom-text text-sm sm:text-base leading-snug line-clamp-2 hover:text-ecom-strong transition-colors`}>{produto.nome}</h3>
         </button>
-        <p className="text-[11px] text-[#74806f] mb-3 truncate">
+        <p className="text-[11px] text-ecom-muted mb-3 truncate">
           {produto.embalagem && `${produto.embalagem} `}
           {produto.unidadeVenda && `· ${produto.unidadeVenda}`}
         </p>
 
         <div className="mt-auto pt-2 pb-4">
           <div className="flex flex-col gap-0.5">
-            {temPromo && <p className="text-[11px] font-medium text-[#74806f] line-through">{formatPreco(precoBase)}</p>}
+            {temPromo && <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>}
             {!temPromo && isAtacado && (produto.precoAtacado ?? 0) < (produto.precoVarejo ?? 0) && (
-              <p className="text-[11px] font-medium text-[#74806f] line-through">{formatPreco(produto.precoVarejo)}</p>
+              <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
             )}
             <div className="flex items-baseline gap-1.5">
-              <p className={`text-xl font-black leading-none ${temPromo ? 'text-[#dc2626]' : 'text-[#2c3a2b]'}`}>{formatPreco(precoPromo)}</p>
+              <p className={`text-xl font-black leading-none ${temPromo ? 'text-[#dc2626]' : 'text-ecom-text'}`}>{formatPreco(precoPromo)}</p>
               {temPromo && <span className="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider">Promo</span>}
-              {isAtacado && !temPromo && <span className="text-[10px] font-bold text-[#1f7a4d]">no atacado</span>}
+              {isAtacado && !temPromo && <span className="text-[10px] font-bold text-ecom-strong">no atacado</span>}
             </div>
-            {isAtacado && <p className="text-[10px] font-medium text-[#74806f] mt-1">A partir de {qtdMinimaAtacado(produto)} un.</p>}
-            <p className="text-[10px] text-[#a3ad9e] mt-1">Pix, dinheiro ou boleto</p>
+            {isAtacado && <p className="text-[10px] font-medium text-ecom-muted mt-1">A partir de {qtdMinimaAtacado(produto)} un.</p>}
+            <p className="text-[10px] text-ecom-muted mt-1">Pix, dinheiro ou boleto</p>
           </div>
         </div>
 
         {qtd > 0 ? (
-          <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between bg-[#f4efe4] border-[#e5dcc6]" grande={true} />
+          <CampoQuantidade valor={qtd} max={produto.estoque} onChange={onQtd} aoRemover={() => onQtd(0)} className="w-full justify-between bg-ecom-surface border-ecom-fill" grande={true} />
         ) : produto.estoque <= 0 ? (
-          <button disabled className={`w-full py-3 bg-[#e5dcc6] text-[#74806f] font-bold text-[13px] rounded-full cursor-not-allowed`}>
+          <button disabled className={`w-full py-3 bg-ecom-fill text-ecom-muted font-bold text-[13px] rounded-full cursor-not-allowed`}>
             Esgotado
           </button>
         ) : (
-          <button onClick={onAbrir} className={`w-full py-3 bg-[#1f7a4d] hover:bg-[#185c39] text-white font-bold text-[13px] rounded-full uppercase tracking-wider transition-all shadow-sm shadow-[#1f7a4d]/30 active:scale-95`}>
+          <button onClick={onAbrir} className={`w-full py-3 bg-ecom-strong hover:bg-ecom-strong-escura text-white font-bold text-[13px] rounded-full uppercase tracking-wider transition-all shadow-sm shadow-ecom-strong/30 active:scale-95`}>
             Adicionar
           </button>
         )}
@@ -1166,9 +1166,9 @@ const [erroAcesso, setErroAcesso] = useState('');
         <aside className={`hidden md:flex fixed left-0 top-0 bottom-0 z-30 flex-col bg-ecom-surface border-r border-ecom-border transition-[width] duration-300 ${sidebarExpandida ? 'w-72' : 'w-16'}`}>
           {sidebarExpandida ? (
             <>
-              <div className="flex items-center justify-between px-5 py-4 bg-primary text-primary-foreground">
-                <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-9 w-auto max-w-[180px] object-contain" />
-                <button onClick={() => setSidebarExpandida(false)} title="Recolher" className="p-2 rounded-full hover:bg-white/10 transition-colors"><ChevronLeft size={20} /></button>
+              <div className={`flex items-center justify-between shrink-0 ${isWild ? 'h-8 px-3 bg-ecom-strong text-white' : 'px-5 py-4 bg-primary text-primary-foreground'}`}>
+                <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className={`object-contain ${isWild ? 'h-6 w-auto max-w-[130px]' : 'h-9 w-auto max-w-[180px]'}`} />
+                <button onClick={() => setSidebarExpandida(false)} title="Recolher" className={`p-1 rounded-full transition-colors shrink-0 ${isWild ? 'hover:bg-white/15' : 'hover:bg-white/10'}`}><ChevronLeft size={isWild ? 16 : 20} /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-5">
                 <div className="mb-5">
@@ -1212,10 +1212,18 @@ const [erroAcesso, setErroAcesso] = useState('');
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center gap-3 py-4">
-              <button onClick={() => setSidebarExpandida(true)} title="Expandir menu" className="h-10 w-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                <ChevronRight size={18} />
-              </button>
+            <div className={`flex flex-col items-center gap-3 ${isWild ? 'py-0' : 'py-4'}`}>
+              {isWild ? (
+                <div className="h-8 w-full shrink-0">
+                  <button onClick={() => setSidebarExpandida(true)} title="Expandir menu" className="h-8 w-full flex items-center justify-center bg-ecom-strong text-white hover:bg-white/15 transition-colors">
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setSidebarExpandida(true)} title="Expandir menu" className="h-10 w-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  <ChevronRight size={18} />
+                </button>
+              )}
               <button onClick={() => setSidebarExpandida(true)} title="Buscar" className="h-10 w-10 flex items-center justify-center rounded-2xl border border-ecom-border bg-ecom-card text-ecom-text hover:border-primary transition-colors">
                 <Search size={18} />
               </button>
@@ -1245,15 +1253,15 @@ const [erroAcesso, setErroAcesso] = useState('');
 
       {/* ── Nav fixa (dock / hamburguer / lateral) ── */}
       {isWild ? (
-        <div className={`fixed top-0 z-40 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'inset-x-0'}`}>
-          <div className="bg-[#1f7a4d] text-white">
+        <div className={`fixed top-0 right-0 z-40 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'left-0'}`}>
+          <div className="bg-ecom-strong text-white">
             <div className="max-w-7xl mx-auto px-4 h-8 flex items-center justify-center sm:justify-between gap-4 text-[11px] font-medium">
               <span className="hidden sm:flex items-center gap-1.5 truncate"><MapPin size={12} className="shrink-0 text-white/70" /> {config.endereco}</span>
               <span className="flex items-center gap-1.5"><Phone size={12} className="shrink-0 text-white/70" /> (81) 98859-3757 · Varejo & Atacado</span>
             </div>
           </div>
           <div
-            className="border-b border-[#2c3a2b]/10 backdrop-blur-xl"
+            className="border-b border-ecom-border backdrop-blur-xl"
             style={{
               backgroundColor: `rgba(255,255,255,0.98)`,
               backdropFilter: 'blur(20px) saturate(160%)',
@@ -1262,11 +1270,11 @@ const [erroAcesso, setErroAcesso] = useState('');
           >
             <div className="max-w-7xl mx-auto px-4">
               <div className="flex items-center gap-3 sm:gap-5 h-14">
-                <button onClick={() => setMenuLateral(true)} className="lg:hidden h-9 w-9 flex items-center justify-center rounded-full border border-[#1f7a4d]/25 text-[#2c3a2b] hover:bg-[#1f7a4d]/10 transition-colors shrink-0" title="Menu">
+                <button onClick={() => setMenuLateral(true)} className="lg:hidden h-9 w-9 flex items-center justify-center rounded-full border border-ecom-strong/25 text-ecom-text hover:bg-ecom-strong/10 transition-colors shrink-0" title="Menu">
                   <Menu size={18} />
                 </button>
                 <button onClick={scrollParaCatalogo} className="flex items-center gap-2 shrink-0">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#1f7a4d] shadow-sm shrink-0 overflow-hidden">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-ecom-strong shadow-sm shrink-0 overflow-hidden">
                     <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-10 w-auto max-w-10 object-contain" />
                   </span>
                   <span className="hidden xl:inline font-heading font-black text-lg tracking-tight whitespace-nowrap" style={{ color: config.corPrincipal }}>{config.nomeEmpresa}</span>
@@ -1278,7 +1286,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                     onChange={setFiltro}
                     sugestoes={sugestoes}
                     aoSelecionar={s => setFiltro(s.rotulo)}
-                    classNameInput="w-full max-w-xl h-10 pl-11 pr-4 bg-[#f4efe4] border border-transparent focus:border-[#1f7a4d]/40 rounded-full focus:outline-none text-sm transition-all"
+                    classNameInput="w-full max-w-xl h-10 pl-11 pr-4 bg-ecom-surface border border-transparent focus:border-ecom-strong/40 rounded-full focus:outline-none text-sm transition-all"
                     onBuscar={buscarECatalogo}
                   />
                 </div>
@@ -1289,7 +1297,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   <ShoppingCart size={16} />
                   <span className="hidden md:inline">Carrinho</span>
                   {totalItensCarrinho > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 h-6 min-w-6 px-1.5 bg-[#eab308] text-[#2c3a2b] text-[11px] font-black border-2 border-white rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 h-6 min-w-6 px-1.5 bg-ecom-warn text-ecom-warn-foreground text-[11px] font-black border-2 border-white rounded-full flex items-center justify-center">
                       {totalItensCarrinho}
                     </span>
                   )}
@@ -1299,7 +1307,7 @@ const [erroAcesso, setErroAcesso] = useState('');
           </div>
         </div>
       ) : (
-      <div className={`fixed top-0 z-40 px-3 sm:px-4 pt-3 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'inset-x-0'}`}>
+      <div className={`fixed top-0 right-0 z-40 px-3 sm:px-4 pt-3 transition-[left] duration-300 ${config.tipoMenu === 'lateral' ? (sidebarExpandida ? 'md:left-72' : 'md:left-16') : 'left-0'}`}>
           <div
             className="max-w-7xl mx-auto rounded-2xl sm:rounded-3xl transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300"
             style={{
@@ -1803,6 +1811,8 @@ const [erroAcesso, setErroAcesso] = useState('');
                       <option value="Dinheiro">Dinheiro</option>
                       <option value="PIX">PIX</option>
                       <option value="Boleto">Boleto</option>
+                      <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      <option value="Cartão de Débito">Cartão de Débito</option>
                     </select>
                     {pagamento === 'Boleto' && (
                       <p className="text-xs text-ecom-muted mt-2">
@@ -1855,12 +1865,12 @@ const [erroAcesso, setErroAcesso] = useState('');
       ) : (
         <div className={isWild ? 'pt-[89px]' : ''}>
           {isWild && (
-            <div className="hidden lg:block sticky top-[89px] z-30 bg-white border-b border-[#2c3a2b]/10">
+            <div className="hidden lg:block sticky top-[89px] z-30 bg-white border-b border-ecom-border">
               <div className="max-w-7xl mx-auto px-4">
                 <div className="flex items-center gap-2 py-2 overflow-x-auto scrollbar-hide">
                   <button
                     onClick={() => { setFiltro(''); aplicarFiltroCategoria(null); }}
-                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-text hover:bg-ecom-fill'}`}
                   >
                     Todos
                   </button>
@@ -1870,7 +1880,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       <button
                         key={c.id}
                         onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
-                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#1f7a4d] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-text hover:bg-ecom-fill'}`}
                       >
                         {c.nome}
                       </button>
@@ -1882,7 +1892,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                       <button
                         key={m.id}
                         onClick={() => { setFiltro(''); aplicarFiltroMarca(m.id); }}
-                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-[#2c3a2b] text-white' : 'bg-[#f4efe4] text-[#2c3a2b] hover:bg-[#e5dcc6]'}`}
+                        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-ecom-text text-white' : 'bg-ecom-surface text-ecom-text hover:bg-ecom-fill'}`}
                       >
                         {m.nome}
                       </button>
@@ -1894,11 +1904,11 @@ const [erroAcesso, setErroAcesso] = useState('');
           )}
       {/* ── Hero ── */}
       {isWild ? (
-        <div className="relative overflow-hidden bg-[#1a2b1d] min-h-[calc(100vh-135px)] lg:min-h-[calc(100vh-110px)] flex items-end">
+        <div className="relative overflow-hidden bg-ecom-deep min-h-[calc(100vh-135px)] lg:min-h-[calc(100vh-110px)] flex items-end">
           <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
             <source src="/multigraosvid.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1a2b1d]/95 via-[#1a2b1d]/65 to-[#1a2b1d]/10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ecom-deep/95 via-ecom-deep/65 to-ecom-deep/10" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
 
           <div className="relative z-10 w-full">
@@ -1910,7 +1920,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                   className="h-auto object-contain mt-6 mb-1 brightness-110 w-[9.4rem] md:w-[11.4rem]"
                 />
                 {config.exibirNomeAbaixoLogo && (
-                  <p className="text-[#c8f0d8] text-sm font-bold uppercase tracking-[0.25em] drop-shadow">{config.nomeEmpresa}</p>
+                  <p className="text-ecom-tint text-sm font-bold uppercase tracking-[0.25em] drop-shadow">{config.nomeEmpresa}</p>
                 )}
                 <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight mt-2 drop-shadow-lg">
                   {config.tituloHero || config.nomeEmpresa}
@@ -1920,7 +1930,7 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3 mt-6">
-                  <button onClick={scrollParaCatalogo} className="px-8 py-3.5 bg-[#1f7a4d] hover:bg-[#185c39] text-white font-bold text-xs uppercase tracking-wider rounded-full shadow-[0_8px_24px_rgba(31,122,77,0.45)] active:scale-95 transition-all">
+                  <button onClick={scrollParaCatalogo} className="px-8 py-3.5 bg-ecom-strong hover:bg-ecom-strong-escura text-white font-bold text-xs uppercase tracking-wider rounded-full shadow-[0_8px_24px] shadow-ecom-strong/45 active:scale-95 transition-all">
                     Ver Produtos
                   </button>
                   <a href="https://wa.me/5581988593757" target="_blank" rel="noopener noreferrer" className="px-8 py-3.5 border border-white/30 text-white font-bold text-xs uppercase tracking-wider rounded-full hover:bg-white/10 transition-colors">
@@ -1929,14 +1939,14 @@ const [erroAcesso, setErroAcesso] = useState('');
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6 text-xs text-white/85 font-medium">
-                  <span className="flex items-center gap-2"><Truck size={15} className="text-[#7fd9a8]" /> Entrega local</span>
-                  <span className="flex items-center gap-2"><BadgePercent size={15} className="text-[#eab308]" /> Varejo & atacado</span>
-                  <span className="flex items-center gap-2"><Leaf size={15} className="text-[#7fd9a8]" /> Produtos naturais</span>
+                  <span className="flex items-center gap-2"><Truck size={15} className="text-ecom-tint" /> Entrega local</span>
+                  <span className="flex items-center gap-2"><BadgePercent size={15} className="text-ecom-warn" /> Varejo & atacado</span>
+                  <span className="flex items-center gap-2"><Leaf size={15} className="text-ecom-tint" /> Produtos naturais</span>
                 </div>
               </div>
 
               <div className="hidden lg:block pb-4">
-                {produtosDestaque[0] && (
+                {config.heroImagemTipo === 'produto' && produtosDestaque[0] && (
                   <div className="max-w-[330px] ml-auto -rotate-1">
                     <CardCarrossel
                       produto={produtosDestaque[0]}
@@ -1945,6 +1955,13 @@ const [erroAcesso, setErroAcesso] = useState('');
                       onAbrir={() => abrirDetalhe(produtosDestaque[0])}
                       promo={promoPorProduto[produtosDestaque[0].id]}
                     />
+                  </div>
+                )}
+                {config.heroImagemTipo === 'mascote' && config.mascoteUrl && (
+                  <div className="max-w-[330px] ml-auto -rotate-1">
+                    <div className="aspect-[4/5] rounded-3xl overflow-hidden border-4 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.35)] bg-ecom-card">
+                      <img src={midiaUrl(config.mascoteUrl)} alt="Mascote" className="w-full h-full object-cover" />
+                    </div>
                   </div>
                 )}
               </div>
@@ -2008,7 +2025,7 @@ const [erroAcesso, setErroAcesso] = useState('');
 
       {isWild && (
         <>
-          <section className="bg-white border-b border-[#2c3a2b]/10">
+          <section className="bg-white border-b border-ecom-border">
             <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
                 { icon: Leaf, titulo: 'Produtos naturais', texto: 'Cereais, grãos e especiarias selecionados' },
@@ -2017,22 +2034,38 @@ const [erroAcesso, setErroAcesso] = useState('');
                 { icon: MessageCircle, titulo: 'Atendimento humano', texto: 'Fale com a gente pelo WhatsApp' },
               ].map(({ icon: Icon, titulo, texto }) => (
                 <div key={titulo} className="flex items-start gap-3">
-                  <div className="h-11 w-11 shrink-0 rounded-full bg-[#1f7a4d]/10 text-[#1f7a4d] flex items-center justify-center">
+                  <div className="h-11 w-11 shrink-0 rounded-full bg-ecom-strong/10 text-ecom-strong flex items-center justify-center">
                     <Icon size={20} />
                   </div>
                   <div>
-                    <p className="font-bold text-[#2c3a2b] text-sm">{titulo}</p>
-                    <p className="text-[11px] text-[#74806f] mt-0.5 leading-relaxed">{texto}</p>
+                    <p className="font-bold text-ecom-text text-sm">{titulo}</p>
+                    <p className="text-[11px] text-ecom-muted mt-0.5 leading-relaxed">{texto}</p>
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
+          {produtosPromo.length > 0 && (
+            <section id="wild-ofertas" className="max-w-7xl mx-auto px-4 pt-10 pb-4 scroll-mt-40">
+              <div className="rounded-3xl overflow-hidden border border-ecom-warn/30 bg-ecom-warn/5">
+                <div className="flex items-center justify-between px-5 sm:px-8 py-4 bg-ecom-warn text-ecom-warn-foreground">
+                  <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight">Ofertas em promoção</h2>
+                  <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest"><BadgePercent size={15} /> Preços por tempo limitado</span>
+                </div>
+                <div className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                  {produtosPromo.slice(0, 5).map(p => (
+                    <CardEcommerce key={p.id} produto={p} qtd={qtdNoCarrinho(p.id)} onQtd={q => setQtdCarrinho(p.id, q)} onAbrir={() => abrirDetalhe(p)} promo={promoPorProduto[p.id]} />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="max-w-7xl mx-auto px-4 pt-10 pb-4">
             <div className="mb-5">
-              <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#2c3a2b]">Nossas categorias</h2>
-              <p className="text-sm text-[#74806f] mt-1">Navegue pelo que temos de melhor</p>
+              <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase tracking-tight text-ecom-text">Nossas categorias</h2>
+              <p className="text-sm text-ecom-muted mt-1">Navegue pelo que temos de melhor</p>
             </div>
             <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
               {todasCategorias.filter(c => c.id !== 0).map(c => {
@@ -2041,48 +2074,25 @@ const [erroAcesso, setErroAcesso] = useState('');
                   <button
                     key={c.id}
                     onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
-                    className={`shrink-0 w-[10.5rem] rounded-2xl border p-4 text-left transition-all ${categoriaFiltrada === c.id ? 'border-[#1f7a4d] bg-[#1f7a4d]/5' : 'border-[#2c3a2b]/10 bg-white hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(44,58,43,0.08)]'}`}
+                    className={`shrink-0 w-[10.5rem] rounded-2xl border p-4 text-left transition-all ${categoriaFiltrada === c.id ? 'border-ecom-strong bg-ecom-strong/5' : 'border-ecom-border bg-white hover:-translate-y-0.5 hover:shadow-[0_8px_20px] hover:shadow-ecom-text/10'}`}
                   >
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-3 ${categoriaFiltrada === c.id ? 'bg-[#1f7a4d] text-white' : 'bg-[#efe9da] text-[#1f7a4d]'}`}>
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-3 ${categoriaFiltrada === c.id ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-strong'}`}>
                       <LayoutGrid size={18} />
                     </div>
-                    <p className="font-bold text-[#2c3a2b] text-sm leading-tight line-clamp-2">{c.nome}</p>
-                    <p className="text-[11px] font-medium text-[#74806f] mt-1">{total} {total === 1 ? 'produto' : 'produtos'}</p>
+                    <p className="font-bold text-ecom-text text-sm leading-tight line-clamp-2">{c.nome}</p>
+                    <p className="text-[11px] font-medium text-ecom-muted mt-1">{total} {total === 1 ? 'produto' : 'produtos'}</p>
                   </button>
                 );
               })}
             </div>
           </section>
-
-          {(() => {
-            const produtosOferta = categorias
-              .flatMap(c => c.grupos.flatMap(g => g.produtos))
-              .filter(p => (p.precoAtacado ?? 0) > 0 && (p.precoVarejo ?? 0) > (p.precoAtacado ?? 0) && p.ativo)
-              .slice(0, 5);
-            if (produtosOferta.length === 0) return null;
-            return (
-              <section id="wild-ofertas" className="max-w-7xl mx-auto px-4 pt-10 pb-4 scroll-mt-40">
-                <div className="rounded-3xl overflow-hidden border border-[#eab308]/30 bg-[#fffbea]">
-                  <div className="flex items-center justify-between px-5 sm:px-8 py-4 bg-[#eab308] text-[#2c3a2b]">
-                    <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight">Ofertas em atacado</h2>
-                    <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest"><BadgePercent size={15} /> Preços por unidade</span>
-                  </div>
-                  <div className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                    {produtosOferta.map(p => (
-                      <CardEcommerce key={p.id} produto={p} qtd={qtdNoCarrinho(p.id)} onQtd={q => setQtdCarrinho(p.id, q)} onAbrir={() => abrirDetalhe(p)} promo={promoPorProduto[p.id]} />
-                    ))}
-                  </div>
-                </div>
-              </section>
-            );
-          })()}
         </>
       )}
 
       {/* ── Conteúdo ── */}
       <div className={`max-w-7xl mx-auto px-4 py-12 ${isWild ? 'pb-40' : 'pb-32'}`}>
         
-        {produtosPromo.length > 0 && (
+        {!isWild && produtosPromo.length > 0 && (
           <section id="promocoes" className="scroll-mt-32 mb-10">
             <div className="rounded-3xl overflow-hidden border border-red-200 bg-red-50/60">
               <div className="flex items-center justify-between px-5 sm:px-8 py-4 bg-red-600 text-white">
@@ -2251,13 +2261,13 @@ const [erroAcesso, setErroAcesso] = useState('');
       )}
 
       {isWild && (
-        <footer className="bg-[#1c2b1e] text-white/80">
+        <footer className="bg-ecom-deep text-white/80">
           <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div className="lg:col-span-2">
               <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-12 w-auto object-contain brightness-0 invert" />
               <p className="mt-4 text-sm text-white/60 max-w-sm leading-relaxed">{config.slogan || config.subtextoHero}</p>
               {config.endereco && (
-                <p className="mt-4 text-sm text-white/70 flex items-center gap-2"><MapPin size={14} className="text-[#7fd9a8] shrink-0" /> {config.endereco}</p>
+                <p className="mt-4 text-sm text-white/70 flex items-center gap-2"><MapPin size={14} className="text-ecom-tint shrink-0" /> {config.endereco}</p>
               )}
             </div>
             <div>
@@ -2273,9 +2283,9 @@ const [erroAcesso, setErroAcesso] = useState('');
             <div>
               <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Atendimento</h3>
               <ul className="space-y-2.5 text-sm">
-                <li><a href="https://wa.me/5581988593757" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors"><MessageCircle size={14} className="text-[#7fd9a8] shrink-0" /> WhatsApp</a></li>
-                <li className="flex items-center gap-2"><Phone size={14} className="text-[#7fd9a8] shrink-0" /> (81) 98859-3757</li>
-                <li><button onClick={abrirCarrinho} className="flex items-center gap-2 hover:text-white transition-colors"><ShoppingCart size={14} className="text-[#7fd9a8] shrink-0" /> Meu pedido</button></li>
+                <li><a href="https://wa.me/5581988593757" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors"><MessageCircle size={14} className="text-ecom-tint shrink-0" /> WhatsApp</a></li>
+                <li className="flex items-center gap-2"><Phone size={14} className="text-ecom-tint shrink-0" /> (81) 98859-3757</li>
+                <li><button onClick={abrirCarrinho} className="flex items-center gap-2 hover:text-white transition-colors"><ShoppingCart size={14} className="text-ecom-tint shrink-0" /> Meu pedido</button></li>
               </ul>
             </div>
           </div>
@@ -2289,30 +2299,30 @@ const [erroAcesso, setErroAcesso] = useState('');
       )}
 
       {isWild && (
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#2c3a2b]/10">
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-ecom-border">
           <div className="grid grid-cols-5">
             <button
               onClick={() => { setVista('catalogo'); setFiltro(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]"
+              className="flex flex-col items-center gap-1 py-2.5 text-ecom-text"
             >
               <Home size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Início</span>
             </button>
-            <button onClick={() => setMenuFiltros(true)} className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+            <button onClick={() => setMenuFiltros(true)} className="flex flex-col items-center gap-1 py-2.5 text-ecom-text">
               <LayoutGrid size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Categorias</span>
             </button>
-            <button onClick={() => setMenuLateral(true)} className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+            <button onClick={() => setMenuLateral(true)} className="flex flex-col items-center gap-1 py-2.5 text-ecom-text">
               <Search size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Buscar</span>
             </button>
-            <button onClick={abrirCarrinho} className="relative flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+            <button onClick={abrirCarrinho} className="relative flex flex-col items-center gap-1 py-2.5 text-ecom-text">
               <ShoppingCart size={19} />
               {totalItensCarrinho > 0 && (
-                <span className="absolute top-0.5 right-1/2 translate-x-4 h-4 min-w-4 px-1 bg-[#eab308] text-[#2c3a2b] text-[9px] font-black rounded-full flex items-center justify-center">
+                <span className="absolute top-0.5 right-1/2 translate-x-4 h-4 min-w-4 px-1 bg-ecom-warn text-ecom-warn-foreground text-[9px] font-black rounded-full flex items-center justify-center">
                   {totalItensCarrinho}
                 </span>
               )}
               <span className="text-[9px] font-bold uppercase tracking-wider">Carrinho</span>
             </button>
-            <button onClick={() => setContaAberta(true)} className="flex flex-col items-center gap-1 py-2.5 text-[#2c3a2b]">
+            <button onClick={() => setContaAberta(true)} className="flex flex-col items-center gap-1 py-2.5 text-ecom-text">
               <User size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Conta</span>
             </button>
           </div>

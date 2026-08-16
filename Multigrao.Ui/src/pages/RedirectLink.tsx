@@ -64,7 +64,7 @@ export default function RedirectLink() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-3">
-      <div className="h-10 w-10 rounded-full border-4 border-gray-200 border-t-[#1f7a4d] animate-spin" />
+      <div className="h-10 w-10 rounded-full border-4 border-gray-200 border-t-ecom-strong animate-spin" />
       <p className="text-sm text-gray-400 font-medium">Redirecionando...</p>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2, Star, Search, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2, Star, Search, ArrowLeft, Download } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
@@ -450,6 +450,25 @@ function GerenciarCatalogo({
   const [editandoMarca, setEditandoMarca] = useState<Partial<Marca> | null>(null);
   const [filtroProdutos, setFiltroProdutos] = useState('');
   const [emAjusteEstoque, setEmAjusteEstoque] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [importResultado, setImportResultado] = useState<string | null>(null);
+  const [importErro, setImportErro] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const importarCrm = async (arquivo: File) => {
+    setImportando(true);
+    setImportResultado(null);
+    setImportErro(null);
+    try {
+      const res = await produtoService.importarCrm(arquivo);
+      setImportResultado(res.message || `${res.importados} importado(s), ${res.atualizados} atualizado(s).`);
+      onSalvo();
+    } catch (e) {
+      setImportErro(e instanceof Error ? e.message : 'Falha ao importar produtos do ERP.');
+    } finally {
+      setImportando(false);
+    }
+  };
 
   const produtosFiltrados = produtos.filter(p => {
     if (!filtroProdutos) return true;
@@ -498,7 +517,27 @@ function GerenciarCatalogo({
               <button onClick={() => setEmAjusteEstoque(true)} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shrink-0">
                 <Pencil size={16} /> Ajuste de estoque
               </button>
+              <button onClick={() => fileInputRef.current?.click()} disabled={importando} className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shrink-0 disabled:opacity-50">
+                {importando ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {importando ? 'Importando...' : 'Importar ERP'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".sql,application/sql,text/plain"
+                className="hidden"
+                onChange={e => {
+                  const f = e.target.files?.[0];
+                  if (f) importarCrm(f);
+                  e.target.value = '';
+                }}
+              />
             </div>
+            {importResultado && (
+              <div className="mb-3 px-4 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{importResultado}</div>
+            )}
+            {importErro && (
+              <div className="mb-3 px-4 py-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{importErro}</div>
+            )}
             {produtosFiltrados.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">Nenhum produto encontrado.</p>
             ) : (

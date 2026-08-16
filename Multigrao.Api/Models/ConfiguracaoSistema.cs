@@ -28,6 +28,8 @@ namespace Multigrao.Api.Models
         public string TipoCarrinho { get; set; } = "pagina";
         public string? LinksBio { get; set; }
         public string? Redirecionamentos { get; set; }
+        public string HeroImagemTipo { get; set; } = "produto";
+        public string? MascoteUrl { get; set; }
         public bool Ativo { get; set; } = true;
     }
 }

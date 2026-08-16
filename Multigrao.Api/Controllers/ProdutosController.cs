@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
 using Multigrao.Api.DTOs;
 using Multigrao.Api.Models;
+using Multigrao.Api.Services;
+using System.Text;
 
 namespace Multigrao.Api.Controllers
 {
@@ -175,6 +177,98 @@ namespace Multigrao.Api.Controllers
 
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpPost("importar")]
+        public async Task<IActionResult> Importar(IFormFile arquivo)
+        {
+            if (arquivo == null || arquivo.Length == 0)
+                return BadRequest(new { message = "Selecione um arquivo .sql para importar." });
+
+            if (!arquivo.FileName.EndsWith(".sql", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "O arquivo deve ter extensão .sql." });
+
+            if (arquivo.Length > 50 * 1024 * 1024)
+                return BadRequest(new { message = "Arquivo muito grande (máximo 50 MB)." });
+
+            string conteudo;
+            using (var reader = new StreamReader(arquivo.OpenReadStream(), Encoding.UTF8, true))
+                conteudo = await reader.ReadToEndAsync();
+
+            var registros = ProdutosImportacaoParser.Parse(conteudo);
+
+            if (registros.Count == 0)
+                return BadRequest(new { message = "Nenhum registro INSERT INTO tb_produtos_crm encontrado no arquivo. Exporte a tabela tb_produtos_crm com os dados (formato INSERT SQL)." });
+
+            var codigos = registros
+                .Select(r => r.CodigoErp?.Trim())
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Distinct()
+                .ToList();
+
+            var existentes = await _context.Produtos
+                .Where(p => p.CodigoERP != "" && codigos.Contains(p.CodigoERP))
+                .ToListAsync();
+
+            var porCodigo = existentes
+                .GroupBy(p => p.CodigoERP)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            int importados = 0, atualizados = 0, erros = 0;
+
+            foreach (var r in registros)
+            {
+                var codigo = r.CodigoErp?.Trim();
+                if (string.IsNullOrWhiteSpace(codigo))
+                {
+                    erros++;
+                    continue;
+                }
+
+                var nome = string.IsNullOrWhiteSpace(r.Nome) ? codigo : r.Nome.Trim();
+                if (nome.Length > 150) nome = nome[..150];
+
+                var embalagem = r.UnidadesPorCaixa > 0 ? $"{r.UnidadesPorCaixa:0.##} un/caixa" : null;
+
+                if (porCodigo.TryGetValue(codigo, out var produto))
+                {
+                    produto.Nome = nome;
+                    produto.PesoUnidade = r.PesoUnidade;
+                    produto.PrecoVarejo = r.PrecoVarejo;
+                    produto.PrecoAtacado = r.PrecoAtacado;
+                    produto.Estoque = r.EstoqueFiscalSefaz;
+                    produto.Embalagem = embalagem;
+                    produto.UnidadeVenda = r.UnidadeVenda;
+                    produto.Ativo = r.Ativo;
+                    atualizados++;
+                }
+                else
+                {
+                    _context.Produtos.Add(new Produto
+                    {
+                        Nome = nome,
+                        CodigoERP = codigo,
+                        PesoUnidade = r.PesoUnidade,
+                        PrecoVarejo = r.PrecoVarejo,
+                        PrecoAtacado = r.PrecoAtacado,
+                        Estoque = r.EstoqueFiscalSefaz,
+                        Embalagem = embalagem,
+                        UnidadeVenda = r.UnidadeVenda,
+                        Ativo = r.Ativo
+                    });
+                    importados++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"{importados} produto(s) importado(s) e {atualizados} atualizado(s).",
+                importados,
+                atualizados,
+                erros
+            });
         }
 
         [HttpDelete("{id}")]

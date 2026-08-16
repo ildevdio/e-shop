@@ -1288,31 +1288,16 @@ export default function ComercialPedidos() {
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Desconto</span>
-                {editando ? (
-                  <input type="text" value={editDetalhe!.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
-                ) : detalhe.desconto > 0 ? (
-                  <p className="text-red-600 font-medium mt-0.5">- R$ {detalhe.desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                ) : (
-                  <p className="text-gray-500 font-medium mt-0.5">—</p>
-                )}
+                <input type="text" value={editDetalhe!.desconto.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, desconto: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Acréscimo</span>
-                {editando ? (
-                  <input type="text" value={editDetalhe!.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
-                ) : detalhe.acrescimo > 0 ? (
-                  <p className="text-amber-600 font-medium mt-0.5">+ R$ {detalhe.acrescimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                ) : (
-                  <p className="text-gray-500 font-medium mt-0.5">—</p>
-                )}
+                <input type="text" value={editDetalhe!.acrescimo.toFixed(2)} onChange={e => { const v = parseFloat(e.target.value.replace(',', '.')) || 0; setEditDetalhe({ ...editDetalhe!, acrescimo: v }); }} className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm mt-0.5" />
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <span className="text-gray-400 text-xs uppercase tracking-wider">Valor Final</span>
                 <p className="text-gray-900 font-bold mt-0.5">
-                  R$ {(editando
-                    ? (editDetalhe!.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0) + editDetalhe!.acrescimo - editDetalhe!.desconto)
-                    : detalhe.valorFinal
-                  ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(editDetalhe!.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0) + editDetalhe!.acrescimo - editDetalhe!.desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
@@ -1403,34 +1388,32 @@ export default function ComercialPedidos() {
               )}
             </div>
 
-            {editando && (
-              <button
-                onClick={async () => {
-                  const e = editDetalhe!;
-                  const ok = await pedidoService.atualizarPedido(detalhe.id, {
-                    tipoEntrega: e.tipoEntrega,
-                    pagamento: e.pagamento,
-                    prazoPagamentoDias: e.prazoPagamentoDias === '' ? undefined : e.prazoPagamentoDias,
-                    cep: e.cep,
-                    logradouro: e.logradouro,
-                    numero: e.numero,
-                    complemento: e.complemento,
-                    bairro: e.bairro,
-                    cidade: e.cidade,
-                    estado: e.estado,
-                    desconto: e.desconto,
-                    acrescimo: e.acrescimo,
-                    valorTotal: e.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0),
-                    observacao: e.observacao,
-                    itens: e.itens,
-                  });
-                  if (ok) { fecharDetalhe(); await carregar(); }
-                }}
-                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-primary text-white hover:bg-primary transition-colors"
-              >
-                Salvar Alterações
-              </button>
-            )}
+            <button
+              onClick={async () => {
+                const e = editDetalhe!;
+                const ok = await pedidoService.atualizarPedido(detalhe.id, {
+                  tipoEntrega: e.tipoEntrega,
+                  pagamento: e.pagamento,
+                  prazoPagamentoDias: e.prazoPagamentoDias === '' ? undefined : e.prazoPagamentoDias,
+                  cep: e.cep,
+                  logradouro: e.logradouro,
+                  numero: e.numero,
+                  complemento: e.complemento,
+                  bairro: e.bairro,
+                  cidade: e.cidade,
+                  estado: e.estado,
+                  desconto: e.desconto,
+                  acrescimo: e.acrescimo,
+                  valorTotal: e.itens.reduce((acc, item) => acc + item.quantidade * item.precoUnitario, 0),
+                  observacao: e.observacao,
+                  itens: e.itens,
+                });
+                if (ok) { fecharDetalhe(); await carregar(); }
+              }}
+              className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-primary text-white hover:bg-primary transition-colors"
+            >
+              Salvar Alterações
+            </button>
             {detalhe.status === 'AguardandoConfirmacao' && (
               <button
                 onClick={async () => {

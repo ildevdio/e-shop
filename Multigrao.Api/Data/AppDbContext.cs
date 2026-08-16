@@ -81,6 +81,9 @@ namespace Multigrao.Api.Data
             // Filtros globais de multi-tenancy
             modelBuilder.Entity<ConfiguracaoSistema>()
                 .HasQueryFilter(c => c.Id == _tenant.EmpresaId);
+            modelBuilder.Entity<ConfiguracaoSistema>()
+                .Property(c => c.HeroImagemTipo)
+                .HasDefaultValue("produto");
 
             modelBuilder.Entity<Usuario>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Cliente>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
-import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE } from '../store/sistemaStore';
+import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild } from '../store/sistemaStore';
 import { tenantHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_GRADE } from '../services/cores';
@@ -230,9 +230,10 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const carregada = useSistemaStore((state) => state.carregada);
   const atualizarConfig = useSistemaStore((state) => state.atualizar);
   const salvarConfig = useSistemaStore((state) => state.salvar);
-  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '' });
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '' });
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [enviandoVideo, setEnviandoVideo] = useState(false);
+  const [enviandoMascote, setEnviandoMascote] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [salvandoConfig, setSalvandoConfig] = useState(false);
 
@@ -263,6 +264,8 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         tipoCarrinho: configSistema.tipoCarrinho,
         linksBio: configSistema.linksBio ?? '',
         redirecionamentos: configSistema.redirecionamentos ?? '',
+        heroImagemTipo: configSistema.heroImagemTipo || 'produto',
+        mascoteUrl: configSistema.mascoteUrl || '',
       });
     }
   }, [carregada]);
@@ -446,6 +449,8 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       tipoCarrinho: formEmpresa.tipoCarrinho,
       linksBio: formEmpresa.linksBio,
       redirecionamentos: formEmpresa.redirecionamentos,
+      heroImagemTipo: formEmpresa.heroImagemTipo,
+      mascoteUrl: formEmpresa.mascoteUrl,
     });
     setSalvandoConfig(false);
     if (ok) {
@@ -471,6 +476,25 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       }
     } catch { /* ignora */ }
     setEnviandoLogo(false);
+  };
+
+  const uploadMascote = async (file: File | undefined) => {
+    if (!file) return;
+    setEnviandoMascote(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const resp = await fetch(`${API_URL}/Upload/imagem`, {
+        method: 'POST',
+        headers: tenantHeaders(),
+        body: formData,
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setFormEmpresa(f => ({ ...f, mascoteUrl: data.url }));
+      }
+    } catch { /* ignora */ }
+    setEnviandoMascote(false);
   };
 
   const uploadVideo = async (file: File | undefined) => {
@@ -913,6 +937,49 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                           <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.exibirNomeAbaixoLogo ? 'left-6' : 'left-1'}`} />
                         </button>
                       </div>
+                      <div className="bg-white rounded-xl border border-gray-100 p-4">
+                        <div className="font-medium text-gray-900 text-sm mb-1">Destaque da Hero</div>
+                        <p className="text-xs text-gray-400 mb-3">Conteúdo exibido no cartão destacado à direita da Hero (design Wild).</p>
+                        <div className="space-y-2">
+                          {[
+                            { key: 'produto', nome: 'Produto', descricao: 'Mostra o card do primeiro produto em destaque.' },
+                            { key: 'mascote', nome: 'Mascote', descricao: 'Mostra uma imagem (PNG/JPEG) enviada por você.' },
+                            { key: 'nenhum', nome: 'Nenhum', descricao: 'Não exibe cartão destacado na Hero.' },
+                          ].map(opcao => (
+                            <div key={opcao.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                              <div>
+                                <div className="font-medium text-gray-900 text-sm">{opcao.nome}</div>
+                                <div className="text-xs text-gray-400">{opcao.descricao}</div>
+                              </div>
+                              <button onClick={() => setFormEmpresa({ ...formEmpresa, heroImagemTipo: opcao.key })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.heroImagemTipo === opcao.key ? 'bg-primary' : 'bg-gray-300'}`}>
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.heroImagemTipo === opcao.key ? 'left-6' : 'left-1'}`} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        {formEmpresa.heroImagemTipo === 'mascote' && (
+                          <div className="mt-3 flex items-center gap-4">
+                            <div className="w-16 h-16 bg-white rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                              {formEmpresa.mascoteUrl ? (
+                                <img src={midiaUrl(formEmpresa.mascoteUrl)} alt="Mascote" className="w-full h-full object-contain" />
+                              ) : (
+                                <ImageIcon size={22} className="text-gray-300" />
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary transition-colors cursor-pointer shadow-sm w-fit">
+                                <UploadCloud size={16} /> {enviandoMascote ? 'Enviando...' : 'Enviar Mascote'}
+                                <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => uploadMascote(e.target.files?.[0])} disabled={enviandoMascote} />
+                              </label>
+                              {formEmpresa.mascoteUrl && (
+                                <button onClick={() => setFormEmpresa({ ...formEmpresa, mascoteUrl: '' })} className="text-sm text-gray-600 hover:underline flex items-center gap-1 w-fit">
+                                  <Trash2 size={14} /> Remover mascote
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -988,22 +1055,25 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Design do e-commerce</label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {Object.entries(DESIGNS_ECOMMERCE).map(([key, d]) => (
+                    {Object.entries(DESIGNS_ECOMMERCE).map(([key, d]) => {
+                      const prev = key === 'wild' ? coresWild(corPrincipal || '#0a0a0a', corSecundaria || '#f97316', corFonte || undefined) : d;
+                      return (
                       <button
                         key={key}
                         onClick={() => { setDesignEcommerce(key); atualizarConfig({ designEcommerce: key }); }}
                         className={`text-left rounded-2xl p-4 transition-all border-2 ${designEcommerce === key ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'}`}
                       >
                         <div className="flex items-center gap-1.5 mb-3">
-                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.bg }} />
-                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.card }} />
-                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.strong }} />
-                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: d.text }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: prev.bg }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: prev.card }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: prev.strong }} />
+                          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: prev.text }} />
                         </div>
                         <div className={`text-sm font-semibold ${designEcommerce === key ? 'text-gray-900' : 'text-gray-700'}`}>{d.nome}</div>
                         {d.descricao && <div className="text-[11px] text-gray-400 leading-snug mt-1">{d.descricao}</div>}
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                   <p className="text-[11px] text-gray-400 mt-2 italic">Estilo visual da loja: fundo, cards, bordas, botões e tons de texto do e-commerce.</p>
                 </div>
