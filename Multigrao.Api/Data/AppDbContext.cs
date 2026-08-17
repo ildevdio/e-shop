@@ -48,6 +48,7 @@ namespace Multigrao.Api.Data
 
         public DbSet<Promocao> Promocoes { get; set; }
         public DbSet<PromocaoProduto> PromocoesProduto { get; set; }
+        public DbSet<FaixaFrete> FaixasFrete { get; set; }
 
         public override int SaveChanges()
         {
@@ -109,6 +110,7 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<ArquivoUpload>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Promocao>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<PromocaoProduto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<FaixaFrete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });

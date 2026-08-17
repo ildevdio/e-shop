@@ -39,6 +39,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<Multigrao.Api.Services.IAuthService, Multigrao.Api.Services.AuthService>();
 builder.Services.AddScoped<Multigrao.Api.Services.ITenantContext, Multigrao.Api.Services.TenantContext>();
+builder.Services.AddHttpClient();
 
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
     ?? builder.Configuration.GetConnectionString("DefaultConnection")

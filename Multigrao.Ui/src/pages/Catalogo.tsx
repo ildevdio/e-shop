@@ -572,6 +572,7 @@ function GerenciarCatalogo({
                           imagemUrl: p.imagemUrl,
                           ativo: p.ativo,
                           destaque: !p.destaque,
+                          valorFrete: p.valorFrete ?? 0,
                         });
                         onSalvo();
                       }}
@@ -668,6 +669,7 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
       marcaId: form.marcaId ?? null,
       precoVarejo: precoV,
       precoAtacado: precoA,
+      valorFrete: validarENumero(form.valorFrete) ? form.valorFrete : 0,
       quantidadeMinimaAtacado: form.quantidadeMinimaAtacado && form.quantidadeMinimaAtacado > 0 ? form.quantidadeMinimaAtacado : 5,
       vendidoAGranel: form.vendidoAGranel ?? false,
       embalagem: form.embalagem || null,
@@ -732,6 +734,10 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
               </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Valor do Frete</label>
+              <input type="number" step={0.01} min={0} value={form.valorFrete ?? 0} onChange={e => setForm({ ...form, valorFrete: parseFloat(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Acréscimo somado ao frete calculado" />
+            </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Embalagem</label>
               <input value={form.embalagem ?? ''} onChange={e => setForm({ ...form, embalagem: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Ex: 12· DZ" />

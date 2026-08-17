@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
-import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild } from '../store/sistemaStore';
+import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, type FaixaFrete } from '../store/sistemaStore';
 import { tenantHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_GRADE } from '../services/cores';
@@ -230,7 +230,9 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const carregada = useSistemaStore((state) => state.carregada);
   const atualizarConfig = useSistemaStore((state) => state.atualizar);
   const salvarConfig = useSistemaStore((state) => state.salvar);
-  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '' });
+  const salvarFaixasFrete = useSistemaStore((state) => state.salvarFaixasFrete);
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '', freteAtivo: false });
+  const [faixasFrete, setFaixasFrete] = useState<FaixaFrete[]>([]);
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [enviandoVideo, setEnviandoVideo] = useState(false);
   const [enviandoMascote, setEnviandoMascote] = useState(false);
@@ -266,7 +268,9 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         redirecionamentos: configSistema.redirecionamentos ?? '',
         heroImagemTipo: configSistema.heroImagemTipo || 'produto',
         mascoteUrl: configSistema.mascoteUrl || '',
+        freteAtivo: configSistema.freteAtivo ?? false,
       });
+      setFaixasFrete(configSistema.faixasFrete ?? []);
     }
   }, [carregada]);
 
@@ -451,7 +455,11 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       redirecionamentos: formEmpresa.redirecionamentos,
       heroImagemTipo: formEmpresa.heroImagemTipo,
       mascoteUrl: formEmpresa.mascoteUrl,
+      freteAtivo: formEmpresa.freteAtivo,
     });
+    if (ok) {
+      await salvarFaixasFrete(faixasFrete.filter(f => f.ateKm > 0));
+    }
     setSalvandoConfig(false);
     if (ok) {
       setCorSalva(true);
@@ -908,6 +916,50 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                   />
                   <p className="text-[11px] mt-1.5 text-gray-400">Tipos: <span className="font-mono">produto</span> (destino = nome do produto), <span className="font-mono">categoria</span> (destino = nome da categoria), <span className="font-mono">oferta</span> (abre as ofertas), <span className="font-mono">externo</span> (url = link completo). Deixe em branco para desativar.</p>
                 </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mt-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2"><Truck size={18} className="text-black" /> Frete / Entrega</h3>
+                </div>
+                <p className="text-[12px] text-gray-500 mb-4">Defina o frete por faixas de quilometragem usando o CEP da empresa como referência. O cliente informa o CEP no carrinho e o sistema calcula a distância aproximada automaticamente.</p>
+
+                <label className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">Cobrar frete nas entregas</div>
+                    <div className="text-xs text-gray-500">Habilita o campo "Simular frete" no carrinho da loja.</div>
+                  </div>
+                  <input type="checkbox" checked={formEmpresa.freteAtivo} onChange={e => setFormEmpresa({ ...formEmpresa, freteAtivo: e.target.checked })} className="h-5 w-5 accent-primary" />
+                </label>
+
+                {formEmpresa.freteAtivo && (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-xs font-medium text-gray-500">FAIXAS DE QUILOMETRAGEM</div>
+                      <button type="button" onClick={() => setFaixasFrete(f => [...f, { id: 0, ateKm: 0, valor: 0 }])} className="text-xs font-bold text-black hover:underline flex items-center gap-1"><Plus size={14} /> Adicionar faixa</button>
+                    </div>
+                    {faixasFrete.length === 0 && (
+                      <div className="text-xs text-gray-400 bg-white border border-dashed border-gray-300 rounded-xl p-3 text-center">Nenhuma faixa cadastrada. Adicione a primeira faixa (ex.: até 5 km — R$ 10,00).</div>
+                    )}
+                    {faixasFrete.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-2">
+                        <div className="flex-1 flex items-center gap-2">
+                          <span className="text-xs text-gray-500">até</span>
+                          <input type="number" min={0.1} step={0.5} value={f.ateKm || ''} onChange={e => { const v = parseFloat(e.target.value) || 0; setFaixasFrete(faixas => faixas.map((x, xi) => xi === i ? { ...x, ateKm: v } : x)); }} className="w-20 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                          <span className="text-xs text-gray-500">km</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">R$</span>
+                          <input type="number" min={0} step={0.5} value={f.valor || ''} onChange={e => { const v = parseFloat(e.target.value) || 0; setFaixasFrete(faixas => faixas.map((x, xi) => xi === i ? { ...x, valor: v } : x)); }} className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                        </div>
+                        <button type="button" onClick={() => setFaixasFrete(faixas => faixas.filter((_, xi) => xi !== i))} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                    {faixasFrete.length > 1 && (
+                      <p className="text-[11px] text-gray-400">As faixas são ordenadas automaticamente por quilometragem. O valor de frete cadastrado no produto é somado ao valor da faixa.</p>
+                    )}
+                  </div>
+                )}
               </div>
               </>
             )}

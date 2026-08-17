@@ -13,6 +13,7 @@ namespace Multigrao.Api.Services
         public decimal PrecoVarejo { get; set; }
         public decimal PrecoAtacado { get; set; }
         public decimal EstoqueFiscalSefaz { get; set; }
+        public decimal ValorFrete { get; set; }
     }
 
     public static class ProdutosImportacaoParser
@@ -194,6 +195,9 @@ namespace Multigrao.Api.Services
                         break;
                     case "estoque_fiscal_sefaz":
                         linha.EstoqueFiscalSefaz = ConverterDecimal(raw);
+                        break;
+                    case "valor_frete":
+                        linha.ValorFrete = ConverterDecimal(raw);
                         break;
                 }
             }

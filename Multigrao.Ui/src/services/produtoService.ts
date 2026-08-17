@@ -36,6 +36,7 @@ export interface Produto {
   ativo: boolean;
   destaque: boolean;
   estoque: number;
+  valorFrete: number;
 }
 
 export const UNIDADES_MEDIDA = [

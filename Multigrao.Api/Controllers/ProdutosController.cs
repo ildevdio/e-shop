@@ -145,7 +145,8 @@ namespace Multigrao.Api.Controllers
                 UnidadeVenda = dto.UnidadeVenda,
                 ImagemUrl = dto.ImagemUrl,
                 Ativo = dto.Ativo,
-                Destaque = dto.Destaque
+                Destaque = dto.Destaque,
+                ValorFrete = dto.ValorFrete
             };
 
             _context.Produtos.Add(produto);
@@ -174,6 +175,7 @@ namespace Multigrao.Api.Controllers
             produto.ImagemUrl = dto.ImagemUrl;
             produto.Ativo = dto.Ativo;
             produto.Destaque = dto.Destaque;
+            produto.ValorFrete = dto.ValorFrete;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -240,6 +242,7 @@ namespace Multigrao.Api.Controllers
                     produto.Embalagem = embalagem;
                     produto.UnidadeVenda = r.UnidadeVenda;
                     produto.Ativo = r.Ativo;
+                    produto.ValorFrete = r.ValorFrete;
                     atualizados++;
                 }
                 else
@@ -254,7 +257,8 @@ namespace Multigrao.Api.Controllers
                         Estoque = r.EstoqueFiscalSefaz,
                         Embalagem = embalagem,
                         UnidadeVenda = r.UnidadeVenda,
-                        Ativo = r.Ativo
+                        Ativo = r.Ativo,
+                        ValorFrete = r.ValorFrete
                     });
                     importados++;
                 }

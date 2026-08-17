@@ -57,5 +57,7 @@ namespace Multigrao.Api.Models
         public bool Destaque { get; set; }
 
         public decimal Estoque { get; set; }
+
+        public decimal ValorFrete { get; set; }
     }
 }

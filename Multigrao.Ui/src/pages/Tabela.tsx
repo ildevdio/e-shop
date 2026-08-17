@@ -13,6 +13,9 @@ import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
 import { useSistemaStore, DESIGNS_ECOMMERCE, CONFIG_PADRAO } from '../store/sistemaStore';
+import { tenantHeaders } from '../services/tenantSetup';
+
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
 function useDesign() {
   const design = useSistemaStore((s) => s.config.designEcommerce);
@@ -630,6 +633,9 @@ export default function Tabela() {
   const [enviando, setEnviando] = useState(false);
   const [pedidoCriado, setPedidoCriado] = useState(false);
   const [buscandoCEP, setBuscandoCEP] = useState(false);
+  const [freteCep, setFreteCep] = useState('');
+  const [simulandoFrete, setSimulandoFrete] = useState(false);
+  const [freteSimulado, setFreteSimulado] = useState<{ disponivel: boolean; distanciaKm?: number; valorFrete?: number; mensagem: string } | null>(null);
   const [produtoDetalhe, setProdutoDetalhe] = useState<Produto | null>(null);
   const [qtdDetalhe, setQtdDetalhe] = useState(1);
   const [vista, setVista] = useState<'catalogo' | 'produto' | 'carrinho'>('catalogo');
@@ -680,6 +686,39 @@ const [erroAcesso, setErroAcesso] = useState('');
     }
     setBuscandoCEP(false);
   };
+
+  const chamarSimularFrete = async (cepRaw: string) => {
+    const cep = cepRaw.replace(/\D/g, '');
+    if (cep.length !== 8) {
+      setFreteSimulado({ disponivel: false, mensagem: 'Informe um CEP de 8 dígitos.' });
+      return;
+    }
+    setSimulandoFrete(true);
+    setFreteSimulado(null);
+    try {
+      const resp = await fetch(`${API_URL}/Configuracoes/simular-frete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
+        body: JSON.stringify({ cep }),
+      });
+      const data = await resp.json();
+      setFreteSimulado(data);
+    } catch {
+      setFreteSimulado({ disponivel: false, mensagem: 'Não foi possível calcular o frete agora.' });
+    }
+    setSimulandoFrete(false);
+  };
+
+  useEffect(() => {
+    if (!config.freteAtivo || tipoEntrega !== 'Entrega') {
+      setFreteSimulado(null);
+      return;
+    }
+    if (vista !== 'carrinho') return;
+    const cep = (solicitante.cep || '').replace(/\D/g, '');
+    if (cep.length === 8) chamarSimularFrete(solicitante.cep);
+    else setFreteSimulado(null);
+  }, [solicitante.cep, tipoEntrega, config.freteAtivo, vista]);
 
   const carregar = async () => {
     setCarregando(true);
@@ -860,6 +899,18 @@ const [erroAcesso, setErroAcesso] = useState('');
     () => produtosCarrinho.reduce((acc, i) => acc + (i.produto.pesoUnidade ?? 0) * i.quantidade, 0),
     [produtosCarrinho]
   );
+
+  const valorFreteProdutos = useMemo(
+    () => produtosCarrinho.reduce((acc, i) => acc + (i.produto.valorFrete ?? 0) * i.quantidade, 0),
+    [produtosCarrinho]
+  );
+
+  const freteTotal = useMemo(() => {
+    if (!config.freteAtivo || tipoEntrega !== 'Entrega' || !freteSimulado?.disponivel) return 0;
+    return (freteSimulado.valorFrete ?? 0) + valorFreteProdutos;
+  }, [config.freteAtivo, tipoEntrega, freteSimulado, valorFreteProdutos]);
+
+  const valorTotalComFrete = valorTotalCarrinho + freteTotal;
 
   const marcasSugestao: Sugestao[] = marcas.map(m => ({ rotulo: m.nome, subRotulo: 'Marca' }));
 
@@ -1057,11 +1108,11 @@ const [erroAcesso, setErroAcesso] = useState('');
       bairro: solicitante.bairro.trim(),
       cidade: solicitante.cidade.trim(),
       estado: solicitante.estado.trim(),
-      valorTotal,
+      valorTotal: valorTotal + freteTotal,
       tipoEntrega,
       pagamento: pagamento || undefined,
       desconto: 0,
-      acrescimo: 0,
+      acrescimo: freteTotal,
       itens,
     });
     setEnviando(false);
@@ -1579,6 +1630,36 @@ const [erroAcesso, setErroAcesso] = useState('');
                   </div>
                 </div>
 
+                {config.freteAtivo && (
+                  <div className="rounded-2xl bg-ecom-surface border border-ecom-border p-4 mb-6">
+                    <p className="text-sm font-bold mb-2 text-ecom-text uppercase text-[11px] tracking-[0.15em] flex items-center gap-1.5"><Truck size={14} /> Simular Frete</p>
+                    <p className="text-xs text-ecom-muted mb-3">Informe o CEP de entrega para saber o valor do frete deste produto.</p>
+                    <div className="flex gap-2">
+                      <input
+                        value={freteCep}
+                        onChange={e => setFreteCep(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); chamarSimularFrete(freteCep); } }}
+                        placeholder="Digite o CEP"
+                        className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card"
+                      />
+                      <button type="button" onClick={() => chamarSimularFrete(freteCep)} disabled={simulandoFrete} className={`px-4 rounded-xl font-bold text-sm transition-colors shadow-sm ${primaryBg}`}>
+                        {simulandoFrete ? <Loader2 size={18} className="animate-spin" /> : 'Calcular'}
+                      </button>
+                    </div>
+                    {freteSimulado && (
+                      <div className={`mt-3 text-sm rounded-xl p-3 ${freteSimulado.disponivel ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-amber-50 border border-amber-200 text-amber-800'}`}>
+                        <div className="flex justify-between font-bold">
+                          <span>{freteSimulado.disponivel ? 'Frete disponível' : 'Frete indisponível'}</span>
+                          {freteSimulado.disponivel && <span>{formatPreco((freteSimulado.valorFrete ?? 0) + (produtoDetalhe.valorFrete ?? 0) * qtdDetalhe)}</span>}
+                        </div>
+                        {freteSimulado.distanciaKm !== undefined && <p className="text-xs mt-1 opacity-80">Distância aproximada: {freteSimulado.distanciaKm.toLocaleString('pt-BR')} km</p>}
+                        {freteSimulado.disponivel && (produtoDetalhe.valorFrete ?? 0) > 0 && <p className="text-xs mt-0.5 opacity-80">Inclui frete deste produto: {formatPreco((produtoDetalhe.valorFrete ?? 0) * qtdDetalhe)}</p>}
+                        <p className="text-xs mt-1 opacity-80">{freteSimulado.mensagem}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted">Quantidade</p>
@@ -1748,9 +1829,15 @@ const [erroAcesso, setErroAcesso] = useState('');
                         </div>
                       </>
                     )}
+                    {freteTotal > 0 && (
+                      <div className="pt-2 flex justify-between text-sm text-ecom-muted font-medium">
+                        <span>Frete</span>
+                        <span>{formatPreco(freteTotal)}</span>
+                      </div>
+                    )}
                     <div className="pt-3 mt-3 flex justify-between font-bold text-lg border-t border-ecom-strong text-ecom-text">
                       <span>Total</span>
-                      <span>{formatPreco(valorTotalCarrinho)}</span>
+                      <span>{formatPreco(valorTotalComFrete)}</span>
                     </div>
                     {pesoTotalCarrinho > 0 && (
                       <div className="pt-2 flex justify-between text-sm text-ecom-muted font-medium">
@@ -1851,8 +1938,21 @@ const [erroAcesso, setErroAcesso] = useState('');
                           <input value={solicitante.estado} onChange={e => setSolicitante({ ...solicitante, estado: e.target.value })} className="w-full bg-ecom-card p-3 outline-none text-base transition-colors border border-ecom-border rounded-xl focus:border-ecom-text bg-ecom-card" placeholder="UF" maxLength={2} />
                         </div>
                       </div>
+                      {config.freteAtivo && freteSimulado && (
+                        <div className={`mt-3 flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold ${freteSimulado.disponivel ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-amber-50 border border-amber-200 text-amber-800'}`}>
+                          <div className="min-w-0">
+                            <p>{freteSimulado.disponivel ? 'Frete para o seu endereço' : 'Frete indisponível para este CEP'}</p>
+                            {freteSimulado.distanciaKm !== undefined && (
+                              <p className="text-xs opacity-80 mt-0.5">Aproximadamente {freteSimulado.distanciaKm.toLocaleString('pt-BR')} km</p>
+                            )}
+                            <p className="text-xs opacity-80 mt-0.5">{freteSimulado.mensagem}</p>
+                          </div>
+                          {freteSimulado.disponivel && <span className="shrink-0 font-black text-base">{formatPreco(freteTotal)}</span>}
+                        </div>
+                      )}
                     </div>
                   )}
+
                   <button onClick={finalizarPedido} disabled={!solicitante.nome.trim() || !solicitante.cpfCnpj.replace(/\D/g, '') || (tipoEntrega === 'Entrega' && !solicitante.logradouro.trim()) || enviando} className={`w-full py-4 font-bold text-lg transition-colors shadow-md ${ds.botaoClasse} ${solicitante.nome.trim() && solicitante.cpfCnpj.replace(/\D/g, '') && (tipoEntrega === 'Retirada' || solicitante.logradouro.trim()) && !enviando ? primaryBg : 'bg-ecom-fill text-ecom-muted cursor-not-allowed'}`}>
                     {enviando ? 'Enviando...' : 'Confirmar Pedido'}
                   </button>

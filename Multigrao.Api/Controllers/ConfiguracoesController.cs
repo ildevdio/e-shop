@@ -7,6 +7,7 @@ using Multigrao.Api.Models;
 using Multigrao.Api.Services;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Multigrao.Api.Controllers
@@ -18,12 +19,14 @@ namespace Multigrao.Api.Controllers
         private readonly AppDbContext _context;
         private readonly ITenantContext _tenant;
         private readonly IAuthService _authService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ConfiguracoesController(AppDbContext context, ITenantContext tenant, IAuthService authService)
+        public ConfiguracoesController(AppDbContext context, ITenantContext tenant, IAuthService authService, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _tenant = tenant;
             _authService = authService;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpGet]
@@ -33,7 +36,7 @@ namespace Multigrao.Api.Controllers
             if (config == null)
                 return NotFound(new { message = "Empresa não encontrada." });
 
-            return Ok(ConfigDto(config));
+            return Ok(await ConfigDto(config));
         }
 
         [HttpPut]
@@ -59,6 +62,11 @@ namespace Multigrao.Api.Controllers
             }
 
             config.Slogan = dto.Slogan;
+            if (dto.Cep != null && !string.Equals(dto.Cep, config.Cep, StringComparison.Ordinal))
+            {
+                config.Latitude = null;
+                config.Longitude = null;
+            }
             config.Cep = dto.Cep;
             config.Logradouro = dto.Logradouro;
             config.Numero = dto.Numero;
@@ -66,6 +74,8 @@ namespace Multigrao.Api.Controllers
             config.Cidade = dto.Cidade;
             config.Estado = dto.Estado;
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
+            if (dto.FreteAtivo.HasValue)
+                config.FreteAtivo = dto.FreteAtivo.Value;
             if (dto.LogoUrl != null)
                 config.LogoUrl = dto.LogoUrl;
             if (dto.VideoUrl != null)
@@ -144,6 +154,7 @@ namespace Multigrao.Api.Controllers
                 TipoCarrinho = string.IsNullOrWhiteSpace(dto.TipoCarrinho) ? "pagina" : dto.TipoCarrinho,
                 HeroImagemTipo = string.IsNullOrWhiteSpace(dto.HeroImagemTipo) ? "produto" : dto.HeroImagemTipo,
                 MascoteUrl = dto.MascoteUrl,
+                FreteAtivo = dto.FreteAtivo ?? false,
                 Ativo = true
             };
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
@@ -215,6 +226,7 @@ namespace Multigrao.Api.Controllers
                     tipoCarrinho = c.TipoCarrinho,
                     heroImagemTipo = c.HeroImagemTipo,
                     mascoteUrl = c.MascoteUrl,
+                    freteAtivo = c.FreteAtivo,
                     ativo = c.Ativo
                 })
                 .ToListAsync();
@@ -256,6 +268,11 @@ namespace Multigrao.Api.Controllers
 
             if (dto.Cep != null || dto.Logradouro != null || dto.Numero != null || dto.Bairro != null || dto.Cidade != null || dto.Estado != null)
             {
+                if (dto.Cep != null && !string.Equals(dto.Cep, config.Cep, StringComparison.Ordinal))
+                {
+                    config.Latitude = null;
+                    config.Longitude = null;
+                }
                 config.Cep = dto.Cep;
                 config.Logradouro = dto.Logradouro;
                 config.Numero = dto.Numero;
@@ -268,6 +285,9 @@ namespace Multigrao.Api.Controllers
             {
                 config.Endereco = dto.Endereco;
             }
+
+            if (dto.FreteAtivo.HasValue)
+                config.FreteAtivo = dto.FreteAtivo.Value;
 
             if (dto.LogoUrl != null)
                 config.LogoUrl = dto.LogoUrl;
@@ -412,6 +432,7 @@ namespace Multigrao.Api.Controllers
             await _context.Carrinhos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.PromocoesProduto.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Promocoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.FaixasFrete.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Notificacoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Avisos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Contatos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
@@ -430,8 +451,135 @@ namespace Multigrao.Api.Controllers
             return Ok(new { id = config.Id, slug = config.Slug, nomeEmpresa = config.NomeEmpresa });
         }
 
-        private static object ConfigDto(ConfiguracaoSistema config)
+        [HttpPut("faixas-frete")]
+        [Authorize]
+        public async Task<IActionResult> SalvarFaixasFrete([FromBody] List<FaixaFreteDto> faixas)
         {
+            await _context.FaixasFrete.ExecuteDeleteAsync();
+
+            var ordenadas = faixas
+                .Where(f => f.AteKm > 0 && f.Valor >= 0)
+                .OrderBy(f => f.AteKm)
+                .ToList();
+
+            for (int i = 0; i < ordenadas.Count; i++)
+            {
+                _context.FaixasFrete.Add(new FaixaFrete
+                {
+                    AteKm = ordenadas[i].AteKm,
+                    Valor = ordenadas[i].Valor,
+                    Ordem = i
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(await _context.FaixasFrete
+                .OrderBy(f => f.AteKm)
+                .Select(f => new { id = f.Id, ateKm = f.AteKm, valor = f.Valor })
+                .ToListAsync());
+        }
+
+        [HttpPost("simular-frete")]
+        public async Task<IActionResult> SimularFrete([FromBody] SimularFreteDto dto)
+        {
+            var config = await _context.ConfiguracoesSistema.FirstOrDefaultAsync();
+            if (config == null)
+                return NotFound(new { message = "Empresa não encontrada." });
+
+            if (!config.FreteAtivo)
+                return Ok(new { disponivel = false, mensagem = "A entrega com taxa de frete não está habilitada." });
+
+            var cepOrigem = LimparCep(config.Cep);
+            var cepDestino = LimparCep(dto.Cep);
+
+            if (cepOrigem.Length != 8)
+                return Ok(new { disponivel = false, mensagem = "Cadastre o CEP da empresa na configuração para calcular o frete." });
+
+            if (cepDestino.Length != 8)
+                return Ok(new { disponivel = false, mensagem = "Informe um CEP de destino válido." });
+
+            double? origemLat = config.Latitude;
+            double? origemLng = config.Longitude;
+
+            if (!origemLat.HasValue || !origemLng.HasValue)
+            {
+                var coordsOrigem = await BuscarCoordenadas(cepOrigem);
+                if (coordsOrigem is null)
+                    return Ok(new { disponivel = false, mensagem = "Não foi possível localizar o CEP da empresa. Confira o CEP cadastrado." });
+
+                config.Latitude = origemLat = coordsOrigem.Lat;
+                config.Longitude = origemLng = coordsOrigem.Lng;
+                await _context.SaveChangesAsync();
+            }
+
+            var coordsDestino = await BuscarCoordenadas(cepDestino);
+            if (coordsDestino is null)
+                return Ok(new { disponivel = false, mensagem = "CEP de destino não encontrado. Confira e tente novamente." });
+
+            var distanciaKm = DistanciaKm(origemLat.Value, origemLng.Value, coordsDestino.Lat, coordsDestino.Lng);
+
+            var faixas = await _context.FaixasFrete.OrderBy(f => f.AteKm).ToListAsync();
+            var faixa = faixas.FirstOrDefault(f => distanciaKm <= (double)f.AteKm);
+
+            if (faixa == null)
+                return Ok(new { disponivel = false, distanciaKm = Math.Round(distanciaKm, 1), mensagem = "O endereço informado está fora da área de entrega." });
+
+            return Ok(new
+            {
+                disponivel = true,
+                distanciaKm = Math.Round(distanciaKm, 1),
+                valorFrete = faixa.Valor,
+                mensagem = $"Frete de R$ {faixa.Valor.ToString("0.##", CultureInfo.InvariantCulture)} para até {faixa.AteKm.ToString("0.#", CultureInfo.InvariantCulture)} km."
+            });
+        }
+
+        private static string LimparCep(string? cep) => new((cep ?? "").Where(char.IsDigit).Take(8).ToArray());
+
+        private record Coordenadas(double Lat, double Lng);
+
+        private async Task<Coordenadas?> BuscarCoordenadas(string cep)
+        {
+            try
+            {
+                var http = _httpClientFactory.CreateClient();
+                using var resp = await http.GetAsync($"https://brasilapi.com.br/api/cep/v2/{cep}");
+                if (!resp.IsSuccessStatusCode)
+                    return null;
+
+                using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+                if (!doc.RootElement.TryGetProperty("location", out var location))
+                    return null;
+                var coords = location.GetProperty("coordinates");
+                var lng = double.Parse(coords.GetProperty("longitude").GetString()!, CultureInfo.InvariantCulture);
+                var lat = double.Parse(coords.GetProperty("latitude").GetString()!, CultureInfo.InvariantCulture);
+                return new Coordenadas(lat, lng);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[BuscarCoordenadas] CEP={cep} ERRO: {ex}");
+                return null;
+            }
+        }
+
+        private static double DistanciaKm(double lat1, double lng1, double lat2, double lng2)
+        {
+            const double raioTerra = 6371;
+            double dLat = (lat2 - lat1) * Math.PI / 180;
+            double dLng = (lng2 - lng1) * Math.PI / 180;
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
+                       Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+            return raioTerra * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        }
+
+        private async Task<object> ConfigDto(ConfiguracaoSistema config)
+        {
+            var faixas = await _context.FaixasFrete
+                .OrderBy(f => f.AteKm)
+                .Select(f => new { id = f.Id, ateKm = f.AteKm, valor = f.Valor })
+                .ToListAsync();
+
             return new
             {
                 slug = config.Slug,
@@ -459,6 +607,10 @@ namespace Multigrao.Api.Controllers
                 tipoCarrinho = config.TipoCarrinho,
                 heroImagemTipo = config.HeroImagemTipo,
                 mascoteUrl = config.MascoteUrl,
+                freteAtivo = config.FreteAtivo,
+                latitude = config.Latitude,
+                longitude = config.Longitude,
+                faixasFrete = faixas,
                 linksBio = config.LinksBio,
                 redirecionamentos = config.Redirecionamentos
             };

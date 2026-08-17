@@ -30,6 +30,9 @@ namespace Multigrao.Api.Models
         public string? Redirecionamentos { get; set; }
         public string HeroImagemTipo { get; set; } = "produto";
         public string? MascoteUrl { get; set; }
+        public bool FreteAtivo { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public bool Ativo { get; set; } = true;
     }
 }

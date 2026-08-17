@@ -29,6 +29,16 @@ export interface ConfiguracaoSistema {
   redirecionamentos?: string | null;
   heroImagemTipo: string;
   mascoteUrl: string;
+  freteAtivo: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  faixasFrete: FaixaFrete[];
+}
+
+export interface FaixaFrete {
+  id: number;
+  ateKm: number;
+  valor: number;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
@@ -232,6 +242,10 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   tipoCarrinho: 'pagina',
   heroImagemTipo: 'produto',
   mascoteUrl: '',
+  freteAtivo: false,
+  latitude: null,
+  longitude: null,
+  faixasFrete: [],
 };
 
 function luminancia(hex: string): number {
@@ -320,6 +334,7 @@ interface SistemaStore {
   carregar: () => Promise<void>;
   atualizar: (dados: Partial<ConfiguracaoSistema>) => void;
   salvar: (dados?: Partial<ConfiguracaoSistema>) => Promise<boolean>;
+  salvarFaixasFrete: (faixas: FaixaFrete[]) => Promise<boolean>;
   aplicarTema: () => void;
 }
 
@@ -363,6 +378,10 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           redirecionamentos: data.redirecionamentos ?? null,
           heroImagemTipo: data.heroImagemTipo || CONFIG_PADRAO.heroImagemTipo,
           mascoteUrl: data.mascoteUrl ?? '',
+          freteAtivo: data.freteAtivo ?? false,
+          latitude: data.latitude ?? null,
+          longitude: data.longitude ?? null,
+          faixasFrete: data.faixasFrete ?? [],
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -415,6 +434,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           redirecionamentos: config.redirecionamentos,
           heroImagemTipo: config.heroImagemTipo,
           mascoteUrl: config.mascoteUrl,
+          freteAtivo: config.freteAtivo,
         }),
       });
       if (!resp.ok) return false;
@@ -447,10 +467,32 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         redirecionamentos: data.redirecionamentos ?? config.redirecionamentos,
         heroImagemTipo: data.heroImagemTipo || config.heroImagemTipo,
         mascoteUrl: data.mascoteUrl ?? config.mascoteUrl,
+        freteAtivo: data.freteAtivo ?? config.freteAtivo,
+        latitude: data.latitude ?? config.latitude ?? null,
+        longitude: data.longitude ?? config.longitude ?? null,
+        faixasFrete: data.faixasFrete ?? config.faixasFrete,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);
       get().aplicarTema();
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  salvarFaixasFrete: async (faixas) => {
+    try {
+      const resp = await fetch(`${API_URL}/Configuracoes/faixas-frete`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...tenantHeaders() },
+        body: JSON.stringify(
+          faixas.map(f => ({ ateKm: f.ateKm, valor: f.valor }))
+        ),
+      });
+      if (!resp.ok) return false;
+      const data = await resp.json();
+      get().atualizar({ faixasFrete: data });
       return true;
     } catch {
       return false;
