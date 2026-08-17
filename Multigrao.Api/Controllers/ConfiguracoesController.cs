@@ -106,7 +106,7 @@ namespace Multigrao.Api.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(ConfigDto(config));
+            return Ok(await ConfigDto(config));
         }
 
         [HttpPost]
