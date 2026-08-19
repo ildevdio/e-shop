@@ -83,6 +83,7 @@ export interface SolicitacaoCatalogoDto {
   desconto: number;
   acrescimo: number;
   itens: { produtoId: number; quantidade: number; precoUnitario: number; pesoUnitario: number }[];
+  codigoCupom?: string;
 }
 
 export const pedidoService = {

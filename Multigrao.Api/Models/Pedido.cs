@@ -61,6 +61,10 @@ namespace Multigrao.Api.Models
         public decimal Acrescimo { get; set; }
         public decimal ValorFinal { get; set; }
 
+        public int? CupomId { get; set; }
+        public Cupom? Cupom { get; set; }
+        public decimal DescontoCupom { get; set; }
+
         public decimal PesoTotal { get; set; }
         public decimal ValorTotal { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;

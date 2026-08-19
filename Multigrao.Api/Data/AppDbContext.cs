@@ -50,6 +50,10 @@ namespace Multigrao.Api.Data
         public DbSet<PromocaoProduto> PromocoesProduto { get; set; }
         public DbSet<FaixaFrete> FaixasFrete { get; set; }
 
+        public DbSet<Cupom> Cupons { get; set; }
+        public DbSet<CupomProduto> CupomProdutos { get; set; }
+        public DbSet<CupomCliente> CupomClientes { get; set; }
+
         public override int SaveChanges()
         {
             AplicarEmpresa();
@@ -111,6 +115,9 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<Promocao>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<PromocaoProduto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<FaixaFrete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Cupom>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<CupomProduto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<CupomCliente>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });
@@ -214,6 +221,34 @@ namespace Multigrao.Api.Data
                 .HasOne(pp => pp.Produto)
                 .WithMany()
                 .HasForeignKey(pp => pp.ProdutoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Cupom>()
+                .HasIndex(c => new { c.EmpresaId, c.Codigo })
+                .IsUnique();
+
+            modelBuilder.Entity<CupomProduto>()
+                .HasOne(cp => cp.Cupom)
+                .WithMany(c => c.Produtos)
+                .HasForeignKey(cp => cp.CupomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CupomProduto>()
+                .HasOne(cp => cp.Produto)
+                .WithMany()
+                .HasForeignKey(cp => cp.ProdutoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CupomCliente>()
+                .HasOne(cc => cc.Cupom)
+                .WithMany(c => c.Clientes)
+                .HasForeignKey(cc => cc.CupomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CupomCliente>()
+                .HasOne(cc => cc.Cliente)
+                .WithMany()
+                .HasForeignKey(cc => cc.ClienteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Seed: Setores

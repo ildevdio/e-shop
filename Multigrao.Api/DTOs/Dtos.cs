@@ -93,6 +93,7 @@ namespace Multigrao.Api.DTOs
         public decimal Desconto { get; set; }
         public decimal Acrescimo { get; set; }
         public List<CriarItemPedidoDto> Itens { get; set; } = new();
+        public string? CodigoCupom { get; set; }
     }
 
     public class CriarItemPedidoDto
@@ -345,6 +346,15 @@ namespace Multigrao.Api.DTOs
         public string? HeroImagemTipo { get; set; }
         public string? MascoteUrl { get; set; }
         public bool? FreteAtivo { get; set; }
+        // SMTP E-mail
+        public string? SmtpHost { get; set; }
+        public int? SmtpPort { get; set; }
+        public string? SmtpUsuario { get; set; }
+        public string? SmtpSenha { get; set; }
+        public string? SmtpNomeRemetente { get; set; }
+        public string? SmtpEmailRemetente { get; set; }
+        public bool? SmtpUsarSsl { get; set; }
+        public bool? EmailNotificacoesAtivo { get; set; }
     }
 
     public class FaixaFreteDto
@@ -444,5 +454,50 @@ namespace Multigrao.Api.DTOs
     public class ResolverCnpjDto
     {
         public string? Cnpj { get; set; }
+    }
+
+    // Cupons
+    public class CupomProdutoDto
+    {
+        public int ProdutoId { get; set; }
+    }
+
+    public class CupomClienteDto
+    {
+        public int ClienteId { get; set; }
+    }
+
+    public class CriarCupomDto
+    {
+        public string Codigo { get; set; } = string.Empty;
+        public string? Descricao { get; set; }
+        public string Tipo { get; set; } = "percentual";
+        public decimal Valor { get; set; }
+        public string AplicavelEm { get; set; } = "pedido";
+        public decimal? ValorMinimoPedido { get; set; }
+        public decimal? ValorMaximoDesconto { get; set; }
+        public int? UsosMaximos { get; set; }
+        public DateTime? DataInicio { get; set; }
+        public DateTime? DataFim { get; set; }
+        public bool Ativo { get; set; } = true;
+        public List<CupomProdutoDto> Produtos { get; set; } = new();
+        public List<CupomClienteDto> Clientes { get; set; } = new();
+    }
+
+    public class ValidarCupomDto
+    {
+        public string Codigo { get; set; } = string.Empty;
+        public decimal ValorPedido { get; set; }
+        public string? CpfCnpj { get; set; }
+        public List<int>? ProdutosIds { get; set; }
+    }
+
+    public class AplicarCupomDto
+    {
+        public string Codigo { get; set; } = string.Empty;
+        public decimal ValorPedido { get; set; }
+        public decimal ValorFrete { get; set; }
+        public string? CpfCnpj { get; set; }
+        public List<int>? ProdutosIds { get; set; }
     }
 }

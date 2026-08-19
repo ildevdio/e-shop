@@ -35,5 +35,15 @@ namespace Multigrao.Api.Models
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public bool Ativo { get; set; } = true;
+
+        // SMTP E-mail
+        public string? SmtpHost { get; set; }
+        public int? SmtpPort { get; set; }
+        public string? SmtpUsuario { get; set; }
+        public string? SmtpSenha { get; set; }
+        public string? SmtpNomeRemetente { get; set; }
+        public string? SmtpEmailRemetente { get; set; }
+        public bool SmtpUsarSsl { get; set; } = true;
+        public bool EmailNotificacoesAtivo { get; set; }
     }
 }

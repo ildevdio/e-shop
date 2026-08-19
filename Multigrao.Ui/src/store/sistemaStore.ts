@@ -34,6 +34,14 @@ export interface ConfiguracaoSistema {
   latitude?: number | null;
   longitude?: number | null;
   faixasFrete: FaixaFrete[];
+  smtpHost: string;
+  smtpPort: number;
+  smtpUsuario: string;
+  smtpSenha: string;
+  smtpNomeRemetente: string;
+  smtpEmailRemetente: string;
+  smtpUsarSsl: boolean;
+  emailNotificacoesAtivo: boolean;
 }
 
 export interface FaixaFrete {
@@ -248,6 +256,14 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   latitude: null,
   longitude: null,
   faixasFrete: [],
+  smtpHost: '',
+  smtpPort: 587,
+  smtpUsuario: '',
+  smtpSenha: '',
+  smtpNomeRemetente: '',
+  smtpEmailRemetente: '',
+  smtpUsarSsl: true,
+  emailNotificacoesAtivo: false,
 };
 
 function luminancia(hex: string): number {
@@ -385,6 +401,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           latitude: data.latitude ?? null,
           longitude: data.longitude ?? null,
           faixasFrete: data.faixasFrete ?? [],
+          smtpHost: data.smtpHost ?? '',
+          smtpPort: data.smtpPort ?? 587,
+          smtpUsuario: data.smtpUsuario ?? '',
+          smtpSenha: data.smtpSenha ?? '',
+          smtpNomeRemetente: data.smtpNomeRemetente ?? '',
+          smtpEmailRemetente: data.smtpEmailRemetente ?? '',
+          smtpUsarSsl: data.smtpUsarSsl ?? true,
+          emailNotificacoesAtivo: data.emailNotificacoesAtivo ?? false,
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -439,6 +463,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           heroImagemTipo: config.heroImagemTipo,
           mascoteUrl: config.mascoteUrl,
           freteAtivo: config.freteAtivo,
+          smtpHost: config.smtpHost,
+          smtpPort: config.smtpPort,
+          smtpUsuario: config.smtpUsuario,
+          smtpSenha: config.smtpSenha,
+          smtpNomeRemetente: config.smtpNomeRemetente,
+          smtpEmailRemetente: config.smtpEmailRemetente,
+          smtpUsarSsl: config.smtpUsarSsl,
+          emailNotificacoesAtivo: config.emailNotificacoesAtivo,
         }),
       });
       if (!resp.ok) return false;
@@ -476,6 +508,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         latitude: data.latitude ?? config.latitude ?? null,
         longitude: data.longitude ?? config.longitude ?? null,
         faixasFrete: data.faixasFrete ?? config.faixasFrete,
+        smtpHost: data.smtpHost ?? config.smtpHost,
+        smtpPort: data.smtpPort ?? config.smtpPort,
+        smtpUsuario: data.smtpUsuario ?? config.smtpUsuario,
+        smtpSenha: data.smtpSenha ?? config.smtpSenha,
+        smtpNomeRemetente: data.smtpNomeRemetente ?? config.smtpNomeRemetente,
+        smtpEmailRemetente: data.smtpEmailRemetente ?? config.smtpEmailRemetente,
+        smtpUsarSsl: data.smtpUsarSsl ?? config.smtpUsarSsl,
+        emailNotificacoesAtivo: data.emailNotificacoesAtivo ?? config.emailNotificacoesAtivo,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);

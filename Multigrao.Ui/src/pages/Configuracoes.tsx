@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, type FaixaFrete } from '../store/sistemaStore';
@@ -210,7 +210,7 @@ function PreviewLoja({
 export default function Configuracoes() {  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>(getSlug() === 'focus' ? 'sistema' : 'usuarios');
-  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'notificacoes' | 'regras'>('empresa');
+  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'notificacoes' | 'regras' | 'email'>('empresa');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -238,6 +238,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [enviandoMascote, setEnviandoMascote] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [salvandoConfig, setSalvandoConfig] = useState(false);
+  const [smtpForm, setSmtpForm] = useState({ smtpHost: '', smtpPort: 587, smtpUsuario: '', smtpSenha: '', smtpNomeRemetente: '', smtpEmailRemetente: '', smtpUsarSsl: true, emailNotificacoesAtivo: false });
 
   useEffect(() => {
     if (carregada) {
@@ -272,6 +273,16 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         freteAtivo: configSistema.freteAtivo ?? false,
       });
       setFaixasFrete(configSistema.faixasFrete ?? []);
+      setSmtpForm({
+        smtpHost: configSistema.smtpHost ?? '',
+        smtpPort: configSistema.smtpPort ?? 587,
+        smtpUsuario: configSistema.smtpUsuario ?? '',
+        smtpSenha: configSistema.smtpSenha ?? '',
+        smtpNomeRemetente: configSistema.smtpNomeRemetente ?? '',
+        smtpEmailRemetente: configSistema.smtpEmailRemetente ?? '',
+        smtpUsarSsl: configSistema.smtpUsarSsl ?? true,
+        emailNotificacoesAtivo: configSistema.emailNotificacoesAtivo ?? false,
+      });
     }
   }, [carregada]);
 
@@ -458,6 +469,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       heroImagemTipo: formEmpresa.heroImagemTipo,
       mascoteUrl: formEmpresa.mascoteUrl,
       freteAtivo: formEmpresa.freteAtivo,
+      ...smtpForm,
     });
     if (ok) {
       await salvarFaixasFrete(faixasFrete.filter(f => f.ateKm > 0));
@@ -745,6 +757,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 { id: 'aparencia' as const, label: 'Aparência', icon: Palette },
                 { id: 'notificacoes' as const, label: 'Notificações', icon: Bell },
                 { id: 'regras' as const, label: 'Regras', icon: Clock },
+                { id: 'email' as const, label: 'E-mail', icon: Mail },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -766,6 +779,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 {sistemaTab === 'aparencia' && 'Aparência'}
                 {sistemaTab === 'notificacoes' && 'Notificações'}
                 {sistemaTab === 'regras' && 'Regras de Negócio'}
+                {sistemaTab === 'email' && 'Configuração de E-mail (SMTP)'}
               </h2>
             </div>
 
@@ -1237,6 +1251,53 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Timeout de Sessão (min)</label>
                   <input type="number" value={setoresConfig.timeoutSessao} onChange={e => setSetoresConfig({ ...setoresConfig, timeoutSessao: parseInt(e.target.value) || 0 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                </div>
+              </div>
+            </div>
+            )}
+
+            {sistemaTab === 'email' && (
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Mail size={18} className="text-black" /> Configuração de E-mail (SMTP)</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                  <div>
+                    <div className="font-medium text-gray-900 text-sm">Notificações por E-mail</div>
+                    <div className="text-xs text-gray-400">Enviar e-mails ao cliente em transições de pedido</div>
+                  </div>
+                  <button onClick={() => setSmtpForm({ ...smtpForm, emailNotificacoesAtivo: !smtpForm.emailNotificacoesAtivo })} className={`w-11 h-6 rounded-full transition-all relative ${smtpForm.emailNotificacoesAtivo ? 'bg-primary' : 'bg-gray-300'}`}>
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${smtpForm.emailNotificacoesAtivo ? 'left-6' : 'left-1'}`} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Host SMTP *</label>
+                    <input type="text" value={smtpForm.smtpHost} onChange={e => setSmtpForm({ ...smtpForm, smtpHost: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="smtp.gmail.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Porta</label>
+                    <input type="number" value={smtpForm.smtpPort} onChange={e => setSmtpForm({ ...smtpForm, smtpPort: parseInt(e.target.value) || 587 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Usuário SMTP *</label>
+                    <input type="text" value={smtpForm.smtpUsuario} onChange={e => setSmtpForm({ ...smtpForm, smtpUsuario: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="seu@email.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Senha SMTP *</label>
+                    <input type="password" value={smtpForm.smtpSenha} onChange={e => setSmtpForm({ ...smtpForm, smtpSenha: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="••••••••" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Remetente</label>
+                    <input type="text" value={smtpForm.smtpNomeRemetente} onChange={e => setSmtpForm({ ...smtpForm, smtpNomeRemetente: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="Nome da Empresa" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">E-mail do Remetente</label>
+                    <input type="email" value={smtpForm.smtpEmailRemetente} onChange={e => setSmtpForm({ ...smtpForm, smtpEmailRemetente: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="noreply@empresa.com" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100">
+                  <input type="checkbox" id="smtpSsl" checked={smtpForm.smtpUsarSsl} onChange={e => setSmtpForm({ ...smtpForm, smtpUsarSsl: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                  <label htmlFor="smtpSsl" className="text-sm text-gray-700">Usar SSL/TLS (STARTTLS)</label>
                 </div>
               </div>
             </div>

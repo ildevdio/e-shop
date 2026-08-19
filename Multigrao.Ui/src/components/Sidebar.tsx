@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -56,6 +56,7 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
       { icon: Users, label: 'Clientes', path: '/comercial/clientes' },
       { icon: ClipboardList, label: 'Pedidos', path: '/comercial/pedidos' },
       { icon: BadgePercent, label: 'Promoções', path: '/comercial/promocoes' },
+      { icon: Tag, label: 'Cupons', path: '/comercial/cupons' },
     );
   }
   if (isAdmin || hasSetor('Comercial')) {
@@ -75,6 +76,9 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   }
   if (isAdmin || hasSetor('Financeiro')) {
     sectorNav.push({ icon: ShieldCheck, label: 'Financeiro', path: '/financeiro' });
+  }
+  if (isAdmin || hasSetor('Financeiro') || hasSetor('Comercial')) {
+    sectorNav.push({ icon: BarChart3, label: 'Relatórios', path: '/relatorios' });
   }
 
   const comNav: NavItem[] = [

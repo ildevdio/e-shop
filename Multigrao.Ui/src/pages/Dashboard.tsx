@@ -4,7 +4,7 @@ import {
   TrendingUp, TrendingDown,
   ClipboardList, Headset, DollarSign,
   Boxes, PackageCheck, Truck, Route, ScanLine,
-  Megaphone, Wheat,
+  Megaphone, Wheat, BarChart3,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import GrainPattern from '../components/GrainPattern';
@@ -168,11 +168,12 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         {[
           { to: '/comercial', icon: Headset, label: 'Atendimento', desc: 'Abrir omnichannel' },
           { to: '/comercial/pedidos', icon: ClipboardList, label: 'Pedidos', desc: 'Gerenciar pedidos' },
           { to: '/separacao', icon: PackageCheck, label: 'Separação', desc: 'Separar pedidos' },
+          { to: '/relatorios', icon: BarChart3, label: 'Relatórios', desc: 'Métricas e vendas' },
         ].map((item, i) => (
           <Link
             key={item.to}

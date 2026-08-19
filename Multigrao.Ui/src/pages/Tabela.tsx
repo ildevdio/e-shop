@@ -8,6 +8,7 @@ import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
 import { carrinhoService } from '../services/carrinhoService';
+import { cupomService } from '../services/cupomService';
 import { imageUrl, produtoImagemUrl, midiaUrl } from '../utils/imageUrl';
 import { marcaService } from '../services/marcaService';
 import { buscarCEP } from '../utils/buscarCEP';
@@ -653,9 +654,12 @@ const [clienteAcesso, setClienteAcesso] = useState<Cliente | null>(null);
 const [pedidosAcesso, setPedidosAcesso] = useState<Pedido[]>([]);
 const [buscandoAcesso, setBuscandoAcesso] = useState(false);
 const [erroAcesso, setErroAcesso] = useState('');
-  const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
-  const [cpfAcessado, setCpfAcessado] = useState('');
-  const salvarCarrinhoRef = useRef<number | null>(null);
+const [pedidoAberto, setPedidoAberto] = useState<number | null>(null);
+const [cpfAcessado, setCpfAcessado] = useState('');
+const [codigoCupom, setCodigoCupom] = useState('');
+const [descontoCupom, setDescontoCupom] = useState<number>(0);
+const [aplicandoCupom, setAplicandoCupom] = useState(false);
+const salvarCarrinhoRef = useRef<number | null>(null);
   const tickerRef = useRef<HTMLDivElement | null>(null);
 
   const carrosselRef = useRef<HTMLDivElement>(null);
@@ -1111,17 +1115,39 @@ const [erroAcesso, setErroAcesso] = useState('');
       valorTotal: valorTotal + freteTotal,
       tipoEntrega,
       pagamento: pagamento || undefined,
-      desconto: 0,
+      desconto: descontoCupom,
       acrescimo: freteTotal,
       itens,
+      codigoCupom: codigoCupom.trim() || undefined,
     });
     setEnviando(false);
     setPedidoCriado(true);
     setSolicitante(solicitanteDeCliente(clienteAcesso));
     setTipoEntrega('Entrega');
     setPagamento('');
+    setCodigoCupom('');
+    setDescontoCupom(0);
     limparCarrinho();
     if (cpfAcessado) carrinhoService.limparCarrinho(cpfAcessado);
+  };
+
+  const aplicarCupom = async () => {
+    if (!codigoCupom.trim()) return;
+    setAplicandoCupom(true);
+    const produtoIds = [...carrinho.keys()];
+    const resultado = await cupomService.aplicarCupom({
+      codigo: codigoCupom.trim(),
+      valorPedido: valorTotalCarrinho,
+      valorFrete: freteTotal,
+      cpfCnpj: solicitante.cpfCnpj || undefined,
+      produtosIds: produtoIds,
+    });
+    if (resultado) {
+      setDescontoCupom(resultado.desconto);
+    } else {
+      setDescontoCupom(0);
+    }
+    setAplicandoCupom(false);
   };
 
   const solicitanteDeCliente = (c: Cliente | null) => ({
@@ -1837,7 +1863,31 @@ const [erroAcesso, setErroAcesso] = useState('');
                     )}
                     <div className="pt-3 mt-3 flex justify-between font-bold text-lg border-t border-ecom-strong text-ecom-text">
                       <span>Total</span>
-                      <span>{formatPreco(valorTotalComFrete)}</span>
+                      <span>{formatPreco(valorTotalComFrete - descontoCupom)}</span>
+                    </div>
+                    {descontoCupom > 0 && (
+                      <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                        <span>Cupom ({codigoCupom.toUpperCase()})</span>
+                        <span>-{formatPreco(descontoCupom)}</span>
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={codigoCupom}
+                          onChange={e => { setCodigoCupom(e.target.value.toUpperCase()); if (!e.target.value) setDescontoCupom(0); }}
+                          placeholder="Código do cupom"
+                          className="flex-1 bg-ecom-card p-2.5 outline-none text-sm border border-ecom-border rounded-xl focus:border-ecom-text font-mono uppercase"
+                        />
+                        <button
+                          onClick={aplicarCupom}
+                          disabled={!codigoCupom.trim() || aplicandoCupom}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${codigoCupom.trim() && !aplicandoCupom ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-ecom-fill text-ecom-muted cursor-not-allowed'}`}
+                        >
+                          {aplicandoCupom ? '...' : 'Aplicar'}
+                        </button>
+                      </div>
                     </div>
                     {pesoTotalCarrinho > 0 && (
                       <div className="pt-2 flex justify-between text-sm text-ecom-muted font-medium">

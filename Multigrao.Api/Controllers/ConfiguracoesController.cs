@@ -106,6 +106,16 @@ namespace Multigrao.Api.Controllers
             if (dto.MascoteUrl != null)
                 config.MascoteUrl = dto.MascoteUrl;
 
+            // SMTP E-mail
+            if (dto.SmtpHost != null) config.SmtpHost = dto.SmtpHost;
+            if (dto.SmtpPort.HasValue) config.SmtpPort = dto.SmtpPort.Value;
+            if (dto.SmtpUsuario != null) config.SmtpUsuario = dto.SmtpUsuario;
+            if (dto.SmtpSenha != null) config.SmtpSenha = dto.SmtpSenha;
+            if (dto.SmtpNomeRemetente != null) config.SmtpNomeRemetente = dto.SmtpNomeRemetente;
+            if (dto.SmtpEmailRemetente != null) config.SmtpEmailRemetente = dto.SmtpEmailRemetente;
+            if (dto.SmtpUsarSsl.HasValue) config.SmtpUsarSsl = dto.SmtpUsarSsl.Value;
+            if (dto.EmailNotificacoesAtivo.HasValue) config.EmailNotificacoesAtivo = dto.EmailNotificacoesAtivo.Value;
+
             await _context.SaveChangesAsync();
 
             return Ok(await ConfigDto(config));
@@ -615,7 +625,15 @@ namespace Multigrao.Api.Controllers
                 longitude = config.Longitude,
                 faixasFrete = faixas,
                 linksBio = config.LinksBio,
-                redirecionamentos = config.Redirecionamentos
+                redirecionamentos = config.Redirecionamentos,
+                smtpHost = config.SmtpHost,
+                smtpPort = config.SmtpPort,
+                smtpUsuario = config.SmtpUsuario,
+                smtpSenha = config.SmtpSenha,
+                smtpNomeRemetente = config.SmtpNomeRemetente,
+                smtpEmailRemetente = config.SmtpEmailRemetente,
+                smtpUsarSsl = config.SmtpUsarSsl,
+                emailNotificacoesAtivo = config.EmailNotificacoesAtivo
             };
         }
 
