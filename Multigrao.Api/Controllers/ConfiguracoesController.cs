@@ -78,6 +78,8 @@ namespace Multigrao.Api.Controllers
                 config.FreteAtivo = dto.FreteAtivo.Value;
             if (dto.LogoUrl != null)
                 config.LogoUrl = dto.LogoUrl;
+            if (dto.Telefone != null)
+                config.Telefone = dto.Telefone;
             if (dto.VideoUrl != null)
                 config.VideoUrl = dto.VideoUrl;
             config.CorPrincipal = string.IsNullOrWhiteSpace(dto.CorPrincipal) ? "#0a0a0a" : dto.CorPrincipal;
@@ -594,6 +596,7 @@ namespace Multigrao.Api.Controllers
                 cidade = config.Cidade,
                 estado = config.Estado,
                 logoUrl = config.LogoUrl,
+                telefone = config.Telefone,
                 videoUrl = config.VideoUrl,
                 corPrincipal = config.CorPrincipal,
                 fonte = config.Fonte,

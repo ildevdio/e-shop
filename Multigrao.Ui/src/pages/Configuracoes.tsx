@@ -231,7 +231,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const atualizarConfig = useSistemaStore((state) => state.atualizar);
   const salvarConfig = useSistemaStore((state) => state.salvar);
   const salvarFaixasFrete = useSistemaStore((state) => state.salvarFaixasFrete);
-  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '', freteAtivo: false });
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', telefone: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '', freteAtivo: false });
   const [faixasFrete, setFaixasFrete] = useState<FaixaFrete[]>([]);
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [enviandoVideo, setEnviandoVideo] = useState(false);
@@ -258,6 +258,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         cidade: configSistema.cidade,
         estado: configSistema.estado,
         logoUrl: configSistema.logoUrl,
+        telefone: configSistema.telefone ?? '',
         videoUrl: configSistema.videoUrl ?? '',
         tituloHero: configSistema.tituloHero,
         subtextoHero: configSistema.subtextoHero,
@@ -440,6 +441,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       cidade: formEmpresa.cidade,
       estado: formEmpresa.estado,
       logoUrl: formEmpresa.logoUrl,
+      telefone: formEmpresa.telefone,
       videoUrl: formEmpresa.videoUrl,
       corPrincipal,
       corSecundaria,
@@ -779,6 +781,10 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
                   <input type="text" value={formEmpresa.cnpj} onChange={e => setFormEmpresa({ ...formEmpresa, cnpj: mascaraCnpj(e.target.value) })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="00.000.000/0000-00" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <input type="text" value={formEmpresa.telefone} onChange={e => setFormEmpresa({ ...formEmpresa, telefone: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="(00) 00000-0000" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Slogan / Subtítulo</label>

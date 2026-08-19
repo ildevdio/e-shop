@@ -285,6 +285,10 @@ namespace Multigrao.Api.Controllers
                     return BadRequest(new { message = "Preencha o endereço completo (logradouro, número, bairro, cidade, estado e CEP) antes de alterar para Entrega." });
                 pedido.Status = "ProntoEntrega";
             }
+            if (pedido.Status == "ProntoEntrega" && pedido.TipoEntrega == "Retirada")
+            {
+                pedido.Status = "ProntoRetirada";
+            }
             if (dto.Desconto.HasValue) pedido.Desconto = dto.Desconto.Value;
             if (dto.Acrescimo.HasValue) pedido.Acrescimo = dto.Acrescimo.Value;
             if (dto.ValorTotal.HasValue) pedido.ValorTotal = dto.ValorTotal.Value;

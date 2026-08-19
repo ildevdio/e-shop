@@ -14,6 +14,7 @@ export interface ConfiguracaoSistema {
   cidade: string;
   estado: string;
   logoUrl: string;
+  telefone: string;
   videoUrl: string | null;
   corPrincipal: string;
   fonte: string;
@@ -229,6 +230,7 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   cidade: '',
   estado: '',
   logoUrl: '/multigraos-logo.png',
+  telefone: '',
   videoUrl: '/multigraosvid.mp4',
   corPrincipal: '#0a0a0a',
   fonte: 'classica',
@@ -363,6 +365,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           cidade: data.cidade ?? '',
           estado: data.estado ?? '',
           logoUrl: data.logoUrl ?? '',
+          telefone: data.telefone ?? '',
           videoUrl: data.videoUrl ?? null,
           corPrincipal: data.corPrincipal || CONFIG_PADRAO.corPrincipal,
           fonte: data.fonte || CONFIG_PADRAO.fonte,
@@ -419,6 +422,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           cidade: config.cidade,
           estado: config.estado,
           logoUrl: config.logoUrl,
+          telefone: config.telefone,
           videoUrl: config.videoUrl,
           corPrincipal: config.corPrincipal,
           fonte: config.fonte,
@@ -452,6 +456,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         cidade: data.cidade ?? '',
         estado: data.estado ?? '',
         logoUrl: data.logoUrl ?? config.logoUrl,
+        telefone: data.telefone ?? config.telefone,
         videoUrl: data.videoUrl ?? null,
         corPrincipal: data.corPrincipal || config.corPrincipal,
         fonte: data.fonte || config.fonte,

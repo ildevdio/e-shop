@@ -328,6 +328,7 @@ namespace Multigrao.Api.DTOs
         public string? Cidade { get; set; }
         public string? Estado { get; set; }
         public string? LogoUrl { get; set; }
+        public string? Telefone { get; set; }
         public string? VideoUrl { get; set; }
         public string CorPrincipal { get; set; } = "#0a0a0a";
         public string Fonte { get; set; } = "classica";
@@ -389,6 +390,7 @@ namespace Multigrao.Api.DTOs
         public string? Cidade { get; set; }
         public string? Estado { get; set; }
         public string? LogoUrl { get; set; }
+        public string? Telefone { get; set; }
         public string? VideoUrl { get; set; }
         public string? CorPrincipal { get; set; }
         public string? Fonte { get; set; }
@@ -420,6 +422,7 @@ namespace Multigrao.Api.DTOs
         public string? Cidade { get; set; }
         public string? Estado { get; set; }
         public string? LogoUrl { get; set; }
+        public string? Telefone { get; set; }
         public string? VideoUrl { get; set; }
         public string? CorPrincipal { get; set; }
         public string? Fonte { get; set; }
