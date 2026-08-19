@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Pencil, Trash2, Loader2, ArrowLeft, BadgePercent, Tag } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, Loader2, ArrowLeft, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getSlug } from '../services/tenantSetup';
 import { cupomService, type Cupom, type CriarCupomDto } from '../services/cupomService';
@@ -9,7 +9,7 @@ import { clienteService, type Cliente } from '../services/clienteService';
 const formVazio: CriarCupomDto = {
   codigo: '', descricao: '', tipo: 'percentual', valor: 10, aplicavelEm: 'pedido',
   valorMinimoPedido: null, valorMaximoDesconto: null, usosMaximos: null,
-  dataInicio: null, dataFim: null, ativa: true, produtos: [], clientes: [],
+  dataInicio: null, dataFim: null, ativo: true, produtos: [], clientes: [],
 };
 
 function formatarData(iso: string | null | undefined) {
@@ -104,7 +104,7 @@ export default function ComercialCupons() {
       usosMaximos: c.usosMaximos,
       dataInicio: c.dataInicio,
       dataFim: c.dataFim,
-      ativa: c.ativo,
+      ativo: c.ativo,
       produtos: (c.produtos ?? []).map(cp => ({ produtoId: cp.produtoId })),
       clientes: (c.clientes ?? []).map(cc => ({ clienteId: cc.clienteId })),
     });
@@ -402,7 +402,7 @@ export default function ComercialCupons() {
               </div>
 
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.ativa} onChange={e => setForm({ ...form, ativa: e.target.checked })} className="h-4 w-4 accent-primary" />
+                <input type="checkbox" checked={form.ativo} onChange={e => setForm({ ...form, ativo: e.target.checked })} className="h-4 w-4 accent-primary" />
                 <span className="text-sm text-gray-700 font-medium">Cupom ativo</span>
               </label>
 
