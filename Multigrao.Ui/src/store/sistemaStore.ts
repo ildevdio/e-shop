@@ -42,6 +42,14 @@ export interface ConfiguracaoSistema {
   smtpEmailRemetente: string;
   smtpUsarSsl: boolean;
   emailNotificacoesAtivo: boolean;
+  carrinhoLembreteAtivo: boolean;
+  carrinhoLembreteMinutos: number;
+  carrinhoLembreteRepetir: number;
+  carrinhoLembreteIntervaloRepeticao: number;
+  carrinhoLembreteCanal: string;
+  evolutionApiUrl: string;
+  evolutionApiInstance: string;
+  evolutionApiSsl: boolean;
 }
 
 export interface FaixaFrete {
@@ -264,6 +272,14 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   smtpEmailRemetente: '',
   smtpUsarSsl: true,
   emailNotificacoesAtivo: false,
+  carrinhoLembreteAtivo: false,
+  carrinhoLembreteMinutos: 30,
+  carrinhoLembreteRepetir: 1,
+  carrinhoLembreteIntervaloRepeticao: 120,
+  carrinhoLembreteCanal: 'email',
+  evolutionApiUrl: '',
+  evolutionApiInstance: '',
+  evolutionApiSsl: true,
 };
 
 function luminancia(hex: string): number {
@@ -409,6 +425,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           smtpEmailRemetente: data.smtpEmailRemetente ?? '',
           smtpUsarSsl: data.smtpUsarSsl ?? true,
           emailNotificacoesAtivo: data.emailNotificacoesAtivo ?? false,
+          carrinhoLembreteAtivo: data.carrinhoLembreteAtivo ?? false,
+          carrinhoLembreteMinutos: data.carrinhoLembreteMinutos ?? 30,
+          carrinhoLembreteRepetir: data.carrinhoLembreteRepetir ?? 1,
+          carrinhoLembreteIntervaloRepeticao: data.carrinhoLembreteIntervaloRepeticao ?? 120,
+          carrinhoLembreteCanal: data.carrinhoLembreteCanal ?? 'email',
+          evolutionApiUrl: data.evolutionApiUrl ?? '',
+          evolutionApiInstance: data.evolutionApiInstance ?? '',
+          evolutionApiSsl: data.evolutionApiSsl ?? true,
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -471,6 +495,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           smtpEmailRemetente: config.smtpEmailRemetente,
           smtpUsarSsl: config.smtpUsarSsl,
           emailNotificacoesAtivo: config.emailNotificacoesAtivo,
+          carrinhoLembreteAtivo: config.carrinhoLembreteAtivo,
+          carrinhoLembreteMinutos: config.carrinhoLembreteMinutos,
+          carrinhoLembreteRepetir: config.carrinhoLembreteRepetir,
+          carrinhoLembreteIntervaloRepeticao: config.carrinhoLembreteIntervaloRepeticao,
+          carrinhoLembreteCanal: config.carrinhoLembreteCanal,
+          evolutionApiUrl: config.evolutionApiUrl,
+          evolutionApiInstance: config.evolutionApiInstance,
+          evolutionApiSsl: config.evolutionApiSsl,
         }),
       });
       if (!resp.ok) return false;
@@ -516,6 +548,14 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         smtpEmailRemetente: data.smtpEmailRemetente ?? config.smtpEmailRemetente,
         smtpUsarSsl: data.smtpUsarSsl ?? config.smtpUsarSsl,
         emailNotificacoesAtivo: data.emailNotificacoesAtivo ?? config.emailNotificacoesAtivo,
+        carrinhoLembreteAtivo: data.carrinhoLembreteAtivo ?? config.carrinhoLembreteAtivo,
+        carrinhoLembreteMinutos: data.carrinhoLembreteMinutos ?? config.carrinhoLembreteMinutos,
+        carrinhoLembreteRepetir: data.carrinhoLembreteRepetir ?? config.carrinhoLembreteRepetir,
+        carrinhoLembreteIntervaloRepeticao: data.carrinhoLembreteIntervaloRepeticao ?? config.carrinhoLembreteIntervaloRepeticao,
+        carrinhoLembreteCanal: data.carrinhoLembreteCanal ?? config.carrinhoLembreteCanal,
+        evolutionApiUrl: data.evolutionApiUrl ?? config.evolutionApiUrl,
+        evolutionApiInstance: data.evolutionApiInstance ?? config.evolutionApiInstance,
+        evolutionApiSsl: data.evolutionApiSsl ?? config.evolutionApiSsl,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);

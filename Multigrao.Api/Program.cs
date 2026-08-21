@@ -40,6 +40,8 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<Multigrao.Api.Services.IAuthService, Multigrao.Api.Services.AuthService>();
 builder.Services.AddScoped<Multigrao.Api.Services.ITenantContext, Multigrao.Api.Services.TenantContext>();
 builder.Services.AddScoped<Multigrao.Api.Services.EmailService>();
+builder.Services.AddScoped<Multigrao.Api.Services.WhatsAppService>();
+builder.Services.AddHostedService<Multigrao.Api.Services.CarrinhoAbandonadoService>();
 builder.Services.AddHttpClient();
 
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")

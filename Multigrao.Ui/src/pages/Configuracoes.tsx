@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, type FaixaFrete } from '../store/sistemaStore';
@@ -210,7 +210,7 @@ function PreviewLoja({
 export default function Configuracoes() {  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>(getSlug() === 'focus' ? 'sistema' : 'usuarios');
-  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'notificacoes' | 'regras' | 'email'>('empresa');
+  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'notificacoes' | 'regras' | 'email' | 'carrinho'>('empresa');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -239,6 +239,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [salvandoConfig, setSalvandoConfig] = useState(false);
   const [smtpForm, setSmtpForm] = useState({ smtpHost: '', smtpPort: 587, smtpUsuario: '', smtpSenha: '', smtpNomeRemetente: '', smtpEmailRemetente: '', smtpUsarSsl: true, emailNotificacoesAtivo: false });
+  const [carrinhoForm, setCarrinhoForm] = useState({ carrinhoLembreteAtivo: false, carrinhoLembreteMinutos: 30, carrinhoLembreteRepetir: 1, carrinhoLembreteIntervaloRepeticao: 120, carrinhoLembreteCanal: 'email', evolutionApiUrl: '', evolutionApiInstance: '', evolutionApiSsl: true });
 
   useEffect(() => {
     if (carregada) {
@@ -282,6 +283,16 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         smtpEmailRemetente: configSistema.smtpEmailRemetente ?? '',
         smtpUsarSsl: configSistema.smtpUsarSsl ?? true,
         emailNotificacoesAtivo: configSistema.emailNotificacoesAtivo ?? false,
+      });
+      setCarrinhoForm({
+        carrinhoLembreteAtivo: configSistema.carrinhoLembreteAtivo ?? false,
+        carrinhoLembreteMinutos: configSistema.carrinhoLembreteMinutos ?? 30,
+        carrinhoLembreteRepetir: configSistema.carrinhoLembreteRepetir ?? 1,
+        carrinhoLembreteIntervaloRepeticao: configSistema.carrinhoLembreteIntervaloRepeticao ?? 120,
+        carrinhoLembreteCanal: configSistema.carrinhoLembreteCanal ?? 'email',
+        evolutionApiUrl: configSistema.evolutionApiUrl ?? '',
+        evolutionApiInstance: configSistema.evolutionApiInstance ?? '',
+        evolutionApiSsl: configSistema.evolutionApiSsl ?? true,
       });
     }
   }, [carregada]);
@@ -470,6 +481,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       mascoteUrl: formEmpresa.mascoteUrl,
       freteAtivo: formEmpresa.freteAtivo,
       ...smtpForm,
+      ...carrinhoForm,
     });
     if (ok) {
       await salvarFaixasFrete(faixasFrete.filter(f => f.ateKm > 0));
@@ -758,6 +770,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 { id: 'notificacoes' as const, label: 'Notificações', icon: Bell },
                 { id: 'regras' as const, label: 'Regras', icon: Clock },
                 { id: 'email' as const, label: 'E-mail', icon: Mail },
+                { id: 'carrinho' as const, label: 'Carrinho', icon: ShoppingCart },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -780,6 +793,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 {sistemaTab === 'notificacoes' && 'Notificações'}
                 {sistemaTab === 'regras' && 'Regras de Negócio'}
                 {sistemaTab === 'email' && 'Configuração de E-mail (SMTP)'}
+                {sistemaTab === 'carrinho' && 'Carrinho Abandonado — Lembretes'}
               </h2>
             </div>
 
@@ -1300,6 +1314,79 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                   <label htmlFor="smtpSsl" className="text-sm text-gray-700">Usar SSL/TLS (STARTTLS)</label>
                 </div>
               </div>
+            </div>
+            )}
+
+            {sistemaTab === 'carrinho' && (
+            <div className="space-y-6">
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><ShoppingCart size={18} className="text-black" /> Lembrete de Carrinho Abandonado</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                    <div>
+                      <div className="font-medium text-gray-900 text-sm">Ativar Lembretes</div>
+                      <div className="text-xs text-gray-400">Enviar lembrete quando o carrinho ficar abandonado</div>
+                    </div>
+                    <button onClick={() => setCarrinhoForm({ ...carrinhoForm, carrinhoLembreteAtivo: !carrinhoForm.carrinhoLembreteAtivo })} className={`w-11 h-6 rounded-full transition-all relative ${carrinhoForm.carrinhoLembreteAtivo ? 'bg-primary' : 'bg-gray-300'}`}>
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${carrinhoForm.carrinhoLembreteAtivo ? 'left-6' : 'left-1'}`} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tempo até lembrete (min)</label>
+                      <input type="number" value={carrinhoForm.carrinhoLembreteMinutos} onChange={e => setCarrinhoForm({ ...carrinhoForm, carrinhoLembreteMinutos: parseInt(e.target.value) || 30 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Repetir (0-3 vezes)</label>
+                      <input type="number" min={0} max={3} value={carrinhoForm.carrinhoLembreteRepetir} onChange={e => setCarrinhoForm({ ...carrinhoForm, carrinhoLembreteRepetir: Math.min(3, Math.max(0, parseInt(e.target.value) || 0)) })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Intervalo repetição (min)</label>
+                      <input type="number" value={carrinhoForm.carrinhoLembreteIntervaloRepeticao} onChange={e => setCarrinhoForm({ ...carrinhoForm, carrinhoLembreteIntervaloRepeticao: parseInt(e.target.value) || 120 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Canal de envio</label>
+                    <div className="flex gap-2">
+                      {[
+                        { value: 'email', label: 'E-mail' },
+                        { value: 'whatsapp', label: 'WhatsApp' },
+                        { value: 'ambos', label: 'Ambos' },
+                      ].map(opt => (
+                        <button key={opt.value} onClick={() => setCarrinhoForm({ ...carrinhoForm, carrinhoLembreteCanal: opt.value })} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${carrinhoForm.carrinhoLembreteCanal === opt.value ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {(carrinhoForm.carrinhoLembreteCanal === 'whatsapp' || carrinhoForm.carrinhoLembreteCanal === 'ambos') && (
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><MessageSquare size={18} className="text-black" /> Evolution API (WhatsApp)</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">URL da API</label>
+                      <input type="text" value={carrinhoForm.evolutionApiUrl} onChange={e => setCarrinhoForm({ ...carrinhoForm, evolutionApiUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="http://localhost:8080" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                      <input type="password" onChange={e => setCarrinhoForm({ ...carrinhoForm, evolutionApiInstance: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="sua-api-key" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Instância</label>
+                      <input type="text" value={carrinhoForm.evolutionApiInstance} onChange={e => setCarrinhoForm({ ...carrinhoForm, evolutionApiInstance: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" placeholder="minha-instancia" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100">
+                    <input type="checkbox" id="evoSsl" checked={carrinhoForm.evolutionApiSsl} onChange={e => setCarrinhoForm({ ...carrinhoForm, evolutionApiSsl: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                    <label htmlFor="evoSsl" className="text-sm text-gray-700">Usar SSL (HTTPS)</label>
+                  </div>
+                </div>
+              </div>
+              )}
             </div>
             )}
 

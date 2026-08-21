@@ -116,6 +116,19 @@ namespace Multigrao.Api.Controllers
             if (dto.SmtpUsarSsl.HasValue) config.SmtpUsarSsl = dto.SmtpUsarSsl.Value;
             if (dto.EmailNotificacoesAtivo.HasValue) config.EmailNotificacoesAtivo = dto.EmailNotificacoesAtivo.Value;
 
+            // Carrinho Abandonado
+            if (dto.CarrinhoLembreteAtivo.HasValue) config.CarrinhoLembreteAtivo = dto.CarrinhoLembreteAtivo.Value;
+            if (dto.CarrinhoLembreteMinutos.HasValue) config.CarrinhoLembreteMinutos = dto.CarrinhoLembreteMinutos.Value;
+            if (dto.CarrinhoLembreteRepetir.HasValue) config.CarrinhoLembreteRepetir = dto.CarrinhoLembreteRepetir.Value;
+            if (dto.CarrinhoLembreteIntervaloRepeticao.HasValue) config.CarrinhoLembreteIntervaloRepeticao = dto.CarrinhoLembreteIntervaloRepeticao.Value;
+            if (dto.CarrinhoLembreteCanal != null) config.CarrinhoLembreteCanal = dto.CarrinhoLembreteCanal;
+
+            // Evolution API
+            if (dto.EvolutionApiUrl != null) config.EvolutionApiUrl = dto.EvolutionApiUrl;
+            if (dto.EvolutionApiKey != null) config.EvolutionApiKey = dto.EvolutionApiKey;
+            if (dto.EvolutionApiInstance != null) config.EvolutionApiInstance = dto.EvolutionApiInstance;
+            if (dto.EvolutionApiSsl.HasValue) config.EvolutionApiSsl = dto.EvolutionApiSsl.Value;
+
             await _context.SaveChangesAsync();
 
             return Ok(await ConfigDto(config));
@@ -633,7 +646,15 @@ namespace Multigrao.Api.Controllers
                 smtpNomeRemetente = config.SmtpNomeRemetente,
                 smtpEmailRemetente = config.SmtpEmailRemetente,
                 smtpUsarSsl = config.SmtpUsarSsl,
-                emailNotificacoesAtivo = config.EmailNotificacoesAtivo
+                emailNotificacoesAtivo = config.EmailNotificacoesAtivo,
+                carrinhoLembreteAtivo = config.CarrinhoLembreteAtivo,
+                carrinhoLembreteMinutos = config.CarrinhoLembreteMinutos,
+                carrinhoLembreteRepetir = config.CarrinhoLembreteRepetir,
+                carrinhoLembreteIntervaloRepeticao = config.CarrinhoLembreteIntervaloRepeticao,
+                carrinhoLembreteCanal = config.CarrinhoLembreteCanal,
+                evolutionApiUrl = config.EvolutionApiUrl,
+                evolutionApiInstance = config.EvolutionApiInstance,
+                evolutionApiSsl = config.EvolutionApiSsl
             };
         }
 

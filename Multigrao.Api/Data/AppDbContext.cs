@@ -54,6 +54,8 @@ namespace Multigrao.Api.Data
         public DbSet<CupomProduto> CupomProdutos { get; set; }
         public DbSet<CupomCliente> CupomClientes { get; set; }
 
+        public DbSet<LembreteCarrinho> LembretesCarrinho { get; set; }
+
         public override int SaveChanges()
         {
             AplicarEmpresa();
@@ -118,6 +120,8 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<Cupom>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<CupomProduto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<CupomCliente>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+
+            modelBuilder.Entity<LembreteCarrinho>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });
@@ -250,6 +254,15 @@ namespace Multigrao.Api.Data
                 .WithMany()
                 .HasForeignKey(cc => cc.ClienteId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LembreteCarrinho>()
+                .HasOne(lc => lc.Carrinho)
+                .WithMany()
+                .HasForeignKey(lc => lc.CarrinhoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LembreteCarrinho>()
+                .HasIndex(lc => new { lc.EmpresaId, lc.CarrinhoId, lc.EnviadoEm });
 
             // Seed: Setores
             modelBuilder.Entity<Setor>().HasData(

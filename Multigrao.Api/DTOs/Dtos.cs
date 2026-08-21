@@ -355,6 +355,17 @@ namespace Multigrao.Api.DTOs
         public string? SmtpEmailRemetente { get; set; }
         public bool? SmtpUsarSsl { get; set; }
         public bool? EmailNotificacoesAtivo { get; set; }
+        // Carrinho Abandonado
+        public bool? CarrinhoLembreteAtivo { get; set; }
+        public int? CarrinhoLembreteMinutos { get; set; }
+        public int? CarrinhoLembreteRepetir { get; set; }
+        public int? CarrinhoLembreteIntervaloRepeticao { get; set; }
+        public string? CarrinhoLembreteCanal { get; set; }
+        // Evolution API (WhatsApp)
+        public string? EvolutionApiUrl { get; set; }
+        public string? EvolutionApiKey { get; set; }
+        public string? EvolutionApiInstance { get; set; }
+        public bool? EvolutionApiSsl { get; set; }
     }
 
     public class FaixaFreteDto

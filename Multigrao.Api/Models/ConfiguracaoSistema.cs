@@ -45,5 +45,18 @@ namespace Multigrao.Api.Models
         public string? SmtpEmailRemetente { get; set; }
         public bool SmtpUsarSsl { get; set; } = true;
         public bool EmailNotificacoesAtivo { get; set; }
+
+        // Carrinho Abandonado
+        public bool CarrinhoLembreteAtivo { get; set; }
+        public int CarrinhoLembreteMinutos { get; set; } = 30;
+        public int CarrinhoLembreteRepetir { get; set; } = 1;
+        public int CarrinhoLembreteIntervaloRepeticao { get; set; } = 120;
+        public string CarrinhoLembreteCanal { get; set; } = "email";
+
+        // Evolution API (WhatsApp)
+        public string? EvolutionApiUrl { get; set; }
+        public string? EvolutionApiKey { get; set; }
+        public string? EvolutionApiInstance { get; set; }
+        public bool EvolutionApiSsl { get; set; } = true;
     }
 }
