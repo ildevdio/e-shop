@@ -140,7 +140,7 @@ export default function Topbar({ className }: TopbarProps) {
             {seletorAberto && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setSeletorAberto(false)} />
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-lg border border-border bg-white shadow-lg">
                   <p className="border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {trocando ? 'Trocando...' : 'Empresas e filiais'}
                   </p>
