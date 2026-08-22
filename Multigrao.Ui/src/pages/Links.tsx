@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSistemaStore } from '../store/sistemaStore';
 import { midiaUrl } from '../utils/imageUrl';
+import { parseLinktreeAparencia } from '../types/linktree';
 import { LinkIcon } from 'lucide-react';
 
 export default function Links() {
   const { slug } = useParams();
   const config = useSistemaStore((state) => state.config);
+  const aparencia = parseLinktreeAparencia(config.linktreeAparencia);
   const corPrincipal = config.corPrincipal || '#10b981';
   const logo = midiaUrl(config.logoUrl);
 
@@ -14,7 +16,7 @@ export default function Links() {
 
   useEffect(() => {
     document.title = `Links - ${config.nomeEmpresa}`;
-    
+
     // Parse links from config.linksBio
     if (config.linksBio) {
       try {
@@ -33,20 +35,63 @@ export default function Links() {
     }
   }, [config.linksBio, config.nomeEmpresa, slug]);
 
+  const temaEscuro = aparencia.temaFundo !== 'claro';
+
+  let estiloFundo: React.CSSProperties;
+  switch (aparencia.temaFundo) {
+    case 'escuro':
+      estiloFundo = { backgroundColor: '#111827' };
+      break;
+    case 'gradiente':
+      estiloFundo = { background: `linear-gradient(165deg, ${aparencia.corFundo1} 0%, ${aparencia.corFundo2} 100%)` };
+      break;
+    case 'imagem':
+      estiloFundo = {
+        backgroundImage: `linear-gradient(rgba(0,0,0,${aparencia.escurecerImagem / 100}), rgba(0,0,0,${aparencia.escurecerImagem / 100})), url(${midiaUrl(aparencia.imagemFundoUrl) || aparencia.imagemFundoUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+      break;
+    default:
+      estiloFundo = { backgroundColor: aparencia.corFundo1 };
+  }
+
+  const raioAvatar = aparencia.formatoAvatar === 'circular' ? 'rounded-full' : aparencia.formatoAvatar === 'arredondado' ? 'rounded-3xl' : 'rounded-none';
+  const fonteTitulo = aparencia.fonteTitulo === 'serifada' ? 'font-serif' : '';
+
+  const classeBotao = 'w-full text-center py-4 px-6 font-bold transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2';
+  const estiloBotao: React.CSSProperties = { borderRadius: `${aparencia.raioBotao}px` };
+  if (aparencia.sombraBotao && aparencia.formatoBotao === 'cheio') {
+    estiloBotao.boxShadow = `0 8px 20px -6px ${corPrincipal}66`;
+  }
+
+  const estiloTextoBotao = (): React.CSSProperties => {
+    switch (aparencia.formatoBotao) {
+      case 'outline':
+        return { border: `2px solid ${corPrincipal}`, color: temaEscuro ? '#ffffff' : corPrincipal, backgroundColor: 'transparent' };
+      case 'soft':
+        return { backgroundColor: `${corPrincipal}26`, color: temaEscuro ? '#ffffff' : corPrincipal };
+      default:
+        return { backgroundColor: corPrincipal, color: '#ffffff' };
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center py-12 px-4" style={{ backgroundColor: config.designEcommerce === 'wild' ? '#ffffff' : '#f9fafb' }}>
+    <div className="min-h-screen flex flex-col items-center py-12 px-4" style={estiloFundo}>
       <div className="w-full max-w-md flex flex-col items-center">
-        
+
         {logo ? (
-          <img src={logo} alt={config.nomeEmpresa} className="w-24 h-24 rounded-full object-cover shadow-md mb-4 border-2 border-gray-100" />
+          <img src={logo} alt={config.nomeEmpresa} className={`w-24 h-24 object-cover shadow-md mb-4 border-2 ${temaEscuro ? 'border-white/20' : 'border-gray-100'} ${raioAvatar}`} />
         ) : (
-          <div className="w-24 h-24 rounded-full shadow-md mb-4 bg-gray-200 flex items-center justify-center border-2 border-gray-100 text-gray-400">
+          <div className={`w-24 h-24 shadow-md mb-4 bg-gray-200 flex items-center justify-center border-2 ${temaEscuro ? 'border-white/20' : 'border-gray-100'} text-gray-400 ${raioAvatar}`}>
             <LinkIcon size={32} />
           </div>
         )}
-        
-        <h1 className="text-xl font-bold text-gray-900 mb-1">{config.nomeEmpresa}</h1>
-        {config.slogan && <p className="text-sm text-gray-500 mb-8 text-center">{config.slogan}</p>}
+
+        <h1 className={`text-xl font-bold mb-1 ${temaEscuro ? 'text-white' : 'text-gray-900'} ${fonteTitulo}`}>{config.nomeEmpresa}</h1>
+        {aparencia.mostrarSlogan && config.slogan && (
+          <p className={`text-sm mb-8 text-center ${temaEscuro ? 'text-white/70' : 'text-gray-500'}`}>{config.slogan}</p>
+        )}
 
         <div className="w-full flex flex-col gap-4">
           {links.map((link, idx) => (
@@ -55,16 +100,17 @@ export default function Links() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full text-center py-4 px-6 rounded-xl text-white font-bold transition-transform hover:scale-105 hover:shadow-lg active:scale-95"
-              style={{ backgroundColor: corPrincipal }}
+              className={`${classeBotao} ${aparencia.formatoBotao === 'cheio' ? 'hover:shadow-lg' : ''}`}
+              style={{ ...estiloBotao, ...estiloTextoBotao() }}
             >
+              {link.icone && <span>{link.icone}</span>}
               {link.titulo}
             </a>
           ))}
         </div>
-        
+
         <div className="mt-16 text-center">
-          <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Tecnologia Multigrãos</p>
+          <p className={`text-xs uppercase tracking-widest font-semibold ${temaEscuro ? 'text-white/50' : 'text-gray-400'}`}>Tecnologia Multigrãos</p>
         </div>
       </div>
     </div>

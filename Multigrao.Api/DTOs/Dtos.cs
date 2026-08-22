@@ -355,6 +355,7 @@ namespace Multigrao.Api.DTOs
         public string? TipoCarrinho { get; set; }
         public string? LinksBio { get; set; }
         public string? Redirecionamentos { get; set; }
+        public string? LinktreeAparencia { get; set; }
         public string? HeroImagemTipo { get; set; }
         public string? MascoteUrl { get; set; }
         public bool? FreteAtivo { get; set; }

@@ -7,6 +7,7 @@ import { tenantHeaders, authHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_GRADE } from '../services/cores';
 import { midiaUrl } from '../utils/imageUrl';
+import { parseLinktreeAparencia, LINKTREE_APARENCIA_PADRAO, type LinktreeAparencia } from '../types/linktree';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -240,6 +241,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const salvarConfig = useSistemaStore((state) => state.salvar);
   const salvarFaixasFrete = useSistemaStore((state) => state.salvarFaixasFrete);
   const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', telefone: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '', freteAtivo: false });
+  const [linktreeAparencia, setLinktreeAparencia] = useState<LinktreeAparencia>(LINKTREE_APARENCIA_PADRAO);
   const [faixasFrete, setFaixasFrete] = useState<FaixaFrete[]>([]);
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [enviandoVideo, setEnviandoVideo] = useState(false);
@@ -256,6 +258,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       setCorFonte(configSistema.corFonte);
       setFonte(configSistema.fonte);
       setDesignEcommerce(DESIGNS_ECOMMERCE[configSistema.designEcommerce] ? configSistema.designEcommerce : 'claro');
+      setLinktreeAparencia(parseLinktreeAparencia(configSistema.linktreeAparencia));
       setFormEmpresa({
         nomeEmpresa: configSistema.nomeEmpresa,
         cnpj: configSistema.cnpj,
@@ -507,6 +510,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       tipoCarrinho: formEmpresa.tipoCarrinho,
       linksBio: formEmpresa.linksBio,
       redirecionamentos: formEmpresa.redirecionamentos,
+      linktreeAparencia: JSON.stringify(linktreeAparencia),
       heroImagemTipo: formEmpresa.heroImagemTipo,
       mascoteUrl: formEmpresa.mascoteUrl,
       freteAtivo: formEmpresa.freteAtivo,
@@ -964,6 +968,86 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                     placeholder={`[\n  { "titulo": "Acessar Loja", "url": "/${configSistema.slug}/commerce" },\n  { "titulo": "WhatsApp", "url": "https://wa.me/55..." }\n]`} 
                   />
                   <p className="text-[11px] mt-1.5 text-gray-400">Insira um array JSON válido. Deixe em branco para usar o padrão.</p>
+                </div>
+
+                <div className="mt-5 pt-5 border-t border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><Palette size={15} /> Aparência da Página</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tema de Fundo</label>
+                      <select value={linktreeAparencia.temaFundo} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, temaFundo: e.target.value as LinktreeAparencia['temaFundo'] })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <option value="claro">Claro</option>
+                        <option value="escuro">Escuro</option>
+                        <option value="gradiente">Gradiente</option>
+                        <option value="imagem">Imagem</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Formato dos Botões</label>
+                      <select value={linktreeAparencia.formatoBotao} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, formatoBotao: e.target.value as LinktreeAparencia['formatoBotao'] })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <option value="cheio">Cheio</option>
+                        <option value="outline">Contorno</option>
+                        <option value="soft">Suave</option>
+                      </select>
+                    </div>
+
+                    {linktreeAparencia.temaFundo === 'claro' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cor do Fundo</label>
+                        <input type="color" value={linktreeAparencia.corFundo1} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, corFundo1: e.target.value })} className="w-full h-[42px] border border-gray-200 rounded-xl px-1 cursor-pointer bg-white" />
+                      </div>
+                    )}
+                    {linktreeAparencia.temaFundo === 'gradiente' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Gradiente - Cor Inicial</label>
+                          <input type="color" value={linktreeAparencia.corFundo1} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, corFundo1: e.target.value })} className="w-full h-[42px] border border-gray-200 rounded-xl px-1 cursor-pointer bg-white" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Gradiente - Cor Final</label>
+                          <input type="color" value={linktreeAparencia.corFundo2} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, corFundo2: e.target.value })} className="w-full h-[42px] border border-gray-200 rounded-xl px-1 cursor-pointer bg-white" />
+                        </div>
+                      </>
+                    )}
+                    {linktreeAparencia.temaFundo === 'imagem' && (
+                      <>
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Imagem de Fundo (URL)</label>
+                          <input type="text" value={linktreeAparencia.imagemFundoUrl} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, imagemFundoUrl: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="https://..." />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Escurecer Imagem: {linktreeAparencia.escurecerImagem}%</label>
+                          <input type="range" min={0} max={90} value={linktreeAparencia.escurecerImagem} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, escurecerImagem: Number(e.target.value) })} className="w-full accent-primary" />
+                        </div>
+                      </>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Arredondamento dos Botões: {linktreeAparencia.raioBotao}px</label>
+                      <input type="range" min={0} max={40} value={linktreeAparencia.raioBotao} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, raioBotao: Number(e.target.value) })} className="w-full accent-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Formato do Logo</label>
+                      <select value={linktreeAparencia.formatoAvatar} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, formatoAvatar: e.target.value as LinktreeAparencia['formatoAvatar'] })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <option value="circular">Circular</option>
+                        <option value="arredondado">Arredondado</option>
+                        <option value="quadrado">Quadrado</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Fonte do Título</label>
+                      <select value={linktreeAparencia.fonteTitulo} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, fonteTitulo: e.target.value as LinktreeAparencia['fonteTitulo'] })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <option value="padrao">Padrão</option>
+                        <option value="serifada">Serifada</option>
+                      </select>
+                    </div>
+                    <div className="flex items-end">
+                      <label className="flex items-center justify-between w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 cursor-pointer">
+                        <span className="text-sm font-medium text-gray-900">Mostrar Slogan</span>
+                        <input type="checkbox" checked={linktreeAparencia.mostrarSlogan} onChange={e => setLinktreeAparencia({ ...linktreeAparencia, mostrarSlogan: e.target.checked })} className="h-5 w-5 accent-primary" />
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
 

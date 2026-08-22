@@ -28,6 +28,7 @@ export interface ConfiguracaoSistema {
   tipoCarrinho: string;
   linksBio?: string | null;
   redirecionamentos?: string | null;
+  linktreeAparencia?: string | null;
   heroImagemTipo: string;
   mascoteUrl: string;
   freteAtivo: boolean;
@@ -411,6 +412,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           tipoCarrinho: data.tipoCarrinho || CONFIG_PADRAO.tipoCarrinho,
           linksBio: data.linksBio ?? null,
           redirecionamentos: data.redirecionamentos ?? null,
+          linktreeAparencia: data.linktreeAparencia ?? null,
           heroImagemTipo: data.heroImagemTipo || CONFIG_PADRAO.heroImagemTipo,
           mascoteUrl: data.mascoteUrl ?? '',
           freteAtivo: data.freteAtivo ?? false,
@@ -484,6 +486,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           tipoCarrinho: config.tipoCarrinho,
           linksBio: config.linksBio,
           redirecionamentos: config.redirecionamentos,
+          linktreeAparencia: config.linktreeAparencia,
           heroImagemTipo: config.heroImagemTipo,
           mascoteUrl: config.mascoteUrl,
           freteAtivo: config.freteAtivo,
@@ -534,6 +537,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         tipoCarrinho: data.tipoCarrinho || config.tipoCarrinho,
         linksBio: data.linksBio ?? config.linksBio,
         redirecionamentos: data.redirecionamentos ?? config.redirecionamentos,
+        linktreeAparencia: data.linktreeAparencia ?? config.linktreeAparencia,
         heroImagemTipo: data.heroImagemTipo || config.heroImagemTipo,
         mascoteUrl: data.mascoteUrl ?? config.mascoteUrl,
         freteAtivo: data.freteAtivo ?? config.freteAtivo,

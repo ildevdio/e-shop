@@ -101,6 +101,8 @@ namespace Multigrao.Api.Controllers
                 config.LinksBio = dto.LinksBio;
             if (dto.Redirecionamentos != null)
                 config.Redirecionamentos = dto.Redirecionamentos;
+            if (dto.LinktreeAparencia != null)
+                config.LinktreeAparencia = dto.LinktreeAparencia;
             if (!string.IsNullOrWhiteSpace(dto.HeroImagemTipo))
                 config.HeroImagemTipo = dto.HeroImagemTipo;
             if (dto.MascoteUrl != null)
@@ -709,6 +711,7 @@ namespace Multigrao.Api.Controllers
                 faixasFrete = faixas,
                 linksBio = config.LinksBio,
                 redirecionamentos = config.Redirecionamentos,
+                linktreeAparencia = config.LinktreeAparencia,
                 smtpHost = config.SmtpHost,
                 smtpPort = config.SmtpPort,
                 smtpUsuario = config.SmtpUsuario,
