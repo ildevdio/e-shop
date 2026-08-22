@@ -54,7 +54,7 @@ export default function Topbar({ className }: TopbarProps) {
         });
         if (!resp.ok) return;
         const data: EmpresaInfo[] = await resp.json();
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setSessaoEmpresa(useAuthStore.getState().token!, data);
         }
       } catch {

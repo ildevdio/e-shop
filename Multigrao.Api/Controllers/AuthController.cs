@@ -200,7 +200,12 @@ namespace Multigrao.Api.Controllers
 
             var usuario = new Usuario { Id = usuarioId, EmpresaId = empresa.Id };
 
-            var empresasAcessiveis = await CarregarEmpresasDoUsuarioAsync(usuarioId);
+            int? empresaOrigem = null;
+            var empresaOrigemClaim = User.FindFirst("EmpresaId")?.Value;
+            if (int.TryParse(empresaOrigemClaim, out var empresaOrigemId) && empresaOrigemId > 0)
+                empresaOrigem = empresaOrigemId;
+
+            var empresasAcessiveis = await CarregarEmpresasDoUsuarioAsync(usuarioId, empresaOrigem);
             if (!empresasAcessiveis.Any(e => e.Id == empresa.Id))
                 return Forbid();
 
@@ -227,7 +232,12 @@ namespace Multigrao.Api.Controllers
             if (!int.TryParse(usuarioIdClaim, out var usuarioId))
                 return Unauthorized(new { message = "Sessão inválida." });
 
-            return Ok(await CarregarEmpresasDoUsuarioAsync(usuarioId));
+            int? empresaPrincipal = null;
+            var empresaClaim = User.FindFirst("EmpresaId")?.Value;
+            if (int.TryParse(empresaClaim, out var empresaIdClaim) && empresaIdClaim > 0)
+                empresaPrincipal = empresaIdClaim;
+
+            return Ok(await CarregarEmpresasDoUsuarioAsync(usuarioId, empresaPrincipal));
         }
 
         private async Task<List<EmpresaResumoDto>> CarregarEmpresasDoUsuarioAsync(Usuario usuario)
