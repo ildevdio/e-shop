@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Building2, Check, ChevronDown, LogOut, Menu } from 'lucide-react';
 import { useAuthStore, type EmpresaInfo } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
@@ -45,6 +45,25 @@ export default function Topbar({ className }: TopbarProps) {
   const [seletorAberto, setSeletorAberto] = useState(false);
   const [trocando, setTrocando] = useState(false);
 
+  useEffect(() => {
+    const sincronizarEmpresas = async () => {
+      if (!useAuthStore.getState().token) return;
+      try {
+        const resp = await fetch(`${API_URL}/Auth/minhas-empresas`, {
+          headers: { ...authHeaders(), ...tenantHeaders() },
+        });
+        if (!resp.ok) return;
+        const data: EmpresaInfo[] = await resp.json();
+        if (Array.isArray(data)) {
+          setSessaoEmpresa(useAuthStore.getState().token!, data);
+        }
+      } catch {
+        // mantém lista atual
+      }
+    };
+    sincronizarEmpresas();
+  }, [setSessaoEmpresa]);
+
   const initials = (nome || 'U')
     .split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
 
@@ -54,9 +73,9 @@ export default function Topbar({ className }: TopbarProps) {
 
   const empresaAtual = empresas.find(e => e.slug === slug) ?? null;
   const matrizIdAtual = empresaAtual ? (empresaAtual.empresaMatrizId ?? empresaAtual.id) : null;
-  const grupoEmpresas = matrizIdAtual
-    ? empresas.filter(e => e.id === matrizIdAtual || e.empresaMatrizId === matrizIdAtual)
-    : [];
+  const grupoEmpresas = matrizIdAtual == null
+    ? empresas
+    : empresas.filter(e => e.id === matrizIdAtual || e.empresaMatrizId === matrizIdAtual);
   const outrasEmpresas = grupoEmpresas.filter(e => e.slug !== slug);
 
   const trocarEmpresa = async (empresa: EmpresaInfo) => {

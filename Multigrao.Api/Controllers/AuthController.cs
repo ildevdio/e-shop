@@ -198,25 +198,19 @@ namespace Multigrao.Api.Controllers
             if (empresa == null)
                 return NotFound(new { message = "Empresa não encontrada ou inativa." });
 
-            var pertence = await _context.Usuarios
-                .IgnoreQueryFilters()
-                .AnyAsync(u => u.Id == usuarioId && u.Ativo &&
-                    (u.EmpresaId == empresa.Id ||
-                     _context.UsuariosEmpresas.Any(ue => ue.UsuarioId == u.Id && ue.EmpresaId == empresa.Id)));
+            var usuario = new Usuario { Id = usuarioId, EmpresaId = empresa.Id };
 
-            if (!pertence)
+            var empresasAcessiveis = await CarregarEmpresasDoUsuarioAsync(usuarioId);
+            if (!empresasAcessiveis.Any(e => e.Id == empresa.Id))
                 return Forbid();
 
-            var usuario = new Usuario { Id = usuarioId, EmpresaId = empresa.Id };
             var token = _authService.GenerateJwtToken(usuario, empresa.Id);
-
-            var empresas = await CarregarEmpresasDoUsuarioAsync(usuarioId);
 
             return Ok(new
             {
                 token,
                 usuarioId,
-                empresas,
+                empresas = empresasAcessiveis,
                 slug = empresa.Slug,
                 nomeEmpresa = empresa.NomeEmpresa,
                 logoUrl = empresa.LogoUrl,
@@ -243,21 +237,9 @@ namespace Multigrao.Api.Controllers
 
         private async Task<List<EmpresaResumoDto>> CarregarEmpresasDoUsuarioAsync(int usuarioId, int? empresaPrincipalId = null)
         {
-            var idsVinculados = await _context.UsuariosEmpresas
+            var todas = await _context.ConfiguracoesSistema
                 .IgnoreQueryFilters()
-                .Where(ue => ue.UsuarioId == usuarioId)
-                .Select(ue => ue.EmpresaId)
-                .ToListAsync();
-
-            if (empresaPrincipalId.HasValue && empresaPrincipalId.Value > 0 && !idsVinculados.Contains(empresaPrincipalId.Value))
-                idsVinculados.Add(empresaPrincipalId.Value);
-
-            if (idsVinculados.Count == 0)
-                return new List<EmpresaResumoDto>();
-
-            var empresas = await _context.ConfiguracoesSistema
-                .IgnoreQueryFilters()
-                .Where(e => idsVinculados.Contains(e.Id) && e.Ativo)
+                .Where(e => e.Ativo)
                 .OrderBy(e => e.NomeEmpresa)
                 .Select(e => new EmpresaResumoDto
                 {
@@ -268,7 +250,27 @@ namespace Multigrao.Api.Controllers
                 })
                 .ToListAsync();
 
-            return empresas;
+            if (todas.Count == 0)
+                return todas;
+
+            var idsVinculados = await _context.UsuariosEmpresas
+                .IgnoreQueryFilters()
+                .Where(ue => ue.UsuarioId == usuarioId)
+                .Select(ue => ue.EmpresaId)
+                .ToListAsync();
+
+            if (empresaPrincipalId.HasValue && empresaPrincipalId.Value > 0 && !idsVinculados.Contains(empresaPrincipalId.Value))
+                idsVinculados.Add(empresaPrincipalId.Value);
+
+            var matrizIds = todas
+                .Where(e => idsVinculados.Contains(e.Id))
+                .Select(e => e.EmpresaMatrizId ?? e.Id)
+                .Distinct()
+                .ToList();
+
+            return todas
+                .Where(e => matrizIds.Contains(e.EmpresaMatrizId ?? e.Id))
+                .ToList();
         }
     }
 }
