@@ -53,7 +53,11 @@ export default function Topbar({ className }: TopbarProps) {
   const sectorLabel = SECTOR_LABELS[pathSemSlug] || 'Sistema';
 
   const empresaAtual = empresas.find(e => e.slug === slug) ?? null;
-  const outrasEmpresas = empresas.filter(e => e.slug !== slug);
+  const matrizIdAtual = empresaAtual ? (empresaAtual.empresaMatrizId ?? empresaAtual.id) : null;
+  const grupoEmpresas = matrizIdAtual
+    ? empresas.filter(e => e.id === matrizIdAtual || e.empresaMatrizId === matrizIdAtual)
+    : [];
+  const outrasEmpresas = grupoEmpresas.filter(e => e.slug !== slug);
 
   const trocarEmpresa = async (empresa: EmpresaInfo) => {
     if (trocando) return;
@@ -92,6 +96,10 @@ export default function Topbar({ className }: TopbarProps) {
           <Menu className="h-5 w-5" />
         </button>
 
+        <h1 className={`truncate text-sm font-heading font-semibold transition-colors ${modalAberto ? 'text-white' : 'text-foreground'}`}>{sectorLabel}</h1>
+      </div>
+
+      <div className="flex items-center gap-2 border-l border-border pl-2 sm:gap-3 sm:pl-4">
         {outrasEmpresas.length > 0 && (
           <div className="relative shrink-0">
             <button
@@ -106,14 +114,14 @@ export default function Topbar({ className }: TopbarProps) {
               title="Trocar filial"
             >
               <Building2 className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{empresaAtual?.nomeEmpresa ?? 'Empresa'}</span>
+              <span className="hidden truncate sm:inline">{empresaAtual?.nomeEmpresa ?? 'Empresa'}</span>
               <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
             </button>
 
             {seletorAberto && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setSeletorAberto(false)} />
-                <div className="absolute left-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
                   <p className="border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {trocando ? 'Trocando...' : 'Empresas e filiais'}
                   </p>
@@ -149,10 +157,6 @@ export default function Topbar({ className }: TopbarProps) {
           </div>
         )}
 
-        <h1 className={`truncate text-sm font-heading font-semibold transition-colors ${modalAberto ? 'text-white' : 'text-foreground'}`}>{sectorLabel}</h1>
-      </div>
-
-      <div className="flex items-center gap-2 border-l border-border pl-2 sm:gap-3 sm:pl-4">
         <NotificationBell className={modalAberto ? 'text-white/70' : undefined} />
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
           {initials}
