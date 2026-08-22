@@ -27,18 +27,33 @@ namespace Multigrao.Api.Controllers
                 .Include(u => u.UsuarioSetores)
                     .ThenInclude(us => us.Setor)
                 .OrderBy(u => u.Nome)
-                .Select(u => new UsuarioResponseDto
-                {
-                    Id = u.Id,
-                    Nome = u.Nome,
-                    UsuarioLogin = u.UsuarioLogin,
-                    Perfil = u.Role,
-                    Ativo = u.Ativo,
-                    Setores = u.UsuarioSetores.Select(us => us.Setor!.Nome).ToList()
-                })
                 .ToListAsync();
 
-            return Ok(usuarios);
+            var ids = usuarios.Select(u => u.Id).ToList();
+            var vinculos = await _context.UsuariosEmpresas
+                .IgnoreQueryFilters()
+                .Where(ue => ids.Contains(ue.UsuarioId))
+                .Join(_context.ConfiguracoesSistema.IgnoreQueryFilters(),
+                    ue => ue.EmpresaId,
+                    c => c.Id,
+                    (ue, c) => new { ue.UsuarioId, EmpresaId = c.Id, c.NomeEmpresa, c.Slug })
+                .ToListAsync();
+
+            var response = usuarios.Select(u => new UsuarioResponseDto
+            {
+                Id = u.Id,
+                Nome = u.Nome,
+                UsuarioLogin = u.UsuarioLogin,
+                Perfil = u.Role,
+                Ativo = u.Ativo,
+                Setores = u.UsuarioSetores.Select(us => us.Setor!.Nome).ToList(),
+                Empresas = vinculos
+                    .Where(v => v.UsuarioId == u.Id)
+                    .Select(v => new EmpresaResumoDto { Id = v.EmpresaId, NomeEmpresa = v.NomeEmpresa, Slug = v.Slug })
+                    .ToList()
+            }).ToList();
+
+            return Ok(response);
         }
 
         [HttpGet("vendedores")]
@@ -77,6 +92,8 @@ namespace Multigrao.Api.Controllers
             {
                 _context.UsuarioSetores.Add(new UsuarioSetor { UsuarioId = usuario.Id, SetorId = setorId });
             }
+
+            await AdicionarVinculosEmpresasAsync(usuario.Id, usuario.EmpresaId, dto.EmpresasIds);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUsuarios), new { id = usuario.Id }, new { usuario.Id, usuario.Nome });
@@ -108,6 +125,13 @@ namespace Multigrao.Api.Controllers
                 _context.UsuarioSetores.Add(new UsuarioSetor { UsuarioId = usuario.Id, SetorId = setorId });
             }
 
+            var vinculosAtuais = await _context.UsuariosEmpresas
+                .IgnoreQueryFilters()
+                .Where(ue => ue.UsuarioId == id)
+                .ToListAsync();
+            _context.UsuariosEmpresas.RemoveRange(vinculosAtuais);
+            await AdicionarVinculosEmpresasAsync(usuario.Id, usuario.EmpresaId, dto.EmpresasIds);
+
             await _context.SaveChangesAsync();
             return Ok(new { message = "Usuário atualizado com sucesso." });
         }
@@ -132,6 +156,25 @@ namespace Multigrao.Api.Controllers
             usuario.Ativo = !usuario.Ativo;
             await _context.SaveChangesAsync();
             return Ok(new { ativo = usuario.Ativo });
+        }
+
+        private async Task AdicionarVinculosEmpresasAsync(int usuarioId, int empresaPrincipalId, List<int> empresasIds)
+        {
+            var ids = empresasIds
+                .Where(i => i > 0)
+                .Distinct()
+                .ToList();
+
+            var existentes = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .Where(c => ids.Contains(c.Id))
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            foreach (var empresaId in existentes.Append(empresaPrincipalId).Distinct())
+            {
+                _context.UsuariosEmpresas.Add(new UsuarioEmpresa { UsuarioId = usuarioId, EmpresaId = empresaId });
+            }
         }
     }
 }

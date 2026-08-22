@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
 using Multigrao.Api.DTOs;
 using Multigrao.Api.Models;
 using Multigrao.Api.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Multigrao.Api.Controllers
 {
@@ -41,6 +44,7 @@ namespace Multigrao.Api.Controllers
             var token = _authService.GenerateJwtToken(usuario);
 
             var setores = usuario.UsuarioSetores.Select(us => us.Setor!.Nome).ToList();
+            var empresas = await CarregarEmpresasDoUsuarioAsync(usuario);
 
             return Ok(new LoginResponseDto
             {
@@ -48,7 +52,8 @@ namespace Multigrao.Api.Controllers
                 Nome = usuario.Nome,
                 Role = usuario.Role,
                 UsuarioId = usuario.Id,
-                Setores = setores
+                Setores = setores,
+                Empresas = empresas
             });
         }
 
@@ -102,11 +107,18 @@ namespace Multigrao.Api.Controllers
             if (empresa == null)
                 return Unauthorized(new { message = "Nenhuma empresa encontrada para este CNPJ." });
 
+            var idsMembros = await _context.UsuariosEmpresas
+                .IgnoreQueryFilters()
+                .Where(ue => ue.EmpresaId == empresa.Id)
+                .Select(ue => ue.UsuarioId)
+                .ToListAsync();
+
             var usuario = await _context.Usuarios
                 .IgnoreQueryFilters()
                 .Include(u => u.UsuarioSetores)
                     .ThenInclude(us => us.Setor)
-                .FirstOrDefaultAsync(u => u.EmpresaId == empresa.Id && u.UsuarioLogin == request.Usuario && u.Ativo);
+                .FirstOrDefaultAsync(u => u.UsuarioLogin == request.Usuario && u.Ativo &&
+                    (u.EmpresaId == empresa.Id || idsMembros.Contains(u.Id)));
 
             if (usuario == null)
                 return Unauthorized(new { message = "Usuário ou senha inválidos." });
@@ -114,8 +126,9 @@ namespace Multigrao.Api.Controllers
             if (!_authService.VerifyPassword(request.Senha, usuario.SenhaHash))
                 return Unauthorized(new { message = "Usuário ou senha inválidos." });
 
-            var token = _authService.GenerateJwtToken(usuario);
+            var token = _authService.GenerateJwtToken(usuario, empresa.Id);
             var setores = usuario.UsuarioSetores.Select(us => us.Setor!.Nome).ToList();
+            var empresasUsuario = await CarregarEmpresasDoUsuarioAsync(usuario);
 
             return Ok(new
             {
@@ -124,6 +137,7 @@ namespace Multigrao.Api.Controllers
                 role = usuario.Role,
                 usuarioId = usuario.Id,
                 setores,
+                empresas = empresasUsuario,
                 slug = empresa.Slug,
                 nomeEmpresa = empresa.NomeEmpresa,
                 logoUrl = empresa.LogoUrl,
@@ -155,6 +169,7 @@ namespace Multigrao.Api.Controllers
             var token = _authService.GenerateJwtToken(usuario);
 
             var setores = _context.Setores.Select(s => s.Nome).ToList();
+            var empresas = await CarregarEmpresasDoUsuarioAsync(usuario);
 
             return Ok(new LoginResponseDto
             {
@@ -162,8 +177,98 @@ namespace Multigrao.Api.Controllers
                 Nome = usuario.Nome,
                 Role = usuario.Role,
                 UsuarioId = usuario.Id,
-                Setores = setores
+                Setores = setores,
+                Empresas = empresas
             });
+        }
+
+        [Authorize]
+        [HttpPost("trocar-empresa")]
+        public async Task<IActionResult> TrocarEmpresa([FromBody] TrocarEmpresaDto request)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (!int.TryParse(usuarioIdClaim, out var usuarioId))
+                return Unauthorized(new { message = "Sessão inválida." });
+
+            var empresa = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(e => e.Id == request.EmpresaId && e.Ativo);
+
+            if (empresa == null)
+                return NotFound(new { message = "Empresa não encontrada ou inativa." });
+
+            var pertence = await _context.Usuarios
+                .IgnoreQueryFilters()
+                .AnyAsync(u => u.Id == usuarioId && u.Ativo &&
+                    (u.EmpresaId == empresa.Id ||
+                     _context.UsuariosEmpresas.Any(ue => ue.UsuarioId == u.Id && ue.EmpresaId == empresa.Id)));
+
+            if (!pertence)
+                return Forbid();
+
+            var usuario = new Usuario { Id = usuarioId, EmpresaId = empresa.Id };
+            var token = _authService.GenerateJwtToken(usuario, empresa.Id);
+
+            var empresas = await CarregarEmpresasDoUsuarioAsync(usuarioId);
+
+            return Ok(new
+            {
+                token,
+                usuarioId,
+                empresas,
+                slug = empresa.Slug,
+                nomeEmpresa = empresa.NomeEmpresa,
+                logoUrl = empresa.LogoUrl,
+                corPrincipal = empresa.CorPrincipal
+            });
+        }
+
+        [Authorize]
+        [HttpGet("minhas-empresas")]
+        public async Task<IActionResult> MinhasEmpresas()
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (!int.TryParse(usuarioIdClaim, out var usuarioId))
+                return Unauthorized(new { message = "Sessão inválida." });
+
+            return Ok(await CarregarEmpresasDoUsuarioAsync(usuarioId));
+        }
+
+        private async Task<List<EmpresaResumoDto>> CarregarEmpresasDoUsuarioAsync(Usuario usuario)
+        {
+            return await CarregarEmpresasDoUsuarioAsync(usuario.Id, usuario.EmpresaId);
+        }
+
+        private async Task<List<EmpresaResumoDto>> CarregarEmpresasDoUsuarioAsync(int usuarioId, int? empresaPrincipalId = null)
+        {
+            var idsVinculados = await _context.UsuariosEmpresas
+                .IgnoreQueryFilters()
+                .Where(ue => ue.UsuarioId == usuarioId)
+                .Select(ue => ue.EmpresaId)
+                .ToListAsync();
+
+            if (empresaPrincipalId.HasValue && empresaPrincipalId.Value > 0 && !idsVinculados.Contains(empresaPrincipalId.Value))
+                idsVinculados.Add(empresaPrincipalId.Value);
+
+            if (idsVinculados.Count == 0)
+                return new List<EmpresaResumoDto>();
+
+            var empresas = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .Where(e => idsVinculados.Contains(e.Id) && e.Ativo)
+                .OrderBy(e => e.NomeEmpresa)
+                .Select(e => new EmpresaResumoDto
+                {
+                    Id = e.Id,
+                    NomeEmpresa = e.NomeEmpresa,
+                    Slug = e.Slug,
+                    EmpresaMatrizId = e.EmpresaMatrizId
+                })
+                .ToListAsync();
+
+            return empresas;
         }
     }
 }

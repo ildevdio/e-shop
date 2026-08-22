@@ -24,6 +24,8 @@ interface Empresa {
   logoUrl: string | null;
   videoUrl: string | null;
   corPrincipal: string;
+  empresaMatrizId?: number | null;
+  nomeMatriz?: string | null;
   ativo: boolean;
 }
 
@@ -51,7 +53,7 @@ export default function Empresas() {
   const [carregandoEmpresas, setCarregandoEmpresas] = useState(false);
 
   const [editando, setEditando] = useState<Empresa | null>(null);
-  const [formEdicao, setFormEdicao] = useState({ nomeEmpresa: '', cnpj: '', slug: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', corPrincipal: '#0a0a0a', ativo: true });
+  const [formEdicao, setFormEdicao] = useState({ nomeEmpresa: '', cnpj: '', slug: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', corPrincipal: '#0a0a0a', empresaMatrizId: 0, ativo: true });
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [erroEdicao, setErroEdicao] = useState('');
   const [buscandoCepEdicao, setBuscandoCepEdicao] = useState(false);
@@ -109,6 +111,7 @@ export default function Empresas() {
       logoUrl: emp.logoUrl ?? '',
       videoUrl: emp.videoUrl ?? '',
       corPrincipal: emp.corPrincipal,
+      empresaMatrizId: emp.empresaMatrizId ?? 0,
       ativo: emp.ativo,
     });
     setErroEdicao('');
@@ -189,7 +192,11 @@ export default function Empresas() {
       }
 
       const atualizada = await response.json();
-      setEmpresas((lista) => lista.map((emp) => (emp.id === atualizada.id ? atualizada : emp)));
+      setEmpresas((lista) => lista.map((emp) => (
+        emp.id === atualizada.id
+          ? { ...emp, ...atualizada, nomeMatriz: lista.find((e) => e.id === atualizada.empresaMatrizId)?.nomeEmpresa ?? null }
+          : emp
+      )));
       setEditando(null);
     } catch {
       setErroEdicao('Falha de conexão com o servidor.');
@@ -284,7 +291,20 @@ export default function Empresas() {
                         >
                           <Building2 className="h-4 w-4" />
                         </div>
-                        <span className="font-medium text-gray-800">{emp.nomeEmpresa}</span>
+                        <div>
+                          <span className="font-medium text-gray-800">{emp.nomeEmpresa}</span>
+                          <div className="mt-0.5 flex items-center gap-1.5">
+                            {emp.empresaMatrizId != null ? (
+                              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                                Filial de {emp.nomeMatriz ?? empresas.find((e) => e.id === emp.empresaMatrizId)?.nomeEmpresa ?? 'matriz'}
+                              </span>
+                            ) : empresas.some((e) => e.empresaMatrizId === emp.id) ? (
+                              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                                Matriz
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 font-mono text-xs">{emp.cnpj || '—'}</td>
@@ -365,6 +385,25 @@ export default function Empresas() {
                     className={inputCls}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Hierarquia</label>
+                <select
+                  value={formEdicao.empresaMatrizId}
+                  onChange={(e) => setFormEdicao((f) => ({ ...f, empresaMatrizId: Number(e.target.value) }))}
+                  className={inputCls}
+                >
+                  <option value={0}>Empresa principal (matriz do grupo)</option>
+                  {empresas.filter((e2) => e2.id !== editando.id).map((e2) => (
+                    <option key={e2.id} value={e2.id}>
+                      Filial de: {e2.nomeEmpresa}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Usuários vinculados a mais de uma empresa do grupo podem alternar entre elas sem deslogar.
+                </p>
               </div>
 
               <div>

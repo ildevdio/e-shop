@@ -9,6 +9,7 @@ namespace Multigrao.Api.Services
     public interface IAuthService
     {
         string GenerateJwtToken(Usuario usuario);
+        string GenerateJwtToken(Usuario usuario, int empresaAtivaId);
         string HashPassword(string password);
         bool VerifyPassword(string password, string hash);
     }
@@ -22,7 +23,9 @@ namespace Multigrao.Api.Services
             _configuration = configuration;
         }
 
-        public string GenerateJwtToken(Usuario usuario)
+        public string GenerateJwtToken(Usuario usuario) => GenerateJwtToken(usuario, usuario.EmpresaId);
+
+        public string GenerateJwtToken(Usuario usuario, int empresaAtivaId)
         {
             var key = Environment.GetEnvironmentVariable("JWT_KEY")
                 ?? _configuration["Jwt:Key"]
@@ -39,7 +42,7 @@ namespace Multigrao.Api.Services
                 new Claim(JwtRegisteredClaimNames.UniqueName, usuario.UsuarioLogin),
                 new Claim(ClaimTypes.Name, usuario.Nome),
                 new Claim(ClaimTypes.Role, usuario.Role),
-                new Claim("EmpresaId", usuario.EmpresaId.ToString())
+                new Claim("EmpresaId", empresaAtivaId.ToString())
             };
 
             var token = new JwtSecurityToken(

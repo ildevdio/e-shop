@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, Check, Copy, Link2, Loader2, MapPin, Trash2, UploadCloud } from 'lucide-react';
 import { getSlug, tenantHeaders, authHeaders } from '../services/tenantSetup';
@@ -47,15 +47,25 @@ export default function NovaEmpresa() {
     logoUrl: '',
     videoUrl: '',
     corPrincipal: '#0a0a0a',
+    empresaMatrizId: 0,
     login: 'admin',
     senha: 'admin123',
   });
+  const [empresas, setEmpresas] = useState<{ id: number; nomeEmpresa: string }[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [enviandoLogo, setEnviandoLogo] = useState(false);
   const [erro, setErro] = useState('');
   const [criada, setCriada] = useState<EmpresaCriada | null>(null);
   const [copiado, setCopiado] = useState('');
   const [buscandoCep, setBuscandoCep] = useState(false);
+
+  useEffect(() => {
+    if (!eFocus) return;
+    fetch(`${API_URL}/Configuracoes/empresas`, { headers: headersJson() })
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setEmpresas)
+      .catch(() => setEmpresas([]));
+  }, [eFocus]);
 
   const set = (campo: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [campo]: e.target.value }));
@@ -107,6 +117,7 @@ export default function NovaEmpresa() {
           logoUrl: form.logoUrl,
           videoUrl: form.videoUrl,
           corPrincipal: form.corPrincipal,
+          empresaMatrizId: form.empresaMatrizId > 0 ? form.empresaMatrizId : null,
           login: form.login,
           senha: form.senha,
         }),
@@ -120,7 +131,7 @@ export default function NovaEmpresa() {
 
       const data = await response.json();
       setCriada(data);
-      setForm({ nomeEmpresa: '', cnpj: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', corPrincipal: '#0a0a0a', login: 'admin', senha: 'admin123' });
+      setForm({ nomeEmpresa: '', cnpj: '', slogan: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', videoUrl: '', corPrincipal: '#0a0a0a', empresaMatrizId: 0, login: 'admin', senha: 'admin123' });
     } catch {
       setErro('Falha de conexão com o servidor.');
     } finally {
@@ -210,6 +221,25 @@ export default function NovaEmpresa() {
               className={inputCls}
             />
           </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Hierarquia</label>
+          <select
+            value={form.empresaMatrizId}
+            onChange={(e) => setForm((f) => ({ ...f, empresaMatrizId: Number(e.target.value) }))}
+            className={inputCls}
+          >
+            <option value={0}>Empresa principal (matriz do grupo)</option>
+            {empresas.map((e2) => (
+              <option key={e2.id} value={e2.id}>
+                Filial de: {e2.nomeEmpresa}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-gray-400">
+            Ao escolher uma matriz, esta empresa nasce como filial dela — usuários podem atuar em ambas sem deslogar.
+          </p>
         </div>
 
         <div>

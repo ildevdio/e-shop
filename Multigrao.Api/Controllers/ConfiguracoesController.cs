@@ -184,6 +184,15 @@ namespace Multigrao.Api.Controllers
             };
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
 
+            if (dto.EmpresaMatrizId.HasValue && dto.EmpresaMatrizId.Value > 0)
+            {
+                var erroMatriz = await ValidarMatrizAsync(dto.EmpresaMatrizId, null);
+                if (erroMatriz != null)
+                    return BadRequest(new { message = erroMatriz });
+
+                config.EmpresaMatrizId = dto.EmpresaMatrizId.Value;
+            }
+
             _context.ConfiguracoesSistema.Add(config);
             await _context.SaveChangesAsync();
 
@@ -208,7 +217,8 @@ namespace Multigrao.Api.Controllers
                 id = config.Id,
                 slug = config.Slug,
                 nomeEmpresa = config.NomeEmpresa,
-                cnpj = config.Cnpj
+                cnpj = config.Cnpj,
+                empresaMatrizId = config.EmpresaMatrizId
             });
         }
 
@@ -252,11 +262,43 @@ namespace Multigrao.Api.Controllers
                     heroImagemTipo = c.HeroImagemTipo,
                     mascoteUrl = c.MascoteUrl,
                     freteAtivo = c.FreteAtivo,
+                    empresaMatrizId = c.EmpresaMatrizId,
+                    nomeMatriz = c.EmpresaMatriz != null ? c.EmpresaMatriz.NomeEmpresa : null,
                     ativo = c.Ativo
                 })
                 .ToListAsync();
 
             return Ok(empresas);
+        }
+
+        [HttpGet("grupo")]
+        [Authorize]
+        public async Task<IActionResult> GetGrupo()
+        {
+            var atual = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == _tenant.EmpresaId);
+
+            if (atual == null)
+                return NotFound(new { message = "Empresa não encontrada." });
+
+            var matrizId = atual.EmpresaMatrizId ?? atual.Id;
+
+            var grupo = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .Where(c => (c.Id == matrizId || c.EmpresaMatrizId == matrizId) && c.Ativo)
+                .OrderBy(c => c.Id != matrizId)
+                .ThenBy(c => c.NomeEmpresa)
+                .Select(c => new EmpresaResumoDto
+                {
+                    Id = c.Id,
+                    NomeEmpresa = c.NomeEmpresa,
+                    Slug = c.Slug,
+                    EmpresaMatrizId = c.EmpresaMatrizId
+                })
+                .ToListAsync();
+
+            return Ok(grupo);
         }
 
         [HttpPut("empresas/{id:int}")]
@@ -359,6 +401,27 @@ namespace Multigrao.Api.Controllers
             if (dto.Ativo.HasValue)
                 config.Ativo = dto.Ativo.Value;
 
+            if (dto.EmpresaMatrizId.HasValue)
+            {
+                var novaMatriz = dto.EmpresaMatrizId.Value;
+
+                if (novaMatriz <= 0)
+                {
+                    config.EmpresaMatrizId = null;
+                }
+                else
+                {
+                    var erroMatriz = await ValidarMatrizAsync(novaMatriz, id);
+                    if (erroMatriz != null)
+                        return BadRequest(new { message = erroMatriz });
+
+                    if (await CriariaCicloAsync(id, novaMatriz))
+                        return BadRequest(new { message = "Esta associação criaria um ciclo de matriz/filial." });
+
+                    config.EmpresaMatrizId = novaMatriz;
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(dto.Slug))
             {
                 var novoSlug = GerarSlug(dto.Slug.Trim());
@@ -406,6 +469,8 @@ namespace Multigrao.Api.Controllers
                 tipoCarrinho = config.TipoCarrinho,
                 heroImagemTipo = config.HeroImagemTipo,
                 mascoteUrl = config.MascoteUrl,
+                freteAtivo = config.FreteAtivo,
+                empresaMatrizId = config.EmpresaMatrizId,
                 ativo = config.Ativo
             });
         }
@@ -428,6 +493,11 @@ namespace Multigrao.Api.Controllers
                 return BadRequest(new { message = "A plataforma Focus não pode ser excluída." });
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            await _context.UsuariosEmpresas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.ConfiguracoesSistema.IgnoreQueryFilters()
+                .Where(c => c.EmpresaMatrizId == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.EmpresaMatrizId, (int?)null));
 
             // Ordem: filhos -> pais, respeitando as restrições de chave estrangeira.
             await _context.VotosEnquete.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
@@ -656,6 +726,41 @@ namespace Multigrao.Api.Controllers
                 evolutionApiInstance = config.EvolutionApiInstance,
                 evolutionApiSsl = config.EvolutionApiSsl
             };
+        }
+
+        private async Task<string?> ValidarMatrizAsync(int? matrizId, int? propriaId)
+        {
+            if (matrizId == null || matrizId <= 0)
+                return null;
+
+            if (propriaId.HasValue && matrizId == propriaId.Value)
+                return "Uma empresa não pode ser filial dela mesma.";
+
+            var existe = await _context.ConfiguracoesSistema
+                .IgnoreQueryFilters()
+                .AnyAsync(c => c.Id == matrizId.Value);
+
+            return existe ? null : "Empresa matriz não encontrada.";
+        }
+
+        private async Task<bool> CriariaCicloAsync(int empresaId, int novaMatrizId)
+        {
+            var atual = novaMatrizId;
+            var visitados = new HashSet<int>();
+
+            while (atual > 0 && visitados.Add(atual))
+            {
+                if (atual == empresaId)
+                    return true;
+
+                atual = await _context.ConfiguracoesSistema
+                    .IgnoreQueryFilters()
+                    .Where(c => c.Id == atual)
+                    .Select(c => c.EmpresaMatrizId ?? 0)
+                    .FirstOrDefaultAsync();
+            }
+
+            return false;
         }
 
         private static string? ComporEndereco(string? cep, string? logradouro, string? numero, string? bairro, string? cidade, string? estado)

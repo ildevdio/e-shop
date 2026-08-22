@@ -16,6 +16,7 @@ namespace Multigrao.Api.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Setor> Setores { get; set; }
         public DbSet<UsuarioSetor> UsuarioSetores { get; set; }
+        public DbSet<UsuarioEmpresa> UsuariosEmpresas { get; set; }
         
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Contato> Contatos { get; set; }
@@ -135,6 +136,27 @@ namespace Multigrao.Api.Data
                 .HasOne(us => us.Setor)
                 .WithMany(s => s.UsuarioSetores)
                 .HasForeignKey(us => us.SetorId);
+
+            modelBuilder.Entity<UsuarioEmpresa>()
+                .HasKey(ue => new { ue.UsuarioId, ue.EmpresaId });
+
+            modelBuilder.Entity<UsuarioEmpresa>()
+                .HasOne(ue => ue.Usuario)
+                .WithMany()
+                .HasForeignKey(ue => ue.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UsuarioEmpresa>()
+                .HasOne(ue => ue.Empresa)
+                .WithMany()
+                .HasForeignKey(ue => ue.EmpresaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ConfiguracaoSistema>()
+                .HasOne(c => c.EmpresaMatriz)
+                .WithMany(c => c.Filiais)
+                .HasForeignKey(c => c.EmpresaMatrizId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Rota>()
                 .HasOne(r => r.Motorista)

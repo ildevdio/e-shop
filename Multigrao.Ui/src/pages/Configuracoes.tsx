@@ -3,12 +3,18 @@ import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, 
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, type FaixaFrete } from '../store/sistemaStore';
-import { tenantHeaders, getSlug } from '../services/tenantSetup';
+import { tenantHeaders, authHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_GRADE } from '../services/cores';
 import { midiaUrl } from '../utils/imageUrl';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
+
+interface EmpresaVinculo {
+  id: number;
+  nomeEmpresa: string;
+  slug: string;
+}
 
 interface Usuario {
   id: number;
@@ -17,6 +23,7 @@ interface Usuario {
   setores: string[];
   perfil: string;
   ativo: boolean;
+  empresas?: EmpresaVinculo[];
 }
 
 function mascaraCnpj(v: string) {
@@ -214,9 +221,10 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [empresasGrupo, setEmpresasGrupo] = useState<EmpresaVinculo[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [formNovoUsuario, setFormNovoUsuario] = useState({ nome: '', usuarioLogin: '', senha: '', perfil: 'Comum', setores: [] as string[] });
+  const [formNovoUsuario, setFormNovoUsuario] = useState({ nome: '', usuarioLogin: '', senha: '', perfil: 'Comum', setores: [] as string[], empresas: [] as number[] });
   const [setoresConfig, setSetoresConfig] = useState({ maxPorUsuario: 2, timeoutSessao: 480 });
   const [notificacoes, setNotificacoes] = useState({ email: true, push: true, pedido: false });
   const [corPrincipal, setCorPrincipal] = useState('#000000');
@@ -315,8 +323,20 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   useEffect(() => {
     if (acessoPermitido) {
       carregarUsuarios();
+      carregarEmpresasGrupo();
     }
   }, [acessoPermitido]);
+
+  const carregarEmpresasGrupo = async () => {
+    try {
+      const resp = await fetch(`${API_URL}/Configuracoes/grupo`, { headers: { ...tenantHeaders(), ...authHeaders() } });
+      if (resp.ok) {
+        setEmpresasGrupo(await resp.json());
+      }
+    } catch {
+      setEmpresasGrupo([]);
+    }
+  };
 
   const validarSenhaMestre = async () => {
     setSenhaMestreLoading(true);
@@ -379,16 +399,24 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
 
   const abrirNovoUsuario = () => {
     setUsuarioEditando(null);
-    setFormNovoUsuario({ nome: '', usuarioLogin: '', senha: '', perfil: 'Comum', setores: [] });
+    setFormNovoUsuario({ nome: '', usuarioLogin: '', senha: '', perfil: 'Comum', setores: [], empresas: [] });
     setIsModalOpen(true);
     setModalAberto(true);
   };
 
   const abrirEdicao = (usuario: Usuario) => {
     setUsuarioEditando(usuario);
-    setFormNovoUsuario({ nome: usuario.nome, usuarioLogin: usuario.usuarioLogin, senha: '', perfil: usuario.perfil, setores: [...usuario.setores] });
+    setFormNovoUsuario({ nome: usuario.nome, usuarioLogin: usuario.usuarioLogin, senha: '', perfil: usuario.perfil, setores: [...usuario.setores], empresas: (usuario.empresas ?? []).map(e => e.id) });
     setIsModalOpen(true);
     setModalAberto(true);
+  };
+
+  const toggleEmpresaForm = (empresaId: number) => {
+    if (formNovoUsuario.empresas.includes(empresaId)) {
+      setFormNovoUsuario({ ...formNovoUsuario, empresas: formNovoUsuario.empresas.filter(e => e !== empresaId) });
+    } else {
+      setFormNovoUsuario({ ...formNovoUsuario, empresas: [...formNovoUsuario.empresas, empresaId] });
+    }
   };
 
   const toggleSetorForm = (setor: string) => {
@@ -419,7 +447,8 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
             senha: formNovoUsuario.senha || undefined,
             perfil: formNovoUsuario.perfil,
             ativo: true,
-            setoresIds
+            setoresIds,
+            empresasIds: formNovoUsuario.empresas
           })
         });
         if (resp.ok) {
@@ -434,7 +463,8 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
             usuarioLogin: formNovoUsuario.usuarioLogin,
             senha: formNovoUsuario.senha,
             perfil: formNovoUsuario.perfil,
-            setoresIds
+            setoresIds,
+            empresasIds: formNovoUsuario.empresas
           })
         });
         if (resp.ok) {
@@ -681,6 +711,11 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                           <div>
                             <div className="font-medium text-gray-900">{usuario.nome}</div>
                             <div className="text-xs text-gray-400">@{usuario.usuarioLogin}</div>
+                            {(usuario.empresas?.length ?? 0) > 1 && (
+                              <div className="text-[10px] text-gray-500 mt-0.5">
+                                {usuario.empresas!.map(e => e.nomeEmpresa).join(' · ')}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -1425,6 +1460,21 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 <select value={formNovoUsuario.perfil} onChange={e => setFormNovoUsuario({ ...formNovoUsuario, perfil: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
                   {perfis.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Empresas (matriz e filiais)</label>
+                {empresasGrupo.length > 1 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {empresasGrupo.map(emp => (
+                      <button key={emp.id} type="button" onClick={() => toggleEmpresaForm(emp.id)} className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${formNovoUsuario.empresas.includes(emp.id) ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        {emp.nomeEmpresa}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400">Nenhuma filial cadastrada para este grupo ainda.</p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">O usuário poderá alternar entre as empresas selecionadas sem deslogar.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Setores (Máx. {setoresConfig.maxPorUsuario})</label>

@@ -36,6 +36,11 @@ namespace Multigrao.Api.Models
         public double? Longitude { get; set; }
         public bool Ativo { get; set; } = true;
 
+        // Hierarquia matriz/filial
+        public int? EmpresaMatrizId { get; set; }
+        public ConfiguracaoSistema? EmpresaMatriz { get; set; }
+        public ICollection<ConfiguracaoSistema> Filiais { get; set; } = new List<ConfiguracaoSistema>();
+
         // SMTP E-mail
         public string? SmtpHost { get; set; }
         public int? SmtpPort { get; set; }

@@ -26,6 +26,7 @@ namespace Multigrao.Api.DTOs
         public string Role { get; set; } = string.Empty;
         public int UsuarioId { get; set; }
         public List<string> Setores { get; set; } = new();
+        public List<EmpresaResumoDto> Empresas { get; set; } = new();
     }
 
     // Usuários
@@ -36,6 +37,7 @@ namespace Multigrao.Api.DTOs
         public string Senha { get; set; } = string.Empty;
         public string Perfil { get; set; } = "Comum";
         public List<int> SetoresIds { get; set; } = new();
+        public List<int> EmpresasIds { get; set; } = new();
     }
 
     public class AtualizarUsuarioDto
@@ -46,6 +48,7 @@ namespace Multigrao.Api.DTOs
         public string Perfil { get; set; } = "Comum";
         public bool Ativo { get; set; } = true;
         public List<int> SetoresIds { get; set; } = new();
+        public List<int> EmpresasIds { get; set; } = new();
     }
 
     public class UsuarioResponseDto
@@ -56,6 +59,15 @@ namespace Multigrao.Api.DTOs
         public string Perfil { get; set; } = string.Empty;
         public bool Ativo { get; set; }
         public List<string> Setores { get; set; } = new();
+        public List<EmpresaResumoDto> Empresas { get; set; } = new();
+    }
+
+    public class EmpresaResumoDto
+    {
+        public int Id { get; set; }
+        public string NomeEmpresa { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
+        public int? EmpresaMatrizId { get; set; }
     }
 
     // Pedidos
@@ -426,6 +438,7 @@ namespace Multigrao.Api.DTOs
         public string? HeroImagemTipo { get; set; }
         public string? MascoteUrl { get; set; }
         public bool? FreteAtivo { get; set; }
+        public int? EmpresaMatrizId { get; set; }
         public string? Login { get; set; }
         public string? Senha { get; set; }
     }
@@ -458,8 +471,14 @@ namespace Multigrao.Api.DTOs
         public string? HeroImagemTipo { get; set; }
         public string? MascoteUrl { get; set; }
         public bool? FreteAtivo { get; set; }
+        public int? EmpresaMatrizId { get; set; }
         public string? Slug { get; set; }
         public bool? Ativo { get; set; }
+    }
+
+    public class TrocarEmpresaDto
+    {
+        public int EmpresaId { get; set; }
     }
 
     public class ResolverCnpjDto

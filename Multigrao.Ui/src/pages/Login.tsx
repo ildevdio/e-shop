@@ -52,7 +52,7 @@ export default function Login() {
         return;
       }
       const data = await response.json();
-      setAuth(data.token, data.nome, data.role, data.usuarioId, data.setores);
+      setAuth(data.token, data.nome, data.role, data.usuarioId, data.setores, data.empresas);
       navigate(`/${getSlug()}`);
     } catch {
       setErro('Erro de comunicação com o servidor.');
