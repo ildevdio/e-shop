@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
 using Multigrao.Api.DTOs;
@@ -28,6 +29,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var usuario = await _context.Usuarios
@@ -58,6 +60,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpPost("resolver-cnpj")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ResolverCnpj([FromBody] ResolverCnpjDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Cnpj))
@@ -88,6 +91,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpPost("login-empresa")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> LoginEmpresa([FromBody] LoginEmpresaDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Cnpj))
@@ -147,6 +151,7 @@ namespace Multigrao.Api.Controllers
         }
 
         [HttpPost("validar-senha-mestre")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ValidarSenhaMestre([FromBody] ValidarSenhaMestreDto request)
         {
             var masterPassword = Environment.GetEnvironmentVariable("MASTER_PASSWORD")

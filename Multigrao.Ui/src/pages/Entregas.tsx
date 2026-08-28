@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { MapPin, CheckCircle2, AlertTriangle, ArrowLeft, Phone, ChevronRight, Truck, Navigation, Package, Play, Eye, DollarSign } from 'lucide-react';
 import { entregaService, type Entrega } from '../services/entregaService';
 import { useAuthStore } from '../store/authStore';
+import { useSistemaStore } from '../store/sistemaStore';
+import Expedicao from './Expedicao';
 
 type TelaAtiva = 'lista' | 'conferir' | 'detalhes-entrega';
 type PagamentoStep = 'warning' | 'recebeu' | 'confirmar' | null;
 
 export default function Entregas() {
+  const entregaTerceirizada = useSistemaStore((state) => state.config.entregaTerceirizada ?? false);
   const usuarioId = useAuthStore(state => state.usuarioId);
+
   const [telaAtiva, setTelaAtiva] = useState<TelaAtiva>('lista');
   const [entregaSelecionada, setEntregaSelecionada] = useState<Entrega | null>(null);
   const [entregas, setEntregas] = useState<Entrega[]>([]);
@@ -100,6 +104,10 @@ export default function Entregas() {
 
   const pedidosLabel = (entrega: Entrega) =>
     pedidosArray(entrega).map(p => `#${p.id}`).join(', ') || `#${entrega.id}`;
+
+  if (entregaTerceirizada) {
+    return <Expedicao />;
+  }
 
   if (telaAtiva === 'lista') {
     return (

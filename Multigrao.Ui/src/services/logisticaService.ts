@@ -137,6 +137,36 @@ export const logisticaService = {
     }
   },
 
+  getEmTransporte: async (): Promise<PedidoPronto[]> => {
+    try {
+      const response = await axios.get(`${API_URL}/terceirizada/em-transporte`);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Erro ao buscar pedidos em transporte', error);
+      return [];
+    }
+  },
+
+  despacharTerceirizada: async (pedidosIds: number[]): Promise<boolean> => {
+    try {
+      const response = await axios.post(`${API_URL}/terceirizada/despachar`, { pedidosIds });
+      return response.status >= 200 && response.status < 300;
+    } catch (error) {
+      console.error('Erro ao despachar pedidos', error);
+      return false;
+    }
+  },
+
+  confirmarEntregaTerceirizada: async (pedidoId: number): Promise<boolean> => {
+    try {
+      const response = await axios.put(`${API_URL}/terceirizada/${pedidoId}/entregar`);
+      return response.status >= 200 && response.status < 300;
+    } catch (error) {
+      console.error('Erro ao confirmar entrega', error);
+      return false;
+    }
+  },
+
   gerarRota: async (dto: GerarRotaDto): Promise<{ rotaId: number } | null> => {
     try {
       const response = await axios.post(`${API_URL}/rotas/gerar`, dto);

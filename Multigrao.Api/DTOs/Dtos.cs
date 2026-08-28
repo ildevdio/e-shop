@@ -234,6 +234,12 @@ namespace Multigrao.Api.DTOs
         public decimal PesoMaximo { get; set; }
     }
 
+    // Logística terceirizada (sem frota própria)
+    public class DespacharTerceirizadaDto
+    {
+        public List<int> PedidosIds { get; set; } = new();
+    }
+
     // Motorista
     public class RegistroEntregaDto
     {
@@ -359,6 +365,13 @@ namespace Multigrao.Api.DTOs
         public string? HeroImagemTipo { get; set; }
         public string? MascoteUrl { get; set; }
         public bool? FreteAtivo { get; set; }
+        // Tipo de empresa e fluxo operacional
+        public string? TipoEmpresa { get; set; }
+        public bool? SeparacaoAtiva { get; set; }
+        public bool? ConferenciaAtiva { get; set; }
+        public bool? EntregaTerceirizada { get; set; }
+        public bool? UsarRotas { get; set; }
+        public bool? UsarPeso { get; set; }
         // SMTP E-mail
         public string? SmtpHost { get; set; }
         public int? SmtpPort { get; set; }
@@ -442,6 +455,13 @@ namespace Multigrao.Api.DTOs
         public int? EmpresaMatrizId { get; set; }
         public string? Login { get; set; }
         public string? Senha { get; set; }
+        // Tipo de empresa e fluxo operacional
+        public string? TipoEmpresa { get; set; }
+        public bool? SeparacaoAtiva { get; set; }
+        public bool? ConferenciaAtiva { get; set; }
+        public bool? EntregaTerceirizada { get; set; }
+        public bool? UsarRotas { get; set; }
+        public bool? UsarPeso { get; set; }
     }
 
     public class AtualizarEmpresaDto
@@ -475,6 +495,13 @@ namespace Multigrao.Api.DTOs
         public int? EmpresaMatrizId { get; set; }
         public string? Slug { get; set; }
         public bool? Ativo { get; set; }
+        // Tipo de empresa e fluxo operacional
+        public string? TipoEmpresa { get; set; }
+        public bool? SeparacaoAtiva { get; set; }
+        public bool? ConferenciaAtiva { get; set; }
+        public bool? EntregaTerceirizada { get; set; }
+        public bool? UsarRotas { get; set; }
+        public bool? UsarPeso { get; set; }
     }
 
     public class TrocarEmpresaDto
@@ -530,5 +557,19 @@ namespace Multigrao.Api.DTOs
         public decimal ValorFrete { get; set; }
         public string? CpfCnpj { get; set; }
         public List<int>? ProdutosIds { get; set; }
+    }
+
+    // Bots
+    public class BotConfigDto
+    {
+        public string Nome { get; set; } = string.Empty;
+        public string TipoTrigger { get; set; } = "PalavraChave";
+        public string ValorTrigger { get; set; } = string.Empty;
+        public string TipoReacao { get; set; } = "Texto";
+        public string TextoResposta { get; set; } = string.Empty;
+        public string AcaoBot { get; set; } = "Responder";
+        public string? CampoLead { get; set; }
+        public int Ordem { get; set; }
+        public bool Ativo { get; set; } = true;
     }
 }

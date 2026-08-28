@@ -38,6 +38,7 @@ namespace Multigrao.Api.Data
         public DbSet<Mensagem> Mensagens { get; set; }
         public DbSet<Aviso> Avisos { get; set; }
         public DbSet<AtendimentoLead> AtendimentoLeads { get; set; }
+        public DbSet<BotConfig> BotsConfig { get; set; }
 
         public DbSet<Enquete> Enquetes { get; set; }
         public DbSet<OpcaoEnquete> OpcoesEnquete { get; set; }
@@ -110,6 +111,7 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<Mensagem>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Aviso>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<AtendimentoLead>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<BotConfig>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Enquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<OpcaoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<VotoEnquete>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
@@ -397,6 +399,22 @@ namespace Multigrao.Api.Data
                     CorPrincipal = "#111827",
                     Ativo = true
                 }
+            );
+
+            // Seed: Bots padrão (por empresa)
+            modelBuilder.Entity<BotConfig>().HasData(
+                new BotConfig { Id = 1, EmpresaId = 1, Nome = "Saudação", TipoTrigger = "Saudacao", ValorTrigger = "", TipoReacao = "Texto", TextoResposta = "Olá {nome}! 👋 Sou o assistente virtual do {empresa}. Posso te ajudar com preços, produtos, estoque e status de pedidos. 😊", AcaoBot = "Responder", Ordem = 1, Ativo = true },
+                new BotConfig { Id = 2, EmpresaId = 1, Nome = "Menu de opções", TipoTrigger = "Menu", ValorTrigger = "", TipoReacao = "Menu", TextoResposta = "", AcaoBot = "Responder", Ordem = 2, Ativo = true },
+                new BotConfig { Id = 3, EmpresaId = 1, Nome = "Consultar preço", TipoTrigger = "PalavraChave", ValorTrigger = "preço|preco|quanto custa|valor|custa|tabela", TipoReacao = "PrecoProduto", TextoResposta = "", AcaoBot = "Responder", Ordem = 3, Ativo = true },
+                new BotConfig { Id = 4, EmpresaId = 1, Nome = "Consultar estoque", TipoTrigger = "PalavraChave", ValorTrigger = "estoque|tem dispon|disponível|disponivel|tem em|tem do|tem de", TipoReacao = "EstoqueProduto", TextoResposta = "", AcaoBot = "Responder", Ordem = 4, Ativo = true },
+                new BotConfig { Id = 5, EmpresaId = 1, Nome = "Status do pedido", TipoTrigger = "PalavraChave", ValorTrigger = "pedido|rastrear|status do|onde está|onde esta|situação do|situacao do", TipoReacao = "StatusPedido", TextoResposta = "", AcaoBot = "Responder", Ordem = 5, Ativo = true },
+                new BotConfig { Id = 6, EmpresaId = 1, Nome = "Formas de pagamento", TipoTrigger = "PalavraChave", ValorTrigger = "pagamento|pagar|boleto|pix|cartão|cartao|condição|condicao|parcel", TipoReacao = "Texto", TextoResposta = "💳 Trabalhamos com as seguintes formas de pagamento:\n• PIX (à vista com desconto)\n• Boleto à vista\n• Boleto faturado (14/28 dias para empresas)\n• Cartão de crédito\nPara empresas, temos condições especiais. Qual sua preferência?", AcaoBot = "Responder", Ordem = 6, Ativo = true },
+                new BotConfig { Id = 7, EmpresaId = 1, Nome = "Entrega e frete", TipoTrigger = "PalavraChave", ValorTrigger = "entrega|frete|demora|prazo|quanto tempo|chega", TipoReacao = "Texto", TextoResposta = "🛵 Nossas entregas na região levam de 1 a 3 dias úteis, dependendo do bairro e do valor do pedido. Para valores acima de R$ 200, o frete é grátis!", AcaoBot = "Responder", Ordem = 7, Ativo = true },
+                new BotConfig { Id = 8, EmpresaId = 1, Nome = "Embalagem", TipoTrigger = "PalavraChave", ValorTrigger = "embalagem|saco|sacos|fracionado|fracionada|granel|quilo|peso|kg", TipoReacao = "Texto", TextoResposta = "📦 Vendemos a granel (sacos de 10kg ou 20kg) e também fracionados. Qual formato e quantidade você prefere?", AcaoBot = "Responder", Ordem = 8, Ativo = true },
+                new BotConfig { Id = 9, EmpresaId = 1, Nome = "Falar com humano", TipoTrigger = "PalavraChave", ValorTrigger = "contato|telefone|whatsapp|falar com|atendente|humano|vendedor|pessoa", TipoReacao = "Texto", TextoResposta = "📞 Sem problemas! Em instantes um atendente da nossa equipe vai te atender. Aguarde um momento. 😊", AcaoBot = "ResponderEDesativarIA", Ordem = 9, Ativo = true },
+                new BotConfig { Id = 10, EmpresaId = 1, Nome = "Captar região/bairro", TipoTrigger = "PalavraChave", ValorTrigger = "entrega em|moro em|sou de|bairro", TipoReacao = "Texto", TextoResposta = "Perfeito! Anotei sua região. Vou verificar as opções de entrega para você. 😉", AcaoBot = "SalvarLead", CampoLead = "Bairro", Ordem = 10, Ativo = true },
+                new BotConfig { Id = 11, EmpresaId = 1, Nome = "Captar interesse", TipoTrigger = "PalavraChave", ValorTrigger = "quero|preciso|vou querer|estou precisando|comprar|pedido de|gostaria de", TipoReacao = "Texto", TextoResposta = "Ótima escolha! {interesse} é um dos nossos produtos mais procurados. Posso te passar mais detalhes e condições. 😊", AcaoBot = "SalvarLead", CampoLead = "Interesse", Ordem = 11, Ativo = true },
+                new BotConfig { Id = 12, EmpresaId = 1, Nome = "Agradecimento", TipoTrigger = "PalavraChave", ValorTrigger = "obrigado|obrigada|vlw|valeu|agradeço|agradeco", TipoReacao = "Texto", TextoResposta = "De nada, {nome}! 😄 Fico à disposição. Se precisar de mais alguma coisa, é só chamar.", AcaoBot = "Responder", Ordem = 12, Ativo = true }
             );
         }
     }

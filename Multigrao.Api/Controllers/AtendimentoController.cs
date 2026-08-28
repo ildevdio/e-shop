@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Multigrao.Api.Data;
 using Multigrao.Api.DTOs;
 using Multigrao.Api.Models;
+using Multigrao.Api.Services;
 
 namespace Multigrao.Api.Controllers
 {
@@ -11,10 +12,12 @@ namespace Multigrao.Api.Controllers
     public class AtendimentoController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ChatbotService _chatbot;
 
-        public AtendimentoController(AppDbContext context)
+        public AtendimentoController(AppDbContext context, ChatbotService chatbot)
         {
             _context = context;
+            _chatbot = chatbot;
         }
 
         [HttpGet("contatos")]
@@ -161,12 +164,48 @@ namespace Multigrao.Api.Controllers
             _context.Mensagens.Add(mensagem);
             await _context.SaveChangesAsync();
 
+            Mensagem? botMensagem = null;
+            if (dto.Sender == "user" && atendimento.IAAtiva)
+            {
+                var resposta = await _chatbot.GerarRespostaAsync(atendimento, dto.Text);
+
+                botMensagem = new Mensagem
+                {
+                    ConversaId = atendimento.Conversa.Id,
+                    Texto = resposta.Mensagem,
+                    DataEnvio = DateTime.UtcNow,
+                    UrlAnexo = "bot"
+                };
+
+                _context.Mensagens.Add(botMensagem);
+
+                if (!string.IsNullOrWhiteSpace(resposta.CampoLead) && !string.IsNullOrWhiteSpace(resposta.ValorLead))
+                {
+                    AplicarCampoLead(atendimento, resposta.CampoLead, resposta.ValorLead);
+                }
+
+                if (resposta.Finaliza)
+                {
+                    atendimento.IAAtiva = false;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
             return Ok(new
             {
                 id = mensagem.Id.ToString(),
                 text = mensagem.Texto,
                 sender = dto.Sender,
-                timestamp = mensagem.DataEnvio
+                timestamp = mensagem.DataEnvio,
+                botReply = botMensagem == null ? null : new
+                {
+                    id = botMensagem.Id.ToString(),
+                    text = botMensagem.Texto,
+                    sender = "bot",
+                    timestamp = botMensagem.DataEnvio
+                },
+                iaActive = atendimento.IAAtiva
             });
         }
 
@@ -227,6 +266,19 @@ namespace Multigrao.Api.Controllers
             atendimento.VendaFechada = true;
             await _context.SaveChangesAsync();
             return Ok(new { success = true, message = "Atendimento finalizado." });
+        }
+
+        private static void AplicarCampoLead(AtendimentoLead atendimento, string campo, string valor)
+        {
+            switch (campo.ToLowerInvariant())
+            {
+                case "bairro": atendimento.Bairro = valor; break;
+                case "interesse": atendimento.Interesse = valor; break;
+                case "quantidade": atendimento.Quantidade = valor; break;
+                case "embalagem": atendimento.Embalagem = valor; break;
+                case "pagamento": atendimento.Pagamento = valor; break;
+                case "tipocliente": atendimento.TipoCliente = valor; break;
+            }
         }
     }
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3, Bot,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -62,9 +62,13 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   if (isAdmin || hasSetor('Comercial')) {
     sectorNav.push({ icon: ClipboardList, label: 'Atendimentos', path: '/comercial/lista-atendimentos' });
   }
-  if (isAdmin || hasSetor('Separação')) sectorNav.push({ icon: Package, label: 'Separação', path: '/separacao' });
-  if (isAdmin || hasSetor('Conferência')) sectorNav.push({ icon: CheckSquare, label: 'Conferência', path: '/conferencia' });
-  if (isAdmin || hasSetor('Logística')) {
+  const separacaoAtiva = config.separacaoAtiva ?? true;
+  const conferenciaAtiva = config.conferenciaAtiva ?? true;
+  const usarRotas = config.usarRotas ?? true;
+
+  if ((isAdmin || hasSetor('Separação')) && separacaoAtiva) sectorNav.push({ icon: Package, label: 'Separação', path: '/separacao' });
+  if ((isAdmin || hasSetor('Conferência')) && conferenciaAtiva) sectorNav.push({ icon: CheckSquare, label: 'Conferência', path: '/conferencia' });
+  if ((isAdmin || hasSetor('Logística')) && usarRotas) {
     sectorNav.push(
       { icon: Map, label: 'Logística', path: '/logistica' },
     );
@@ -89,6 +93,7 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   const sysNav: NavItem[] = [];
   if (isAdmin || hasSetor('Compras')) {
     sysNav.push({ icon: Settings, label: 'Configurações', path: '/configuracoes' });
+    sysNav.push({ icon: Bot, label: 'Bots de Atendimento', path: '/configuracoes/bots' });
   }
 
   const focusNav: NavItem[] = [

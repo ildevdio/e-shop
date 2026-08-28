@@ -165,6 +165,53 @@ namespace Multigrao.Api.Controllers
             return Ok(new { mensagem = "Rota gerada com sucesso", rotaId = rota.Id });
         }
 
+        [HttpGet("terceirizada/em-transporte")]
+        public async Task<IActionResult> GetEmTransporte()
+        {
+            var pedidos = await _context.Pedidos
+                .Where(p => p.Status == "EmEntrega" && p.TipoEntrega == "Entrega"
+                    && !_context.EntregasPedidos.Any(ep => ep.PedidoId == p.Id && ep.Entrega.Status != "Devolvido"))
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .OrderByDescending(p => p.Id)
+                .ToListAsync();
+
+            return Ok(pedidos);
+        }
+
+        [HttpPost("terceirizada/despachar")]
+        public async Task<IActionResult> DespacharTerceirizada([FromBody] DespacharTerceirizadaDto dto)
+        {
+            var pedidos = await _context.Pedidos
+                .Where(p => dto.PedidosIds.Contains(p.Id))
+                .ToListAsync();
+
+            if (pedidos.Count == 0) return BadRequest(new { message = "Nenhum pedido selecionado." });
+
+            foreach (var pedido in pedidos)
+            {
+                if (pedido.Status != "ProntoEntrega")
+                    continue;
+                pedido.Status = "EmEntrega";
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { mensagem = $"{pedidos.Count} pedido(s) despachado(s) à transportadora." });
+        }
+
+        [HttpPut("terceirizada/{pedidoId}/entregar")]
+        public async Task<IActionResult> ConfirmarEntregaTerceirizada(int pedidoId)
+        {
+            var pedido = await _context.Pedidos.FindAsync(pedidoId);
+            if (pedido == null) return NotFound();
+            if (pedido.Status != "EmEntrega") return BadRequest(new { message = "Pedido não está em transporte." });
+
+            pedido.Status = "Entregue";
+            await _context.SaveChangesAsync();
+            return Ok(new { status = pedido.Status });
+        }
+
         [HttpGet("entregas/{id}")]
         public async Task<IActionResult> GetEntrega(int id)
         {

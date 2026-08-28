@@ -66,5 +66,13 @@ namespace Multigrao.Api.Models
         public string? EvolutionApiKey { get; set; }
         public string? EvolutionApiInstance { get; set; }
         public bool EvolutionApiSsl { get; set; } = true;
+
+        // Tipo de empresa e fluxo operacional
+        public string TipoEmpresa { get; set; } = "distribuidora";
+        public bool SeparacaoAtiva { get; set; } = true;
+        public bool ConferenciaAtiva { get; set; } = true;
+        public bool EntregaTerceirizada { get; set; }
+        public bool UsarRotas { get; set; } = true;
+        public bool UsarPeso { get; set; } = true;
     }
 }

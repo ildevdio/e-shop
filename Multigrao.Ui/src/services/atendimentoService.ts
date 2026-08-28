@@ -89,9 +89,24 @@ export const atendimentoService = {
     }
   },
 
-  enviarMensagem: async (atendimentoId: string, text: string, sender: 'user' | 'bot' | 'agent'): Promise<Message> => {
+  enviarMensagem: async (atendimentoId: string, text: string, sender: 'user' | 'bot' | 'agent'): Promise<{ msg: Message; botReply?: Message; iaActive?: boolean }> => {
     const response = await axios.post(`${API_URL}/${atendimentoId}/mensagens`, { text, sender });
-    return response.data;
+    const a = response.data;
+    return {
+      msg: {
+        id: String(a.id),
+        text: a.text,
+        sender: a.sender || sender,
+        timestamp: a.timestamp || new Date().toISOString(),
+      },
+      botReply: a.botReply ? {
+        id: String(a.botReply.id),
+        text: a.botReply.text,
+        sender: 'bot',
+        timestamp: a.botReply.timestamp || new Date().toISOString(),
+      } : undefined,
+      iaActive: a.iaActive,
+    };
   },
 
   atualizarLead: async (atendimentoId: string, lead: Partial<Lead> & { iaActive?: boolean }) => {

@@ -51,7 +51,45 @@ export interface ConfiguracaoSistema {
   evolutionApiUrl: string;
   evolutionApiInstance: string;
   evolutionApiSsl: boolean;
+  tipoEmpresa: string;
+  separacaoAtiva: boolean;
+  conferenciaAtiva: boolean;
+  entregaTerceirizada: boolean;
+  usarRotas: boolean;
+  usarPeso: boolean;
 }
+
+export const TIPOS_EMPRESA: Record<string, { nome: string; descricao: string }> = {
+  distribuidora: {
+    nome: 'Distribuidora',
+    descricao: 'Revenda de produtos por peso e volume, com frota própria e conferência de saída.',
+  },
+  naturais: {
+    nome: 'Produtos Naturais',
+    descricao: 'Empório de produtos naturais e a granel, com rotas de entrega própria.',
+  },
+  embalados: {
+    nome: 'Produtos Embalados',
+    descricao: 'Venda de produtos já embalados, sem pesagem, com entrega terceirizada.',
+  },
+  artesanato: {
+    nome: 'Artesanato',
+    descricao: 'Produção e venda de artesanato em pequena escala, entrega terceirizada.',
+  },
+};
+
+export const PRESET_TIPO_EMPRESA: Record<string, {
+  separacaoAtiva: boolean;
+  conferenciaAtiva: boolean;
+  entregaTerceirizada: boolean;
+  usarRotas: boolean;
+  usarPeso: boolean;
+}> = {
+  distribuidora: { separacaoAtiva: true, conferenciaAtiva: true, entregaTerceirizada: false, usarRotas: true, usarPeso: true },
+  naturais: { separacaoAtiva: true, conferenciaAtiva: true, entregaTerceirizada: false, usarRotas: true, usarPeso: true },
+  embalados: { separacaoAtiva: true, conferenciaAtiva: true, entregaTerceirizada: true, usarRotas: false, usarPeso: false },
+  artesanato: { separacaoAtiva: true, conferenciaAtiva: false, entregaTerceirizada: true, usarRotas: false, usarPeso: false },
+};
 
 export interface FaixaFrete {
   id: number;
@@ -281,6 +319,12 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   evolutionApiUrl: '',
   evolutionApiInstance: '',
   evolutionApiSsl: true,
+  tipoEmpresa: 'distribuidora',
+  separacaoAtiva: true,
+  conferenciaAtiva: true,
+  entregaTerceirizada: false,
+  usarRotas: true,
+  usarPeso: true,
 };
 
 function luminancia(hex: string): number {
@@ -435,6 +479,12 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           evolutionApiUrl: data.evolutionApiUrl ?? '',
           evolutionApiInstance: data.evolutionApiInstance ?? '',
           evolutionApiSsl: data.evolutionApiSsl ?? true,
+          tipoEmpresa: data.tipoEmpresa ?? CONFIG_PADRAO.tipoEmpresa,
+          separacaoAtiva: data.separacaoAtiva ?? true,
+          conferenciaAtiva: data.conferenciaAtiva ?? true,
+          entregaTerceirizada: data.entregaTerceirizada ?? false,
+          usarRotas: data.usarRotas ?? true,
+          usarPeso: data.usarPeso ?? true,
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -506,6 +556,12 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           evolutionApiUrl: config.evolutionApiUrl,
           evolutionApiInstance: config.evolutionApiInstance,
           evolutionApiSsl: config.evolutionApiSsl,
+          tipoEmpresa: config.tipoEmpresa,
+          separacaoAtiva: config.separacaoAtiva,
+          conferenciaAtiva: config.conferenciaAtiva,
+          entregaTerceirizada: config.entregaTerceirizada,
+          usarRotas: config.usarRotas,
+          usarPeso: config.usarPeso,
         }),
       });
       if (!resp.ok) return false;
@@ -560,6 +616,12 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         evolutionApiUrl: data.evolutionApiUrl ?? config.evolutionApiUrl,
         evolutionApiInstance: data.evolutionApiInstance ?? config.evolutionApiInstance,
         evolutionApiSsl: data.evolutionApiSsl ?? config.evolutionApiSsl,
+        tipoEmpresa: data.tipoEmpresa ?? config.tipoEmpresa,
+        separacaoAtiva: data.separacaoAtiva ?? config.separacaoAtiva,
+        conferenciaAtiva: data.conferenciaAtiva ?? config.conferenciaAtiva,
+        entregaTerceirizada: data.entregaTerceirizada ?? config.entregaTerceirizada,
+        usarRotas: data.usarRotas ?? config.usarRotas,
+        usarPeso: data.usarPeso ?? config.usarPeso,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);

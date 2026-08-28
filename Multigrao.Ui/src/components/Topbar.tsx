@@ -29,6 +29,7 @@ const SECTOR_LABELS: Record<string, string> = {
   '/empresa/avisos': 'Empresa — Avisos',
   '/empresa/enquetes': 'Empresa — Enquetes',
   '/configuracoes': 'Configurações',
+  '/configuracoes/bots': 'Configurações — Bots de Atendimento',
   '/empresas': 'Cadastro de Empresas',
   '/empresas/nova': 'Cadastro de Empresas — Nova',
 };

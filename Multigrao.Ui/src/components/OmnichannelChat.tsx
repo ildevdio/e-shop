@@ -48,6 +48,7 @@ export default function OmnichannelChat() {
   const audioElementsRef = useRef<Record<string, HTMLAudioElement>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const [isBotTyping, setIsBotTyping] = useState(false);
 
   useEffect(() => {
     carregarAtendimentos();
@@ -142,9 +143,62 @@ export default function OmnichannelChat() {
 
     try {
       const savedMsg = await atendimentoService.enviarMensagem(activeChatId, text, 'agent');
-      updateChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.map(m => m.id === tempId ? savedMsg : m) } : c));
+      updateChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.map(m => m.id === tempId ? savedMsg.msg : m) } : c));
     } catch {
       console.error("Erro ao enviar mensagem");
+    }
+  };
+
+  const simularMensagemCliente = async (text?: string) => {
+    if (!activeChatId || !activeChat) return;
+
+    const mensagensCliente = [
+      "Olá, bom dia! Estou vendo vocês pelo site.",
+      "Quero saber o preço da castanha do Pará.",
+      "Vocês entregam em Casa Forte?",
+      "Qual o prazo de entrega?",
+      "E quais as formas de pagamento?",
+      "Quero fazer um pedido de chia e aveia.",
+      "Qual o status do pedido 12345?",
+      "Muito obrigado, até mais!",
+      "Preciso falar com um atendente humano.",
+    ];
+
+    const texto = text ?? mensagensCliente[Math.floor(Math.random() * mensagensCliente.length)];
+
+    const tempId = Date.now().toString();
+    const userMsg: Message = { id: tempId, text: texto, sender: 'user', timestamp: new Date() };
+    addMessageToActiveChat(userMsg);
+
+    if (!activeChat.iaActive) return;
+
+    setIsBotTyping(true);
+
+    const delay = 1200 + texto.length * 20 + Math.random() * 600;
+    await new Promise(r => setTimeout(r, Math.min(delay, 3000)));
+
+    try {
+      const saved = await atendimentoService.enviarMensagem(activeChatId, texto, 'user');
+      updateChats(prev => prev.map(c => c.id === activeChatId ? {
+        ...c,
+        messages: c.messages.map(m => m.id === tempId ? saved.msg : m),
+      } : c));
+
+      if (saved.botReply) {
+        await new Promise(r => setTimeout(r, 1500));
+        updateChats(prev => prev.map(c => c.id === activeChatId ? {
+          ...c,
+          messages: [...c.messages, saved.botReply!],
+        } : c));
+      }
+
+      if (saved.iaActive !== undefined) {
+        updateActiveChat({ iaActive: saved.iaActive });
+      }
+    } catch {
+      console.error("Erro ao simular mensagem do cliente");
+    } finally {
+      setIsBotTyping(false);
     }
   };
 
@@ -486,7 +540,14 @@ export default function OmnichannelChat() {
         </div>
       );
     }
-    return msg.text;
+    return renderRenderedText(msg.text);
+  };
+
+  const renderRenderedText = (text: string) => {
+    const parts = text.split('*');
+    return parts.map((part, i) =>
+      i % 2 === 1 ? <strong key={i} className="font-bold">{part}</strong> : <span key={i}>{part}</span>
+    );
   };
 
   return (
@@ -607,6 +668,9 @@ export default function OmnichannelChat() {
               <div className="flex items-center gap-2">
                 {activeChat.iaActive ? (
                   <>
+                    <button onClick={() => simularMensagemCliente()} className="bg-gray-100 text-black border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors">
+                      <User size={16} /> Simular Cliente
+                    </button>
                     <button onClick={handleAssumir} className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-primary transition-colors">
                       Assumir Atendimento
                     </button>
@@ -706,6 +770,18 @@ export default function OmnichannelChat() {
                     </div>
                   );
                 })
+              )}
+              {isBotTyping && activeChat.iaActive && (
+                <div className="flex gap-3 flex-row-reverse">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-primary text-white">
+                    <Bot size={16} />
+                  </div>
+                  <div className="bg-primary text-white rounded-2xl rounded-tr-sm px-4 py-3 flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>

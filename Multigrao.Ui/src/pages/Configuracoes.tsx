@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare, Package, CheckSquare, Scale } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
-import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, type FaixaFrete } from '../store/sistemaStore';
+import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, TIPOS_EMPRESA, PRESET_TIPO_EMPRESA, type FaixaFrete } from '../store/sistemaStore';
 import { tenantHeaders, authHeaders, getSlug } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_GRADE } from '../services/cores';
@@ -226,7 +226,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [loading, setLoading] = useState(false);
 
   const [formNovoUsuario, setFormNovoUsuario] = useState({ nome: '', usuarioLogin: '', senha: '', perfil: 'Comum', setores: [] as string[], empresas: [] as number[] });
-  const [setoresConfig, setSetoresConfig] = useState({ maxPorUsuario: 2, timeoutSessao: 480 });
+  const [setoresConfig] = useState({ maxPorUsuario: 2, timeoutSessao: 480 });
   const [notificacoes, setNotificacoes] = useState({ email: true, push: true, pedido: false });
   const [corPrincipal, setCorPrincipal] = useState('#000000');
   const [corSecundaria, setCorSecundaria] = useState('#f97316');
@@ -250,6 +250,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [salvandoConfig, setSalvandoConfig] = useState(false);
   const [smtpForm, setSmtpForm] = useState({ smtpHost: '', smtpPort: 587, smtpUsuario: '', smtpSenha: '', smtpNomeRemetente: '', smtpEmailRemetente: '', smtpUsarSsl: true, emailNotificacoesAtivo: false });
   const [carrinhoForm, setCarrinhoForm] = useState({ carrinhoLembreteAtivo: false, carrinhoLembreteMinutos: 30, carrinhoLembreteRepetir: 1, carrinhoLembreteIntervaloRepeticao: 120, carrinhoLembreteCanal: 'email', evolutionApiUrl: '', evolutionApiInstance: '', evolutionApiSsl: true });
+  const [fluxoOperacional, setFluxoOperacional] = useState({ tipoEmpresa: 'distribuidora', separacaoAtiva: true, conferenciaAtiva: true, entregaTerceirizada: false, usarRotas: true, usarPeso: true });
 
   useEffect(() => {
     if (carregada) {
@@ -304,6 +305,14 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         evolutionApiUrl: configSistema.evolutionApiUrl ?? '',
         evolutionApiInstance: configSistema.evolutionApiInstance ?? '',
         evolutionApiSsl: configSistema.evolutionApiSsl ?? true,
+      });
+      setFluxoOperacional({
+        tipoEmpresa: configSistema.tipoEmpresa || 'distribuidora',
+        separacaoAtiva: configSistema.separacaoAtiva ?? true,
+        conferenciaAtiva: configSistema.conferenciaAtiva ?? true,
+        entregaTerceirizada: configSistema.entregaTerceirizada ?? false,
+        usarRotas: configSistema.usarRotas ?? true,
+        usarPeso: configSistema.usarPeso ?? true,
       });
     }
   }, [carregada]);
@@ -516,6 +525,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       freteAtivo: formEmpresa.freteAtivo,
       ...smtpForm,
       ...carrinhoForm,
+      ...fluxoOperacional,
     });
     if (ok) {
       await salvarFaixasFrete(faixasFrete.filter(f => f.ateKm > 0));
@@ -1374,16 +1384,70 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
             )}
 
             {sistemaTab === 'regras' && (
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Clock size={18} className="text-black" /> Regras de Negócio</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Máx. Setores por Usuário</label>
-                  <input type="number" value={setoresConfig.maxPorUsuario} onChange={e => setSetoresConfig({ ...setoresConfig, maxPorUsuario: parseInt(e.target.value) || 1 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+            <div className="space-y-6">
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                <h3 className="font-semibold text-gray-800 mb-1 flex items-center gap-2"><Building2 size={18} className="text-black" /> Tipo de Empresa</h3>
+                <p className="text-[12px] text-gray-500 mb-4">Escolha o perfil do seu negócio. O sistema ajusta automaticamente o fluxo operacional (separação, conferência, entregas e peso) para cada tipo. Você pode ajustar as opções manualmente abaixo.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Object.entries(TIPOS_EMPRESA).map(([key, t]) => {
+                    const preset = PRESET_TIPO_EMPRESA[key];
+                    const selecionado = fluxoOperacional.tipoEmpresa === key;
+                    const ativo = (preset?.entregaTerceirizada && !preset.usarRotas);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setFluxoOperacional({ ...fluxoOperacional, tipoEmpresa: key, ...preset })}
+                        className={`text-left rounded-2xl p-4 transition-all border-2 bg-white ${selecionado ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-semibold text-gray-900 text-sm">{t.nome}</div>
+                          {selecionado && <Check size={16} className="text-primary" />}
+                        </div>
+                        <div className="text-[11px] text-gray-500 leading-snug mb-2">{t.descricao}</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${preset?.separacaoAtiva ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400 line-through'}`}><Package size={10} /> Separação</span>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${preset?.conferenciaAtiva ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400 line-through'}`}><CheckSquare size={10} /> Conferência</span>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${preset?.entregaTerceirizada ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400 line-through'}`}><Truck size={10} /> Entrega terceirizada</span>
+                          {ativo && <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${preset?.usarRotas ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400 line-through'}`}><Route size={10} /> Rotas próprias</span>}
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${preset?.usarPeso ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400 line-through'}`}><Scale size={10} /> Peso</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Timeout de Sessão (min)</label>
-                  <input type="number" value={setoresConfig.timeoutSessao} onChange={e => setSetoresConfig({ ...setoresConfig, timeoutSessao: parseInt(e.target.value) || 0 })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white" />
+              </div>
+
+              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><SlidersHorizontal size={18} className="text-black" /> Fluxo Operacional</h3>
+                <div className="space-y-2">
+                  {[
+                    { key: 'separacaoAtiva' as const, icon: Package, titulo: 'Separação de pedidos', descricao: 'Ativa o módulo de separação dos itens antes da expedição.' },
+                    { key: 'conferenciaAtiva' as const, icon: CheckSquare, titulo: 'Conferência de saída', descricao: 'Confere os itens separados antes de liberar para a entrega.' },
+                    { key: 'entregaTerceirizada' as const, icon: Truck, titulo: 'Entrega terceirizada', descricao: 'A entrega é feita por transportadora/terceiros, sem frota própria. Desativa rotas e veículos internos.' },
+                    { key: 'usarRotas' as const, icon: Route, titulo: 'Usar rotas de entrega', descricao: 'Organiza as entregas do dia em rotas com motorista e veículo.' },
+                    { key: 'usarPeso' as const, icon: Scale, titulo: 'Usar peso nos pedidos', descricao: 'Exibe e calcula o peso dos produtos nos pedidos e entregas.' },
+                  ].map(item => (
+                    <div key={item.key} className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 text-gray-400"><item.icon size={18} /></div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">{item.titulo}</div>
+                          <div className="text-xs text-gray-400 max-w-md">{item.descricao}</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setFluxoOperacional({ ...fluxoOperacional, [item.key]: !fluxoOperacional[item.key] })}
+                        className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${fluxoOperacional[item.key] ? 'bg-primary' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${fluxoOperacional[item.key] ? 'left-6' : 'left-1'}`} />
+                      </button>
+                    </div>
+                  ))}
+                  {fluxoOperacional.entregaTerceirizada && (
+                    <p className="text-[11px] text-gray-400 italic px-1">Com a entrega terceirizada, o módulo de Logística (rotas e veículos) fica oculto e a aba Entregas passa a focar a saída do pedido.</p>
+                  )}
                 </div>
               </div>
             </div>

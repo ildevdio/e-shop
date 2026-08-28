@@ -108,6 +108,21 @@ namespace Multigrao.Api.Controllers
             if (dto.MascoteUrl != null)
                 config.MascoteUrl = dto.MascoteUrl;
 
+            // Tipo de empresa e fluxo operacional
+            (bool SeparacaoAtiva, bool ConferenciaAtiva, bool EntregaTerceirizada, bool UsarRotas, bool UsarPeso)? preset = string.IsNullOrWhiteSpace(dto.TipoEmpresa) ? null : PresetTipoEmpresa(dto.TipoEmpresa);
+            if (!string.IsNullOrWhiteSpace(dto.TipoEmpresa))
+                config.TipoEmpresa = dto.TipoEmpresa;
+            if (dto.SeparacaoAtiva.HasValue) config.SeparacaoAtiva = dto.SeparacaoAtiva.Value;
+            else if (preset != null) config.SeparacaoAtiva = preset.Value.SeparacaoAtiva;
+            if (dto.ConferenciaAtiva.HasValue) config.ConferenciaAtiva = dto.ConferenciaAtiva.Value;
+            else if (preset != null) config.ConferenciaAtiva = preset.Value.ConferenciaAtiva;
+            if (dto.EntregaTerceirizada.HasValue) config.EntregaTerceirizada = dto.EntregaTerceirizada.Value;
+            else if (preset != null) config.EntregaTerceirizada = preset.Value.EntregaTerceirizada;
+            if (dto.UsarRotas.HasValue) config.UsarRotas = dto.UsarRotas.Value;
+            else if (preset != null) config.UsarRotas = preset.Value.UsarRotas;
+            if (dto.UsarPeso.HasValue) config.UsarPeso = dto.UsarPeso.Value;
+            else if (preset != null) config.UsarPeso = preset.Value.UsarPeso;
+
             // SMTP E-mail
             if (dto.SmtpHost != null) config.SmtpHost = dto.SmtpHost;
             if (dto.SmtpPort.HasValue) config.SmtpPort = dto.SmtpPort.Value;
@@ -184,6 +199,17 @@ namespace Multigrao.Api.Controllers
                 FreteAtivo = dto.FreteAtivo ?? false,
                 Ativo = true
             };
+
+            // Tipo de empresa e fluxo operacional
+            var tipo = string.IsNullOrWhiteSpace(dto.TipoEmpresa) ? "distribuidora" : dto.TipoEmpresa;
+            var preset = PresetTipoEmpresa(tipo);
+            config.TipoEmpresa = tipo;
+            config.SeparacaoAtiva = dto.SeparacaoAtiva ?? preset.SeparacaoAtiva;
+            config.ConferenciaAtiva = dto.ConferenciaAtiva ?? preset.ConferenciaAtiva;
+            config.EntregaTerceirizada = dto.EntregaTerceirizada ?? preset.EntregaTerceirizada;
+            config.UsarRotas = dto.UsarRotas ?? preset.UsarRotas;
+            config.UsarPeso = dto.UsarPeso ?? preset.UsarPeso;
+
             config.Endereco = ComporEndereco(dto.Cep, dto.Logradouro, dto.Numero, dto.Bairro, dto.Cidade, dto.Estado) ?? dto.Endereco;
 
             if (dto.EmpresaMatrizId.HasValue && dto.EmpresaMatrizId.Value > 0)
@@ -399,6 +425,21 @@ namespace Multigrao.Api.Controllers
 
             if (dto.MascoteUrl != null)
                 config.MascoteUrl = dto.MascoteUrl;
+
+            // Tipo de empresa e fluxo operacional
+            (bool SeparacaoAtiva, bool ConferenciaAtiva, bool EntregaTerceirizada, bool UsarRotas, bool UsarPeso)? preset = string.IsNullOrWhiteSpace(dto.TipoEmpresa) ? null : PresetTipoEmpresa(dto.TipoEmpresa);
+            if (!string.IsNullOrWhiteSpace(dto.TipoEmpresa))
+                config.TipoEmpresa = dto.TipoEmpresa;
+            if (dto.SeparacaoAtiva.HasValue) config.SeparacaoAtiva = dto.SeparacaoAtiva.Value;
+            else if (preset != null) config.SeparacaoAtiva = preset.Value.SeparacaoAtiva;
+            if (dto.ConferenciaAtiva.HasValue) config.ConferenciaAtiva = dto.ConferenciaAtiva.Value;
+            else if (preset != null) config.ConferenciaAtiva = preset.Value.ConferenciaAtiva;
+            if (dto.EntregaTerceirizada.HasValue) config.EntregaTerceirizada = dto.EntregaTerceirizada.Value;
+            else if (preset != null) config.EntregaTerceirizada = preset.Value.EntregaTerceirizada;
+            if (dto.UsarRotas.HasValue) config.UsarRotas = dto.UsarRotas.Value;
+            else if (preset != null) config.UsarRotas = preset.Value.UsarRotas;
+            if (dto.UsarPeso.HasValue) config.UsarPeso = dto.UsarPeso.Value;
+            else if (preset != null) config.UsarPeso = preset.Value.UsarPeso;
 
             if (dto.Ativo.HasValue)
                 config.Ativo = dto.Ativo.Value;
@@ -727,7 +768,13 @@ namespace Multigrao.Api.Controllers
                 carrinhoLembreteCanal = config.CarrinhoLembreteCanal,
                 evolutionApiUrl = config.EvolutionApiUrl,
                 evolutionApiInstance = config.EvolutionApiInstance,
-                evolutionApiSsl = config.EvolutionApiSsl
+                evolutionApiSsl = config.EvolutionApiSsl,
+                tipoEmpresa = config.TipoEmpresa,
+                separacaoAtiva = config.SeparacaoAtiva,
+                conferenciaAtiva = config.ConferenciaAtiva,
+                entregaTerceirizada = config.EntregaTerceirizada,
+                usarRotas = config.UsarRotas,
+                usarPeso = config.UsarPeso
             };
         }
 
@@ -833,6 +880,22 @@ namespace Multigrao.Api.Controllers
             return empresas.Any(c =>
                 (ignorarId == null || c.Id != ignorarId) &&
                 new string(c.Cnpj!.Where(char.IsDigit).ToArray()) == digitos);
+        }
+
+        private static (bool SeparacaoAtiva, bool ConferenciaAtiva, bool EntregaTerceirizada, bool UsarRotas, bool UsarPeso) PresetTipoEmpresa(string tipo)
+        {
+            switch (tipo?.ToLowerInvariant())
+            {
+                case "embalados":
+                    return (SeparacaoAtiva: true, ConferenciaAtiva: true, EntregaTerceirizada: true, UsarRotas: false, UsarPeso: false);
+                case "artesanato":
+                    return (SeparacaoAtiva: true, ConferenciaAtiva: false, EntregaTerceirizada: true, UsarRotas: false, UsarPeso: false);
+                case "naturais":
+                    return (SeparacaoAtiva: true, ConferenciaAtiva: true, EntregaTerceirizada: false, UsarRotas: true, UsarPeso: true);
+                case "distribuidora":
+                default:
+                    return (SeparacaoAtiva: true, ConferenciaAtiva: true, EntregaTerceirizada: false, UsarRotas: true, UsarPeso: true);
+            }
         }
     }
 }

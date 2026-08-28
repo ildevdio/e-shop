@@ -7,11 +7,13 @@ namespace Multigrao.Api.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IWebHostEnvironment env)
         {
             _next = next;
             _logger = logger;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
@@ -27,17 +29,25 @@ namespace Multigrao.Api.Middlewares
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var response = new 
-            {
-                StatusCode = context.Response.StatusCode,
-                Message = "Ocorreu um erro interno no servidor.",
-                Detailed = exception.Message // Na produção, idealmente ocultamos detalhes
-            };
+            var includeDetails = _env.IsDevelopment();
+
+            object response = includeDetails
+                ? new
+                {
+                    StatusCode = context.Response.StatusCode,
+                    Message = "Ocorreu um erro interno no servidor.",
+                    Detailed = exception.Message
+                }
+                : (object)new
+                {
+                    StatusCode = context.Response.StatusCode,
+                    Message = "Ocorreu um erro interno no servidor."
+                };
 
             var json = JsonSerializer.Serialize(response);
             return context.Response.WriteAsync(json);
