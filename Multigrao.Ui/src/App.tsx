@@ -70,18 +70,42 @@ function CommerceRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function setMeta(selector: string, value: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(selector);
+  if (!el) {
+    el = document.createElement('meta');
+    const attr = selector.startsWith('meta[property') ? 'property' : 'name';
+    const match = selector.match(/(?:property|name)="([^"]+)"/);
+    if (match) el.setAttribute(attr, match[1]);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', value);
+}
+
 function App() {
   const nomeEmpresa = useSistemaStore((state) => state.config.nomeEmpresa);
+  const slogan = useSistemaStore((state) => state.config.slogan);
   const logoUrl = useSistemaStore((state) => state.config.logoUrl);
 
-  useEffect(() => {
-    document.title = `${nomeEmpresa} - Sistema de Gestão`;
-  }, [nomeEmpresa]);
+  const titulo = `${nomeEmpresa} - Sistema de Gestão`;
+  const descricao = slogan || nomeEmpresa;
 
   useEffect(() => {
+    document.title = titulo;
+    setMeta('meta[property="og:title"]', nomeEmpresa || '');
+    setMeta('meta[name="description"]', descricao || '');
+    setMeta('meta[property="og:description"]', descricao || '');
+  }, [titulo, descricao, nomeEmpresa]);
+
+  useEffect(() => {
+    const url = logoUrl || CONFIG_PADRAO.logoUrl;
+    const href = midiaUrl(url);
     const link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
-    const href = midiaUrl(logoUrl || CONFIG_PADRAO.logoUrl);
     if (link && href) link.href = href;
+    if (href) {
+      const absoluto = /^https?:\/\//i.test(href) ? href : new URL(href, window.location.origin).href;
+      setMeta('meta[property="og:image"]', absoluto);
+    }
   }, [logoUrl]);
 
   return (
