@@ -14,7 +14,9 @@ function importHtml() {
 
 const template = importHtml();
 
-const API_URL = (process.env.SEO_API_URL || process.env.API_URL || process.env.VITE_API_URL || '').replace(/\/$/, '');
+const API_URL = (process.env.SEO_API_URL || process.env.API_URL || process.env.VITE_API_URL || '').replace(/\/+$/, '');
+
+const REQUIRES_API = !!API_URL;
 
 function esc(s: string): string {
   return (s || '')
@@ -81,13 +83,29 @@ function baseUrl(req: { headers: Record<string, string | string[] | undefined> }
 }
 
 export default async function handler(
-  req: { url?: string; headers: Record<string, string | string[] | undefined>; query?: Record<string, string | string[] | undefined> },
+  req: { url?: string; method?: string; headers: Record<string, string | string[] | undefined>; query?: Record<string, string | string[] | undefined> },
   res: { setHeader: (k: string, v: string) => void; statusCode: number; end: (b: string) => void }
 ) {
   const q = req.query || {};
   const type = (q.type as string) || '';
   const path = (q.path as string) || '';
   const origUrl = (req.url || '').split('?')[0];
+
+  const method = (req.method || 'GET').toUpperCase();
+  if (method === 'OPTIONS') {
+    res.statusCode = 200;
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.end('');
+    return;
+  }
+  if (method !== 'GET' && method !== 'HEAD') {
+    res.statusCode = 405;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('Method Not Allowed');
+    return;
+  }
 
   const base = baseUrl(req);
   const url = base + origUrl;
@@ -104,6 +122,7 @@ export default async function handler(
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     let body = '';
     try {
+      if (!REQUIRES_API) throw new Error('SEO_API_URL não configurado.');
       const resp = await fetch(`${API_URL}/api/Configuracoes/seo/sitemap`, { signal: AbortSignal.timeout(6000) });
       if (resp.ok) {
         const lojas = (await resp.json()) as { slug?: string }[];
@@ -140,6 +159,7 @@ export default async function handler(
   let html = template;
   if (slug && (eCommerce || seg.length <= 1)) {
     try {
+      if (!REQUIRES_API) throw new Error('SEO_API_URL não configurado.');
       const resp = await fetch(`${API_URL}/api/Configuracoes/seo/${encodeURIComponent(slug)}`, {
         signal: AbortSignal.timeout(6000),
       });
