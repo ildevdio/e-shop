@@ -39,6 +39,49 @@ namespace Multigrao.Api.Controllers
             return Ok(await ConfigDto(config));
         }
 
+        [HttpGet("seo/{slug}")]
+        public async Task<IActionResult> GetSeo(string slug)
+        {
+            var config = await _context.ConfiguracoesSistema
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Slug == slug.Trim().ToLower());
+
+            if (config == null || !config.Ativo)
+                return NotFound(new { message = "Loja não encontrada." });
+
+            return Ok(new
+            {
+                slug = config.Slug,
+                nomeEmpresa = config.NomeEmpresa,
+                slogan = config.Slogan,
+                logourl = config.LogoUrl,
+                corPrincipal = config.CorPrincipal,
+                tipoEmpresa = config.TipoEmpresa,
+                ativo = config.Ativo
+            });
+        }
+
+        [HttpGet("seo/sitemap")]
+        public async Task<IActionResult> GetSitemap()
+        {
+            var lojas = await _context.ConfiguracoesSistema
+                .AsNoTracking()
+                .IgnoreQueryFilters()
+                .Where(c => c.Ativo && c.Slug != "focus")
+                .OrderBy(c => c.NomeEmpresa)
+                .Select(c => new
+                {
+                    slug = c.Slug,
+                    nomeEmpresa = c.NomeEmpresa,
+                    slogan = c.Slogan,
+                    logourl = c.LogoUrl
+                })
+                .ToListAsync();
+
+            return Ok(lojas);
+        }
+
         [HttpPut]
         public async Task<IActionResult> AtualizarConfiguracao([FromBody] ConfiguracaoSistemaDto dto)
         {

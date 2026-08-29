@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Artefato gerado no build (copiado de dist/index.html)
+api/seo/_index.template.html
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
