@@ -110,8 +110,10 @@ export default function Empresa() {
         votada: false,
       }));
 
-      setAvisos(avisosUI);
-      setEnquetes(enquetesUI);
+      const limite24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      setAvisos(avisosUI.filter(a => new Date(a.dataPublicacao) >= limite24h));
+      setEnquetes(enquetesUI.filter(e => e.ativa));
       setTotalFuncionarios(usuarios.length);
 
       const setoresSet = new Set<string>();
