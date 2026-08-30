@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, ShoppingBag, Package, ArrowLeft, Loader2, Calendar, Download } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, ShoppingBag, Package, ArrowLeft, Loader2, Calendar, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getSlug } from '../services/tenantSetup';
 import { relatorioService, type VendasPeriodo, type TopProduto, type ClienteTop, type DesempenhoVendedor, type EstoqueMargem } from '../services/relatorioService';
+import { exportPdf, exportXlsx, type ExportSection, type ExportSheet } from '../utils/exportRelatorio';
 
 type TabId = 'vendas' | 'produtos' | 'clientes' | 'vendedores' | 'estoque';
 
@@ -52,6 +53,84 @@ export default function Relatorios() {
 
   useEffect(() => { carregar(); }, []);
 
+  const secaoVendas = (): ExportSection => {
+    const dados = vendas?.dados ?? [];
+    return {
+      title: `Vendas por Período (${dataInicio} a ${dataFim})`,
+      headers: ['Período', 'Pedidos', 'Valor Total'],
+      rows: dados.map(d => [d.periodo, d.totalPedidos, formatPreco(d.valorTotal)]),
+      summary: [
+        { label: 'Total de Pedidos', value: String(vendas?.totalPedidos ?? 0) },
+        { label: 'Valor Total', value: formatPreco(vendas?.valorTotalGeral ?? 0) },
+        { label: 'Ticket Médio', value: formatPreco(vendas?.ticketMedioGeral ?? 0) },
+      ],
+    };
+  };
+
+  const secaoProdutos = (): ExportSection => ({
+    title: `Produtos Mais Vendidos (${dataInicio} a ${dataFim})`,
+    headers: ['#', 'Produto', 'Qtd Vendida', 'Valor Total', 'Pedidos', '% do Total'],
+    rows: topProdutos.map((p, i) => [i + 1, p.produtoNome, p.quantidadeVendida, formatPreco(p.valorTotal), p.numPedidos, `${p.percentual}%`]),
+  });
+
+  const secaoClientes = (): ExportSection => ({
+    title: `Clientes que Mais Compram (${dataInicio} a ${dataFim})`,
+    headers: ['#', 'Cliente', 'CPF/CNPJ', 'Pedidos', 'Valor Total', 'Ticket Médio'],
+    rows: clientesTop.map((c, i) => [i + 1, c.clienteNome, c.cpfCnpj, c.totalPedidos, formatPreco(c.valorTotal), formatPreco(c.ticketMedio)]),
+  });
+
+  const secaoVendedores = (): ExportSection => ({
+    title: `Desempenho por Vendedor (${dataInicio} a ${dataFim})`,
+    headers: ['#', 'Vendedor', 'Pedidos', 'Clientes', 'Valor Total', 'Ticket Médio'],
+    rows: vendedores.map((v, i) => [i + 1, v.vendedorNome, v.totalPedidos, v.numClientes, formatPreco(v.valorTotal), formatPreco(v.ticketMedio)]),
+  });
+
+  const secaoEstoque = (): ExportSection => ({
+    title: `Estoque e Giro de Produtos`,
+    headers: ['Produto', 'Estoque', 'Vendido', 'Receita', 'Preço Varejo', 'Giro'],
+    rows: estoque.map(e => [e.produtoNome, e.estoqueAtual, e.quantidadeVendida, formatPreco(e.receitaTotal), formatPreco(e.precoVarejo), `${e.giroEstoque}x`]),
+  });
+
+  const secoes: Record<TabId, () => ExportSection> = {
+    vendas: secaoVendas,
+    produtos: secaoProdutos,
+    clientes: secaoClientes,
+    vendedores: secaoVendedores,
+    estoque: secaoEstoque,
+  };
+
+  const nomeTab: Record<TabId, string> = {
+    vendas: 'vendas',
+    produtos: 'produtos',
+    clientes: 'clientes',
+    vendedores: 'vendedores',
+    estoque: 'estoque',
+  };
+
+  const exportarAba = async (formato: 'pdf' | 'xlsx') => {
+    const secao = secoes[tab]();
+    const base = `relatorio-${nomeTab[tab]}-${dataInicio}_a_${dataFim}`;
+    if (formato === 'pdf') {
+      await exportPdf([secao], `${base}.pdf`);
+    } else {
+      await exportXlsx([{ name: secao.title, headers: secao.headers, rows: secao.rows }], `${base}.xlsx`);
+    }
+  };
+
+  const exportarCompleto = async (formato: 'pdf' | 'xlsx') => {
+    const base = `relatorio-completo-${dataInicio}_a_${dataFim}`;
+    if (formato === 'pdf') {
+      const secoesCompletas: ExportSection[] = (['vendas', 'produtos', 'clientes', 'vendedores', 'estoque'] as TabId[]).map(t => secoes[t]());
+      await exportPdf(secoesCompletas, `${base}.pdf`);
+    } else {
+      const sheets: ExportSheet[] = (['vendas', 'produtos', 'clientes', 'vendedores', 'estoque'] as TabId[]).map(t => {
+        const s = secoes[t]();
+        return { name: nomeTab[t], headers: s.headers, rows: s.rows };
+      });
+      await exportXlsx(sheets, `${base}.xlsx`);
+    }
+  };
+
   const tabs: { id: TabId; label: string; icon: any }[] = [
     { id: 'vendas', label: 'Vendas', icon: BarChart3 },
     { id: 'produtos', label: 'Produtos', icon: ShoppingBag },
@@ -96,6 +175,26 @@ export default function Relatorios() {
             {carregando ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Gerar Relatório
           </button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-400 uppercase tracking-wider">Exportar</span>
+            <button onClick={() => exportarAba('pdf')} disabled={carregando}
+              className="px-3.5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50">
+              <FileText size={14} /> PDF (aba)
+            </button>
+            <button onClick={() => exportarAba('xlsx')} disabled={carregando}
+              className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50">
+              <FileSpreadsheet size={14} /> XLSX (aba)
+            </button>
+            <div className="w-px h-6 bg-gray-200" />
+            <button onClick={() => exportarCompleto('pdf')} disabled={carregando}
+              className="px-3.5 py-2 bg-red-700 text-white rounded-xl text-sm font-medium hover:bg-red-800 transition-colors flex items-center gap-2 disabled:opacity-50">
+              <FileText size={14} /> PDF completo
+            </button>
+            <button onClick={() => exportarCompleto('xlsx')} disabled={carregando}
+              className="px-3.5 py-2 bg-emerald-700 text-white rounded-xl text-sm font-medium hover:bg-emerald-800 transition-colors flex items-center gap-2 disabled:opacity-50">
+              <FileSpreadsheet size={14} /> XLSX completo
+            </button>
+          </div>
         </div>
 
         {carregando ? (
