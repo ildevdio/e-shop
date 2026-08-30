@@ -52,7 +52,10 @@ var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"
     ?? throw new InvalidOperationException("DB_CONNECTION_STRING is not configured.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        npgsql.CommandTimeout(90);
+    }));
 
 var configuredOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS")
     ?? builder.Configuration["Cors:Origins"]
@@ -188,7 +191,19 @@ if (app.Environment.IsDevelopment())
 
 using var scope = app.Services.CreateScope();
 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-db.Database.Migrate();
+try
+{
+    // Bounded no tempo para não ficar "carregando infinito" caso o banco esteja
+    // inacessível ou uma migração fique bloqueada por lock no PostgreSQL.
+    using var migrateCts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    db.Database.MigrateAsync(migrateCts.Token).GetAwaiter().GetResult();
+}
+catch (OperationCanceledException)
+{
+    throw new InvalidOperationException(
+        "A migração do banco de dados excedeu o tempo limite (120s) durante a inicialização. " +
+        "Verifique se o PostgreSQL está acessível e se não há locks pendentes nas tabelas.", null);
+}
 
 app.UseStaticFiles();
 
