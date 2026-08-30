@@ -34,6 +34,29 @@ function formatPreco(v: number) {
   return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
 
+// Fator para converter o preço unitário em "por 100g".
+// kg (ou a granel) → preço/kg ÷ 10 ; g → preço/g × 100. Retorna null se não aplicável.
+function fatorPor100g(p: { vendidoAGranel?: boolean; unidadeVenda?: string | null } | null | undefined): number | null {
+  const u = p?.unidadeVenda?.toLowerCase();
+  if (u === 'g') return 100;
+  if (u === 'kg' || p?.vendidoAGranel) return 0.1;
+  return null;
+}
+
+// Exibe o preço unitário com referência "/100g" quando a loja é de produtos naturais
+// e o produto é vendido por peso (kg ou g). Só muda a exibição; o carrinho continua por unidade.
+function PrecoUnidade({ preco, produto, sufixo }: { preco: number; produto: { vendidoAGranel?: boolean; unidadeVenda?: string | null } | null | undefined; sufixo?: string }) {
+  const ehNatural = useSistemaStore((s) => s.config.tipoEmpresa) === 'naturais';
+  const fator = fatorPor100g(produto);
+  const por100g = ehNatural && preco > 0 && fator != null;
+  return (
+    <>
+      {formatPreco(por100g ? preco * fator! : preco)}
+      {por100g ? ' / 100g' : sufixo ? ` ${sufixo}` : ''}
+    </>
+  );
+}
+
 function precoComPromo(preco: number, promo: PromocaoAtiva | undefined, produtoId: number): number {
   const precoPorProduto = promo?.produtos?.find(x => x.produtoId === produtoId)?.precoPromocional;
   return precoPromocional(preco, promo, precoPorProduto) ?? preco;
@@ -145,12 +168,12 @@ function CardWild({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado, promo }:
 
         <div className="mt-auto pt-2 pb-4">
           <div className="flex flex-col gap-0.5">
-            {temPromo && <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>}
+            {temPromo && <p className="text-[11px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={precoBase} produto={produto} /></p>}
             {!temPromo && isAtacado && (produto.precoAtacado ?? 0) < (produto.precoVarejo ?? 0) && (
-              <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
+              <p className="text-[11px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
             )}
             <div className="flex items-baseline gap-1.5">
-              <p className={`text-xl font-black leading-none ${temPromo ? 'text-[#dc2626]' : 'text-ecom-text'}`}>{formatPreco(precoPromo)}</p>
+              <p className={`text-xl font-black leading-none ${temPromo ? 'text-[#dc2626]' : 'text-ecom-text'}`}><PrecoUnidade preco={precoPromo} produto={produto} /></p>
               {temPromo && <span className="text-[10px] font-bold text-[#dc2626] uppercase tracking-wider">Promo</span>}
               {isAtacado && !temPromo && <span className="text-[10px] font-bold text-ecom-strong">no atacado</span>}
             </div>
@@ -208,26 +231,26 @@ function CardPop({ produto, qtd, onQtd, onAbrir, showMarca, isAtacado, promo }: 
             <>
               {temPromo ? (
                 <>
-                  <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>
-                  <p className="text-xl font-black text-red-500 leading-none">{formatPreco(precoPromo)}</p>
+                  <p className="text-[11px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={precoBase} produto={produto} /></p>
+                  <p className="text-xl font-black text-red-500 leading-none"><PrecoUnidade preco={precoPromo} produto={produto} /></p>
                   <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-wider">Promo</p>
                 </>
               ) : (
                 <>
-                  <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
-                  <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
+                  <p className="text-[11px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
+                  <p className="text-xl font-black text-ecom-text leading-none"><PrecoUnidade preco={produto.precoAtacado} produto={produto} /></p>
                   <p className="text-[10px] font-bold text-ecom-muted mt-1 bg-ecom-fill py-0.5 px-2 rounded-full inline-block">Atacado a partir de {qtdMinimaAtacado(produto)}</p>
                 </>
               )}
             </>
           ) : temPromo ? (
             <>
-              <p className="text-[11px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>
-              <p className="text-xl font-black text-red-500 leading-none">{formatPreco(precoPromo)}</p>
+              <p className="text-[11px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={precoBase} produto={produto} /></p>
+              <p className="text-xl font-black text-red-500 leading-none"><PrecoUnidade preco={precoPromo} produto={produto} /></p>
               <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-wider">Promo</p>
             </>
           ) : (
-            <p className="text-xl font-black text-ecom-text leading-none">{formatPreco(produto.precoVarejo)}</p>
+            <p className="text-xl font-black text-ecom-text leading-none"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
           )}
         </div>
 
@@ -317,18 +340,18 @@ function CardEcommerce({
         <div className="mt-auto pt-2 pb-3">
           {temPromo ? (
             <>
-              <p className="text-[10px] font-medium text-ecom-muted line-through">{formatPreco(precoBase)}</p>
-              <p className="text-lg font-black text-red-600 leading-none">{formatPreco(precoPromo)}</p>
+              <p className="text-[10px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={precoBase} produto={produto} /></p>
+              <p className="text-lg font-black text-red-600 leading-none"><PrecoUnidade preco={precoPromo} produto={produto} /></p>
               <p className="text-[9px] font-bold uppercase tracking-wider text-red-600 mt-0.5">Promo · -{pctPromo}%</p>
             </>
           ) : isAtacado ? (
             <>
-              <p className="text-[10px] font-medium text-ecom-muted line-through">{formatPreco(produto.precoVarejo)}</p>
-              <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoAtacado)}</p>
+              <p className="text-[10px] font-medium text-ecom-muted line-through"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
+              <p className="text-lg font-black text-ecom-text leading-none"><PrecoUnidade preco={produto.precoAtacado} produto={produto} /></p>
               <p className="text-[9px] font-bold uppercase tracking-wider text-ecom-muted mt-0.5">Atacado · {qtdMinimaAtacado(produto)}+ un.</p>
             </>
           ) : (
-            <p className="text-lg font-black text-ecom-text leading-none">{formatPreco(produto.precoVarejo)}</p>
+            <p className="text-lg font-black text-ecom-text leading-none"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
           )}
         </div>
         {qtd > 0 ? (
@@ -404,16 +427,16 @@ function CardCarrossel({
           <div className="min-w-0">
             {temPromo ? (
               <>
-                <p className="text-[10px] font-medium text-white/60 line-through">{formatPreco(precoBase)}</p>
-                <p className="text-xl font-black text-red-300 leading-none">{formatPreco(precoPromo)}</p>
+                <p className="text-[10px] font-medium text-white/60 line-through"><PrecoUnidade preco={precoBase} produto={produto} /></p>
+                <p className="text-xl font-black text-red-300 leading-none"><PrecoUnidade preco={precoPromo} produto={produto} /></p>
               </>
             ) : isAtacado ? (
               <>
-                <p className="text-[10px] font-medium text-white/60 line-through">{formatPreco(produto.precoVarejo)}</p>
-                <p className="text-xl font-black text-white leading-none">{formatPreco(produto.precoAtacado)}</p>
+                <p className="text-[10px] font-medium text-white/60 line-through"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
+                <p className="text-xl font-black text-white leading-none"><PrecoUnidade preco={produto.precoAtacado} produto={produto} /></p>
               </>
             ) : (
-              <p className="text-xl font-black text-white leading-none">{formatPreco(produto.precoVarejo)}</p>
+              <p className="text-xl font-black text-white leading-none"><PrecoUnidade preco={produto.precoVarejo} produto={produto} /></p>
             )}
           </div>
           {qtd > 0 ? (
@@ -1623,24 +1646,24 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                         <>
                           {temPromo ? (
                             <div>
-                              <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(precoBase)}</p>
-                              <p className="text-3xl font-black text-red-600 leading-none">{formatPreco(precoPromo)}</p>
+                              <p className="text-xs text-ecom-muted line-through mb-0.5"><PrecoUnidade preco={precoBase} produto={produtoDetalhe} /></p>
+                              <p className="text-3xl font-black text-red-600 leading-none"><PrecoUnidade preco={precoPromo} produto={produtoDetalhe} /></p>
                               <p className="text-[10px] font-bold uppercase tracking-wider text-red-600 mt-1.5">
                                 {ehAtacadoDetalhe ? `Preço promoção (atacado ${qtdMinimaAtacado(produtoDetalhe)}+ un.)` : 'Preço promoção'}
                               </p>
                             </div>
                           ) : ehAtacadoDetalhe ? (
                             <div>
-                              <p className="text-xs text-ecom-muted line-through mb-0.5">{formatPreco(produtoDetalhe.precoVarejo)}</p>
-                              <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoAtacado)}</p>
+                              <p className="text-xs text-ecom-muted line-through mb-0.5"><PrecoUnidade preco={produtoDetalhe.precoVarejo} produto={produtoDetalhe} /></p>
+                              <p className="text-3xl font-black text-ecom-text leading-none"><PrecoUnidade preco={produtoDetalhe.precoAtacado} produto={produtoDetalhe} /></p>
                               <p className="text-[10px] font-bold uppercase tracking-wider text-ecom-muted mt-1.5">Preço atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.)</p>
                             </div>
                           ) : (
                             <div>
                               <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-1">Preço varejo</p>
-                              <p className="text-3xl font-black text-ecom-text leading-none">{formatPreco(produtoDetalhe.precoVarejo)}</p>
+                              <p className="text-3xl font-black text-ecom-text leading-none"><PrecoUnidade preco={produtoDetalhe.precoVarejo} produto={produtoDetalhe} /></p>
                               {produtoDetalhe.precoAtacado > 0 && (
-                                <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.): {formatPreco(produtoDetalhe.precoAtacado)}</p>
+                                <p className="text-[10px] font-semibold text-ecom-muted mt-1.5">Atacado ({qtdMinimaAtacado(produtoDetalhe)}+ un.): <PrecoUnidade preco={produtoDetalhe.precoAtacado} produto={produtoDetalhe} /></p>
                               )}
                             </div>
                           )}
@@ -1805,7 +1828,7 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                                   {abrirExclusao === produtoId ? <ChevronRight size={16} /> : <Trash2 size={16} />}
                                 </button>
                               </div>
-                              <p className="text-sm text-ecom-muted font-medium">{formatPreco(preco)} / un.</p>
+                              <p className="text-sm text-ecom-muted font-medium"><PrecoUnidade preco={preco} produto={produto} sufixo="un." /></p>
                               <div className="mt-2 flex items-center justify-between gap-2">
                                 <CampoQuantidade
                                   valor={quantidade}
@@ -2674,7 +2697,7 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold truncate text-ecom-text text-sm">{produto.nome}</p>
-                        <p className="text-sm text-ecom-muted font-medium">{formatPreco(precoComPromoProduto(produto, quantidade))} / un.</p>
+                        <p className="text-sm text-ecom-muted font-medium"><PrecoUnidade preco={precoComPromoProduto(produto, quantidade)} produto={produto} sufixo="un." /></p>
                         <div className="mt-1.5 flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5">
                             <button onClick={() => setQtdCarrinho(produto.id, quantidade - 1)} className="h-7 w-7 flex items-center justify-center rounded-full border border-ecom-border bg-ecom-card hover:bg-ecom-fill transition-colors text-ecom-text"><Minus size={14} /></button>
