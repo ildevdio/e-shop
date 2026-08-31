@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PackageOpen, Check, Play, QrCode, MapPin, Search, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useSistemaStore } from '../store/sistemaStore';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 
 interface ItemPedidoLocal {
@@ -44,6 +45,7 @@ type Step = 'fila' | 'separacao' | 'concluido';
 export default function Separacao() {
   const usuarioId = useAuthStore(state => state.usuarioId);
   const nome = useAuthStore(state => state.nome);
+  const conferenciaAtiva = useSistemaStore(state => state.config.conferenciaAtiva ?? true);
   const [pedidos, setPedidos] = useState<PedidoLocal[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState('');
@@ -354,7 +356,7 @@ export default function Separacao() {
                 <QrCode size={64} className="text-gray-400" />
               </div>
               <span className="text-sm font-mono font-bold text-gray-700 tracking-widest">QR-{pedidoAtivo.id}</span>
-              <p className="text-xs text-gray-400 mt-2">Encaminhado para conferência</p>
+              <p className="text-xs text-gray-400 mt-2">{conferenciaAtiva ? 'Encaminhado para conferência' : 'Encaminhado para a logística de entrega'}</p>
             </div>
 
             <div className="flex gap-3 justify-center">

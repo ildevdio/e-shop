@@ -8,6 +8,7 @@ import { clienteService, type Cliente } from '../services/clienteService';
 import { produtoService, precoPorQtd, type Produto } from '../services/produtoService';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
+import { useSistemaStore } from '../store/sistemaStore';
 import SearchAutocomplete from '../components/SearchAutocomplete';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
@@ -47,6 +48,8 @@ interface ItemForm {
 export default function ComercialPedidos() {
   const { setModalAberto } = useUiStore();
   const { setores } = useAuthStore();
+  const fluxoConfig = useSistemaStore(state => state.config);
+  const semFluxoOperacional = fluxoConfig.separacaoAtiva === false && fluxoConfig.conferenciaAtiva === false;
   const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const isVendedor = setores.some(s => normalize(s) === 'vendedor');
   const [abaAtiva, setAbaAtiva] = useState<AbaPedidos>('pendentes');
@@ -1458,6 +1461,19 @@ export default function ComercialPedidos() {
                 className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-amber-600 text-white hover:bg-amber-500 transition-colors"
               >
                 Confirmar Retirada
+              </button>
+            )}
+            {detalhe.status === 'Pendente' && semFluxoOperacional && (
+              <button
+                onClick={async () => {
+                  const ok = await pedidoService.iniciarConferencia(detalhe.id);
+                  if (!ok) { alert('Erro ao liberar pedido.'); return; }
+                  fecharDetalhe();
+                  await carregar();
+                }}
+                className="w-full mt-4 py-2.5 rounded-xl font-medium text-sm bg-blue-600 text-white hover:bg-blue-500 transition-colors"
+              >
+                {detalhe.tipoEntrega === 'Retirada' ? 'Liberar para Retirada' : 'Liberar para Entrega'}
               </button>
             )}
             <button

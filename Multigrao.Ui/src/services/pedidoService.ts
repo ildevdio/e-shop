@@ -161,6 +161,16 @@ export const pedidoService = {
     }
   },
 
+  iniciarConferencia: async (id: number): Promise<boolean> => {
+    try {
+      await axios.put(`${API_URL}/${id}/iniciar-conferencia`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao iniciar conferência', error);
+      return false;
+    }
+  },
+
   concluirConferencia: async (id: number): Promise<boolean> => {
     try {
       await axios.put(`${API_URL}/${id}/concluir-conferencia`);

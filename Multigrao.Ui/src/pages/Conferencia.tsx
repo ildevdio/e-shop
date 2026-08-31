@@ -26,7 +26,11 @@ export default function Conferencia() {
 
   useEffect(() => { carregar(); }, []);
 
-  const iniciarConferencia = (pedido: Pedido) => {
+  const iniciarConferencia = async (pedido: Pedido) => {
+    if (pedido.status === 'Pendente') {
+      const ok = await pedidoService.iniciarConferencia(pedido.id);
+      if (!ok) { alert('Erro ao iniciar conferência.'); return; }
+    }
     setPedidoSelecionado(pedido);
     setItensConferencia(
       (pedido.itens ?? []).map(it => ({
@@ -141,7 +145,7 @@ export default function Conferencia() {
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           pedido.status === 'ProntoRetirada' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
                         }`}>
-                          {pedido.status === 'ProntoRetirada' ? 'Pronto p/ Retirada' : 'Em Conferência'}
+                          {pedido.status === 'ProntoRetirada' ? 'Pronto p/ Retirada' : pedido.status === 'Pendente' ? 'Aguardando' : 'Em Conferência'}
                         </span>
                       </td>
                       <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>

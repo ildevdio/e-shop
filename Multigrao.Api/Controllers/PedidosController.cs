@@ -103,8 +103,13 @@ namespace Multigrao.Api.Controllers
         [HttpGet("em-conferencia")]
         public async Task<IActionResult> GetPedidosEmConferencia()
         {
+            var config = await _context.ConfiguracoesSistema.AsNoTracking().FirstOrDefaultAsync();
+            var statuses = config != null && !config.SeparacaoAtiva
+                ? new[] { "EmConferencia", "ProntoRetirada", "Pendente" }
+                : new[] { "EmConferencia", "ProntoRetirada" };
+
             var pedidos = await _context.Pedidos
-                .Where(p => p.Status == "EmConferencia" || p.Status == "ProntoRetirada")
+                .Where(p => statuses.Contains(p.Status))
                 .Include(p => p.Cliente)
                 .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)
@@ -114,6 +119,11 @@ namespace Multigrao.Api.Controllers
                 .ToListAsync();
 
             return Ok(pedidos);
+        }
+
+        private async Task<ConfiguracaoSistema?> ObterConfiguracao()
+        {
+            return await _context.ConfiguracoesSistema.AsNoTracking().FirstOrDefaultAsync();
         }
 
         [HttpGet("por-cpf")]
@@ -509,6 +519,47 @@ namespace Multigrao.Api.Controllers
             return pedido;
         }
 
+        [HttpPut("{id}/iniciar-conferencia")]
+        public async Task<IActionResult> IniciarConferencia(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+
+            var config = await ObterConfiguracao();
+            if (config != null && config.SeparacaoAtiva)
+                return BadRequest(new { message = "O pedido precisa passar pela separação antes da conferência." });
+
+            if (pedido.Status == "EmConferencia")
+                return NoContent();
+
+            if (pedido.Status != "Pendente")
+                return BadRequest(new { message = "O pedido não está no estado Pendente." });
+
+            if (config != null && !config.ConferenciaAtiva)
+            {
+                if (pedido.TipoEntrega == "Retirada")
+                {
+                    pedido.Status = "ProntoRetirada";
+                    await _context.SaveChangesAsync();
+                    await Notificar("Pedido Liberado", $"Pedido #{id} liberado — pronto para retirada.", "pedido", "Comercial");
+                    _ = _emailService.NotificarProntoParaRetiradaAsync(pedido);
+                }
+                else
+                {
+                    pedido.Status = "ProntoEntrega";
+                    await _context.SaveChangesAsync();
+                    await Notificar("Pedido Liberado", $"Pedido #{id} liberado — pronto para roteirização.", "pedido", "Logística");
+                    _ = _emailService.NotificarSaiuParaEntregaAsync(pedido);
+                }
+                return NoContent();
+            }
+
+            pedido.Status = "EmConferencia";
+            await _context.SaveChangesAsync();
+            await Notificar("Conferência Iniciada", $"Pedido #{id} entrou em conferência.", "pedido", "Conferência");
+            return NoContent();
+        }
+
         [HttpPut("{id}/concluir-conferencia")]
         public async Task<IActionResult> ConcluirConferencia(int id)
         {
@@ -516,7 +567,11 @@ namespace Multigrao.Api.Controllers
                 .Include(p => p.Cliente)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (pedido == null) return NotFound();
-            if (pedido.Status != "EmConferencia")
+
+            var config = await ObterConfiguracao();
+            if (pedido.Status == "Pendente" && config != null && config.SeparacaoAtiva)
+                return BadRequest("O pedido precisa ser separado antes da conferência.");
+            if (pedido.Status != "EmConferencia" && pedido.Status != "Pendente")
                 return BadRequest("O pedido precisa estar em conferência.");
 
             if (pedido.TipoEntrega == "Retirada")
@@ -582,6 +637,26 @@ namespace Multigrao.Api.Controllers
             var todosSeparados = pedido.Itens.All(i => i.Separado);
             if (!todosSeparados)
                 return BadRequest("Nem todos os itens foram separados.");
+
+            var config = await ObterConfiguracao();
+            if (config != null && !config.ConferenciaAtiva)
+            {
+                if (pedido.TipoEntrega == "Retirada")
+                {
+                    pedido.Status = "ProntoRetirada";
+                    await _context.SaveChangesAsync();
+                    await Notificar("Separação Concluída", $"Pedido #{id} separado — pronto para retirada.", "pedido", "Comercial");
+                    _ = _emailService.NotificarProntoParaRetiradaAsync(pedido);
+                }
+                else
+                {
+                    pedido.Status = "ProntoEntrega";
+                    await _context.SaveChangesAsync();
+                    await Notificar("Separação Concluída", $"Pedido #{id} separado — pronto para roteirização.", "pedido", "Logística");
+                    _ = _emailService.NotificarSaiuParaEntregaAsync(pedido);
+                }
+                return NoContent();
+            }
 
             pedido.Status = "EmConferencia";
             await _context.SaveChangesAsync();
