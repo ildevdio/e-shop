@@ -392,6 +392,8 @@ namespace Multigrao.Api.DTOs
         public string? EvolutionApiKey { get; set; }
         public string? EvolutionApiInstance { get; set; }
         public bool? EvolutionApiSsl { get; set; }
+        // Google Maps (Prospecção)
+        public string? GoogleMapsApiKey { get; set; }
     }
 
     public class FaixaFreteDto
@@ -571,5 +573,94 @@ namespace Multigrao.Api.DTOs
         public string? CampoLead { get; set; }
         public int Ordem { get; set; }
         public bool Ativo { get; set; } = true;
+    }
+
+    // Prospecção Google Maps
+    public class BuscaProspeccaoDto
+    {
+        public string? EnderecoOuCidade { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public int RaioKm { get; set; } = 5;
+        public List<string> Categorias { get; set; } = new();
+        public int Limite { get; set; } = 20;
+        public string? ProximoToken { get; set; }
+    }
+
+    public class EmpresaEncontradaDto
+    {
+        public string Nome { get; set; } = string.Empty;
+        public string Endereco { get; set; } = string.Empty;
+        public string? Telefone { get; set; }
+        public double? Avaliacao { get; set; }
+        public int? TotalAvaliacoes { get; set; }
+        public string? Site { get; set; }
+        public string? PlaceId { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? Categoria { get; set; }
+        public bool AbertoAgora { get; set; }
+    }
+
+    public class ResultadoBuscaDto
+    {
+        public List<EmpresaEncontradaDto> Resultados { get; set; } = new();
+        public string? ProximoToken { get; set; }
+        public int TotalEncontrado { get; set; }
+    }
+
+    public class SalvarProspectDto
+    {
+        public string NomeEmpresa { get; set; } = string.Empty;
+        public string? NomeFantasia { get; set; }
+        public string? EnderecoCompleto { get; set; }
+        public string? Logradouro { get; set; }
+        public string? Numero { get; set; }
+        public string? Bairro { get; set; }
+        public string? Cidade { get; set; }
+        public string? Estado { get; set; }
+        public string? Cep { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? Telefone { get; set; }
+        public string? Email { get; set; }
+        public string? Site { get; set; }
+        public string? Categoria { get; set; }
+        public string? PlaceId { get; set; }
+        public double? Rating { get; set; }
+        public int? TotalAvaliacoes { get; set; }
+    }
+
+    public class AtualizarProspectDto
+    {
+        public string? Status { get; set; }
+        public string? Observacoes { get; set; }
+    }
+
+    public class ProspectResponseDto
+    {
+        public int Id { get; set; }
+        public string NomeEmpresa { get; set; } = string.Empty;
+        public string NomeFantasia { get; set; } = string.Empty;
+        public string EnderecoCompleto { get; set; } = string.Empty;
+        public string Logradouro { get; set; } = string.Empty;
+        public string Numero { get; set; } = string.Empty;
+        public string Bairro { get; set; } = string.Empty;
+        public string Cidade { get; set; } = string.Empty;
+        public string Estado { get; set; } = string.Empty;
+        public string Cep { get; set; } = string.Empty;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string Telefone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? Site { get; set; }
+        public string Categoria { get; set; } = string.Empty;
+        public string? PlaceId { get; set; }
+        public double? Rating { get; set; }
+        public int? TotalAvaliacoes { get; set; }
+        public string Status { get; set; } = "Novo";
+        public string? Observacoes { get; set; }
+        public DateTime DataCriacao { get; set; }
+        public DateTime DataAtualizacao { get; set; }
     }
 }

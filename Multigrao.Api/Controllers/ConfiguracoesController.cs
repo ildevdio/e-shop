@@ -189,6 +189,9 @@ namespace Multigrao.Api.Controllers
             if (dto.EvolutionApiInstance != null) config.EvolutionApiInstance = dto.EvolutionApiInstance;
             if (dto.EvolutionApiSsl.HasValue) config.EvolutionApiSsl = dto.EvolutionApiSsl.Value;
 
+            // Google Maps
+            if (dto.GoogleMapsApiKey != null) config.GoogleMapsApiKey = dto.GoogleMapsApiKey;
+
             await _context.SaveChangesAsync();
 
             return Ok(await ConfigDto(config));
@@ -618,6 +621,7 @@ namespace Multigrao.Api.Controllers
             await _context.Avisos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Contatos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Clientes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Prospects.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Produtos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Categorias.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Marcas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
@@ -812,6 +816,7 @@ namespace Multigrao.Api.Controllers
                 evolutionApiUrl = config.EvolutionApiUrl,
                 evolutionApiInstance = config.EvolutionApiInstance,
                 evolutionApiSsl = config.EvolutionApiSsl,
+                googleMapsApiKey = config.GoogleMapsApiKey,
                 tipoEmpresa = config.TipoEmpresa,
                 separacaoAtiva = config.SeparacaoAtiva,
                 conferenciaAtiva = config.ConferenciaAtiva,

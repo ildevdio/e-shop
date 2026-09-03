@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3, Bot,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3, Bot, MapPin,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -60,7 +60,10 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
     );
   }
   if (isAdmin || hasSetor('Comercial')) {
-    sectorNav.push({ icon: ClipboardList, label: 'Atendimentos', path: '/comercial/lista-atendimentos' });
+    sectorNav.push(
+      { icon: ClipboardList, label: 'Atendimentos', path: '/comercial/lista-atendimentos' },
+      { icon: MapPin, label: 'Prospecção', path: '/comercial/prospeccao' },
+    );
   }
   const separacaoAtiva = config.separacaoAtiva ?? true;
   const conferenciaAtiva = config.conferenciaAtiva ?? true;

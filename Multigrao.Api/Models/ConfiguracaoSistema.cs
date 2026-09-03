@@ -74,5 +74,8 @@ namespace Multigrao.Api.Models
         public bool EntregaTerceirizada { get; set; }
         public bool UsarRotas { get; set; } = true;
         public bool UsarPeso { get; set; } = true;
+
+        // Google Maps (Prospecção)
+        public string? GoogleMapsApiKey { get; set; }
     }
 }

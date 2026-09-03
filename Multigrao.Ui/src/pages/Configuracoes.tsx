@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare, Package, CheckSquare, Scale } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare, Package, CheckSquare, Scale, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, TIPOS_EMPRESA, PRESET_TIPO_EMPRESA, type FaixaFrete } from '../store/sistemaStore';
@@ -251,6 +251,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [smtpForm, setSmtpForm] = useState({ smtpHost: '', smtpPort: 587, smtpUsuario: '', smtpSenha: '', smtpNomeRemetente: '', smtpEmailRemetente: '', smtpUsarSsl: true, emailNotificacoesAtivo: false });
   const [carrinhoForm, setCarrinhoForm] = useState({ carrinhoLembreteAtivo: false, carrinhoLembreteMinutos: 30, carrinhoLembreteRepetir: 1, carrinhoLembreteIntervaloRepeticao: 120, carrinhoLembreteCanal: 'email', evolutionApiUrl: '', evolutionApiInstance: '', evolutionApiSsl: true });
   const [fluxoOperacional, setFluxoOperacional] = useState({ tipoEmpresa: 'distribuidora', separacaoAtiva: true, conferenciaAtiva: true, entregaTerceirizada: false, usarRotas: true, usarPeso: true });
+  const [prospeccaoForm, setProspeccaoForm] = useState({ googleMapsApiKey: '' });
 
   useEffect(() => {
     if (carregada) {
@@ -313,6 +314,9 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         entregaTerceirizada: configSistema.entregaTerceirizada ?? false,
         usarRotas: configSistema.usarRotas ?? true,
         usarPeso: configSistema.usarPeso ?? true,
+      });
+      setProspeccaoForm({
+        googleMapsApiKey: configSistema.googleMapsApiKey ?? '',
       });
     }
   }, [carregada]);
@@ -526,6 +530,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       ...smtpForm,
       ...carrinhoForm,
       ...fluxoOperacional,
+      ...prospeccaoForm,
     });
     if (ok) {
       await salvarFaixasFrete(faixasFrete.filter(f => f.ateKm > 0));
@@ -1570,6 +1575,32 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 </div>
               </div>
               )}
+            </div>
+            )}
+
+            {/* Prospecção - Google Maps */}
+            {sistemaTab === 'carrinho' && (
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mt-4">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><MapPin size={18} className="text-black" /> Prospecção (Google Maps)</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Chave da API do Google Maps</label>
+                  <input
+                    type="password"
+                    value={prospeccaoForm.googleMapsApiKey}
+                    onChange={e => setProspeccaoForm({ ...prospeccaoForm, googleMapsApiKey: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                    placeholder="AIza..."
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Necessária para busca de prospects. Obtenha em{' '}
+                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      Google Cloud Console
+                    </a>{' '}
+                    (Places API habilitada).
+                  </p>
+                </div>
+              </div>
             </div>
             )}
 

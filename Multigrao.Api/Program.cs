@@ -44,6 +44,7 @@ builder.Services.AddScoped<Multigrao.Api.Services.ITenantContext, Multigrao.Api.
 builder.Services.AddScoped<Multigrao.Api.Services.EmailService>();
 builder.Services.AddScoped<Multigrao.Api.Services.WhatsAppService>();
 builder.Services.AddScoped<Multigrao.Api.Services.ChatbotService>();
+builder.Services.AddScoped<Multigrao.Api.Services.GoogleMapsService>();
 builder.Services.AddHostedService<Multigrao.Api.Services.CarrinhoAbandonadoService>();
 builder.Services.AddHttpClient();
 
@@ -75,10 +76,21 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(corsOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        // Em desenvolvimento liberamos qualquer origem (o Vite pode rodar em
+        // localhost/127.0.0.1 e em portas variáveis), evitando erro de preflight.
+        // Em produção mantemos a lista fechada de origens permitidas.
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.SetIsOriginAllowed(o => true)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithOrigins(corsOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
     });
 });
 

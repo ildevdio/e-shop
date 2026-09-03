@@ -57,6 +57,7 @@ export interface ConfiguracaoSistema {
   entregaTerceirizada: boolean;
   usarRotas: boolean;
   usarPeso: boolean;
+  googleMapsApiKey: string;
 }
 
 export const TIPOS_EMPRESA: Record<string, { nome: string; descricao: string }> = {
@@ -325,6 +326,7 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   entregaTerceirizada: false,
   usarRotas: true,
   usarPeso: true,
+  googleMapsApiKey: '',
 };
 
 function luminancia(hex: string): number {
@@ -485,6 +487,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           entregaTerceirizada: data.entregaTerceirizada ?? false,
           usarRotas: data.usarRotas ?? true,
           usarPeso: data.usarPeso ?? true,
+          googleMapsApiKey: data.googleMapsApiKey ?? '',
         };
         set({ config, carregada: true });
         salvarConfigLocal(config);
@@ -562,6 +565,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           entregaTerceirizada: config.entregaTerceirizada,
           usarRotas: config.usarRotas,
           usarPeso: config.usarPeso,
+          googleMapsApiKey: config.googleMapsApiKey,
         }),
       });
       if (!resp.ok) return false;
@@ -622,6 +626,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         entregaTerceirizada: data.entregaTerceirizada ?? config.entregaTerceirizada,
         usarRotas: data.usarRotas ?? config.usarRotas,
         usarPeso: data.usarPeso ?? config.usarPeso,
+        googleMapsApiKey: data.googleMapsApiKey ?? config.googleMapsApiKey,
       };
       set({ config: atualizada });
       salvarConfigLocal(atualizada);

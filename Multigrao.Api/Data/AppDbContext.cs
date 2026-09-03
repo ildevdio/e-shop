@@ -56,6 +56,7 @@ namespace Multigrao.Api.Data
         public DbSet<CupomProduto> CupomProdutos { get; set; }
         public DbSet<CupomCliente> CupomClientes { get; set; }
 
+        public DbSet<Prospect> Prospects { get; set; }
         public DbSet<LembreteCarrinho> LembretesCarrinho { get; set; }
 
         public override int SaveChanges()
@@ -125,6 +126,7 @@ namespace Multigrao.Api.Data
             modelBuilder.Entity<CupomCliente>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<LembreteCarrinho>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Prospect>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });

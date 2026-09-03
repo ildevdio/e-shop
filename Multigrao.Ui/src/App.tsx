@@ -21,6 +21,7 @@ import ComercialContatos from './pages/ComercialContatos';
 import ComercialListaAtendimentos from './pages/ComercialListaAtendimentos';
 import ComercialPromocoes from './pages/ComercialPromocoes';
 import ComercialCupons from './pages/ComercialCupons';
+import ComercialProspeccao from './pages/ComercialProspeccao';
 import Relatorios from './pages/Relatorios';
 import Catalogo from './pages/Catalogo';
 import Tabela from './pages/Tabela';
@@ -137,6 +138,7 @@ function App() {
           <Route path="comercial/lista-atendimentos" element={<ComercialListaAtendimentos />} />
           <Route path="comercial/promocoes" element={<ComercialPromocoes />} />
           <Route path="comercial/cupons" element={<ComercialCupons />} />
+          <Route path="comercial/prospeccao" element={<ComercialProspeccao />} />
 
           <Route path="relatorios" element={<Relatorios />} />
 
