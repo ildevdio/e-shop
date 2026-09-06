@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Truck, Map, Navigation, ArrowRight, Plus, Search, CheckCircle2, Trash2, ArrowUp, ArrowDown, User, Clock, Package, Filter, Calendar, RotateCcw, Pencil, X } from 'lucide-react';
 import { logisticaService, type Veiculo, type Motorista, type PedidoPronto, type EntregaRota } from '../services/logisticaService';
 import { useUiStore } from '../store/uiStore';
+import SearchModal from '../components/SearchModal';
 
 const ENTREGA_STATUS_LABELS: Record<string, string> = {
   PendenteConferencia: 'Pendente Conferência',
@@ -589,17 +590,7 @@ function ConsultasTab() {
 
       <div className="space-y-3 mb-4">
         <div className="flex gap-3">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Buscar por #pedido, cliente, bairro, motorista..."
-              value={busca}
-              onChange={e => setBusca(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') buscar(); }}
-              className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-            />
-          </div>
+          <SearchModal placeholder="Buscar por #pedido, cliente, bairro, motorista..." valor={busca} onChange={setBusca} />
           <button
             onClick={buscar}
             className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
@@ -670,34 +661,66 @@ function ConsultasTab() {
             <p className="text-sm font-medium">Nenhuma entrega encontrada</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b sticky top-0">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Pedido</th>
-                <th className="px-4 py-3 font-semibold">Cliente</th>
-                <th className="px-4 py-3 font-semibold">Motorista</th>
-                <th className="px-4 py-3 font-semibold">Veículo</th>
-                <th className="px-4 py-3 font-semibold">Valor</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop Table */}
+            <table className="hidden md:table w-full text-left text-sm text-gray-500">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b sticky top-0">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Pedido</th>
+                  <th className="px-4 py-3 font-semibold">Cliente</th>
+                  <th className="px-4 py-3 font-semibold">Motorista</th>
+                  <th className="px-4 py-3 font-semibold">Veículo</th>
+                  <th className="px-4 py-3 font-semibold">Valor</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resultados.map(e => (
+                  <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900">{pedidosLabel(e)}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900">{nomeCliente(e)}</div>
+                      <div className="text-xs text-gray-400">{primeiroPedido(e)?.cliente?.bairro ?? ''}</div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">{e.rota?.motorista?.nome ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      <div className="text-gray-700">{e.rota?.veiculo?.modelo ?? '—'}</div>
+                      <div className="text-xs text-gray-400">{e.rota?.veiculo?.placa}</div>
+                    </td>
+                    <td className="px-4 py-3">R$ {valorTotal(e).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
+                        e.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
+                        e.status === 'Devolvido' ? 'bg-red-100 text-red-700' :
+                        e.status === 'EmRota' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {ENTREGA_STATUS_LABELS[e.status] ?? e.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => setDetalhe(e)} className="text-gray-700 hover:underline text-xs font-medium">Ver</button>
+                        <button onClick={() => abrirEdicao(e)} className="text-gray-400 hover:text-gray-700 transition-colors"><Pencil size={14} /></button>
+                        <button onClick={() => excluirEntrega(e.id)} className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden flex flex-col gap-3 p-3">
               {resultados.map(e => (
-                <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-900">{pedidosLabel(e)}</td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{nomeCliente(e)}</div>
-                    <div className="text-xs text-gray-400">{primeiroPedido(e)?.cliente?.bairro ?? ''}</div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">{e.rota?.motorista?.nome ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    <div className="text-gray-700">{e.rota?.veiculo?.modelo ?? '—'}</div>
-                    <div className="text-xs text-gray-400">{e.rota?.veiculo?.placa}</div>
-                  </td>
-                  <td className="px-4 py-3">R$ {valorTotal(e).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
+                <div key={e.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{pedidosLabel(e)}</span>
+                      <h3 className="font-semibold text-gray-900 leading-tight mt-0.5">{nomeCliente(e)}</h3>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
                       e.status === 'Entregue' ? 'bg-emerald-100 text-emerald-700' :
                       e.status === 'Devolvido' ? 'bg-red-100 text-red-700' :
                       e.status === 'EmRota' ? 'bg-blue-100 text-blue-700' :
@@ -705,24 +728,42 @@ function ConsultasTab() {
                     }`}>
                       {ENTREGA_STATUS_LABELS[e.status] ?? e.status}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => setDetalhe(e)} className="text-gray-700 hover:underline text-xs font-medium">Ver</button>
-                      <button onClick={() => abrirEdicao(e)} className="text-gray-400 hover:text-gray-700 transition-colors"><Pencil size={14} /></button>
-                      <button onClick={() => excluirEntrega(e.id)} className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
+                  </div>
+
+                  <div className="text-xs text-gray-500 mb-3">{primeiroPedido(e)?.cliente?.bairro ?? ''}</div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Motorista</p>
+                      <p className="text-gray-900">{e.rota?.motorista?.nome ?? '—'}</p>
                     </div>
-                  </td>
-                </tr>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Veículo</p>
+                      <p className="text-gray-900">{e.rota?.veiculo?.modelo ?? '—'} <span className="text-gray-400 text-xs">{e.rota?.veiculo?.placa}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Valor Total</p>
+                      <p className="font-medium text-gray-900">R$ {valorTotal(e).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setDetalhe(e)} className="text-gray-600 font-medium text-xs hover:underline">Ver</button>
+                      <button onClick={() => abrirEdicao(e)} className="text-gray-400 hover:text-gray-700 transition-colors p-1"><Pencil size={14} /></button>
+                      <button onClick={() => excluirEntrega(e.id)} className="text-gray-400 hover:text-red-600 transition-colors p-1"><Trash2 size={14} /></button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 
       {detalhe && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetalhe(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex md:items-center items-end justify-center md:p-4 p-0" onClick={() => setDetalhe(null)}>
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes da Entrega</h2>
               <button onClick={() => setDetalhe(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
@@ -808,8 +849,8 @@ function ConsultasTab() {
       )}
 
       {editando && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditando(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex md:items-center items-end justify-center md:p-4 p-0" onClick={() => setEditando(null)}>
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Editar Entrega #{editando.id}</h2>
               <button onClick={() => setEditando(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>
@@ -896,11 +937,7 @@ function VeiculosTab() {
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Buscar veículo..." value={busca} onChange={e => setBusca(e.target.value)}
-            className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all" />
-        </div>
+        <SearchModal placeholder="Buscar veículo..." valor={busca} onChange={setBusca} />
         <button onClick={() => { setShowNovo(true); setModalAberto(true); }} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
           <Plus size={18} /> Novo Veículo
         </button>
@@ -909,38 +946,66 @@ function VeiculosTab() {
       {carregando ? (
         <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Carregando...</div>
       ) : (
-        <div className="flex-1 border rounded-lg overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 font-semibold">Modelo</th>
-                <th className="px-6 py-3 font-semibold">Placa</th>
-                <th className="px-6 py-3 font-semibold">Capacidade</th>
-                <th className="px-6 py-3 font-semibold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {veiculosFiltrados.map(veiculo => (
-                <tr key={veiculo.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{veiculo.modelo}</td>
-                  <td className="px-6 py-4 font-mono text-xs">{veiculo.placa}</td>
-                  <td className="px-6 py-4">{veiculo.pesoMaximo ? `${veiculo.pesoMaximo}kg` : '—'}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={() => remover(veiculo.id)} className="text-gray-600 hover:underline flex items-center gap-1 inline-flex"><Trash2 size={14} /> Remover</button>
-                  </td>
+        <div className="flex-1 overflow-y-auto">
+          {/* Desktop Table */}
+          <div className="hidden md:block border rounded-lg overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-500">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 font-semibold">Modelo</th>
+                  <th className="px-6 py-3 font-semibold">Placa</th>
+                  <th className="px-6 py-3 font-semibold">Capacidade</th>
+                  <th className="px-6 py-3 font-semibold text-right">Ações</th>
                 </tr>
-              ))}
-              {veiculosFiltrados.length === 0 && (
-                <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-sm">{busca ? 'Nenhum veículo encontrado' : 'Nenhum veículo cadastrado'}</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {veiculosFiltrados.map(veiculo => (
+                  <tr key={veiculo.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-900">{veiculo.modelo}</td>
+                    <td className="px-6 py-4 font-mono text-xs">{veiculo.placa}</td>
+                    <td className="px-6 py-4">{veiculo.pesoMaximo ? `${veiculo.pesoMaximo}kg` : '—'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => remover(veiculo.id)} className="text-gray-600 hover:underline flex items-center gap-1 inline-flex"><Trash2 size={14} /> Remover</button>
+                    </td>
+                  </tr>
+                ))}
+                {veiculosFiltrados.length === 0 && (
+                  <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-sm">{busca ? 'Nenhum veículo encontrado' : 'Nenhum veículo cadastrado'}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden flex flex-col gap-3 p-1">
+            {veiculosFiltrados.map(veiculo => (
+              <div key={veiculo.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-gray-900">{veiculo.modelo}</h3>
+                  <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-600">{veiculo.placa}</span>
+                </div>
+                
+                <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100">
+                  <div>
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wider">Capacidade</span>
+                    <p className="text-sm font-medium text-gray-900">{veiculo.pesoMaximo ? `${veiculo.pesoMaximo}kg` : '—'}</p>
+                  </div>
+                  <button onClick={() => remover(veiculo.id)} className="text-red-500 hover:text-red-700 p-2 rounded-lg transition-colors flex items-center gap-1">
+                    <Trash2 size={16} /> 
+                  </button>
+                </div>
+              </div>
+            ))}
+            {veiculosFiltrados.length === 0 && (
+              <div className="text-center py-8 text-gray-400 text-sm">{busca ? 'Nenhum veículo encontrado' : 'Nenhum veículo cadastrado'}</div>
+            )}
+          </div>
         </div>
       )}
 
       {showNovo && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex md:items-center items-end justify-center md:p-4 p-0">
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Novo Veículo</h2>
             <div className="space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Modelo *</label><input type="text" value={novoVeiculo.modelo} onChange={e => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} className="w-full border border-gray-300 rounded-xl p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" placeholder="Ex: Fiat Fiorino" /></div>

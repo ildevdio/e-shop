@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, X, Upload, FileCheck, Trash2, Search, Filter, Calendar, RotateCcw, Loader2, ShieldAlert, Package, Truck } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { getSlug } from '../services/tenantSetup';
 import { ArrowLeft } from 'lucide-react';
 import { pedidoService, type Pedido } from '../services/pedidoService';
@@ -10,6 +9,7 @@ import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useSistemaStore } from '../store/sistemaStore';
 import SearchAutocomplete from '../components/SearchAutocomplete';
+import PageHeader from '../components/PageHeader';
 import { buscarCEP } from '../utils/buscarCEP';
 import { formatEstoque } from '../utils/formatEstoque';
 
@@ -516,15 +516,28 @@ export default function ComercialPedidos() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center gap-4">
-        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-serif font-bold text-gray-900">Pedidos</h1>
-          <p className="text-gray-500 mt-1">Gestão de pedidos e DAVs do setor comercial.</p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Pedidos"
+        descricao="Gestão de pedidos e DAVs do setor comercial."
+        voltarPara={`/${getSlug()}/comercial`}
+        busca={abaAtiva === 'pendentes' ? buscaPendentes : buscaConsulta}
+        onBuscaChange={(val) => {
+          if (abaAtiva === 'pendentes') setBuscaPendentes(val);
+          else { setBuscaConsulta(val); }
+        }}
+        onNovo={() => { setCadastrando(true); setAbaCadastro('produtos'); }}
+        novoLabel="Novo Pedido"
+      >
+        {abaAtiva === 'consulta' && (
+          <button
+            onClick={() => buscarConsulta()}
+            disabled={buscandoConsulta}
+            className="flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-white text-sm font-medium hover:bg-primary transition-colors shadow-sm disabled:opacity-50"
+          >
+            <Search size={18} /> {buscandoConsulta ? 'Buscando...' : 'Buscar'}
+          </button>
+        )}
+      </PageHeader>
 
       <div className="flex flex-wrap gap-2 mb-2">
         <button onClick={() => setAbaAtiva('pendentes')} className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${abaAtiva === 'pendentes' ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}>
@@ -875,24 +888,10 @@ export default function ComercialPedidos() {
         ) : (
         <div className="flex flex-col h-full min-h-0">
         {abaAtiva === 'pendentes' && (
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex justify-between items-center gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Buscar por #ID, cliente, CPF/CNPJ..."
-                value={buscaPendentes}
-                onChange={e => setBuscaPendentes(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-              />
-            </div>
-            <button
-              onClick={() => { setBuscaCliente(''); setNovoPedido({ clienteId: '', tipoEntrega: 'Entrega', pagamento: '', prazoPagamentoDias: '', desconto: '', acrescimo: '' }); setItensPedido([]); setBuscaProduto(''); setDestaqueProduto(0); setSelecionadosPedido(new Set()); setAncoraPedido(null); setCargaQtd(''); setErroProduto(''); setCadastrando(true); setAbaCadastro('produtos'); }}
-              className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20"
-            >
-              <Plus size={18} /> Novo Pedido
-            </button>
+        <div className="px-6 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-2 -ml-1">
+            <Filter size={14} className="text-gray-400" />
+            <span className="text-xs text-gray-500">Filtre pela busca acima ou use os atalhos:</span>
           </div>
         </div>
         )}
@@ -921,18 +920,6 @@ export default function ComercialPedidos() {
                 <Search size={18} /> {buscandoConsulta ? 'Buscando...' : 'Buscar'}
               </button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Search className="text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Buscar por #ID, cliente, CPF/CNPJ, endereço..."
-              value={buscaConsulta}
-              onChange={e => setBuscaConsulta(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') buscarConsulta(); }}
-              className="flex-1 px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-            />
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -1021,73 +1008,127 @@ export default function ComercialPedidos() {
           {carregando ? (
             <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Carregando pedidos...</div>
           ) : (
-            <table className="w-full text-left text-sm text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">ID</th>
-                  <th className="px-6 py-3 font-semibold">Cliente</th>
-                  <th className="px-6 py-3 font-semibold">Valor</th>
-                  <th className="px-6 py-3 font-semibold">Itens</th>
-                  <th className="px-6 py-3 font-semibold">Peso</th>
-                  <th className="px-6 py-3 font-semibold">Tipo</th>
-                  <th className="px-6 py-3 font-semibold">Data</th>
-                  <th className="px-6 py-3 font-semibold">Status</th>
-                  <th className="px-6 py-3 font-semibold text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Desktop Table */}
+              <table className="hidden md:table w-full text-left text-sm text-gray-500">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 font-semibold">ID</th>
+                    <th className="px-6 py-3 font-semibold">Cliente</th>
+                    <th className="px-6 py-3 font-semibold">Valor</th>
+                    <th className="px-6 py-3 font-semibold">Itens</th>
+                    <th className="px-6 py-3 font-semibold">Peso</th>
+                    <th className="px-6 py-3 font-semibold">Tipo</th>
+                    <th className="px-6 py-3 font-semibold">Data</th>
+                    <th className="px-6 py-3 font-semibold">Status</th>
+                    <th className="px-6 py-3 font-semibold text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(abaAtiva === 'pendentes' ? pedidosPendentes : resultadosConsulta).map(pedido => (
+                    <tr key={pedido.id} onDoubleClick={() => abrirDetalhe(pedido)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
+                      <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span>{pedido.cliente?.razaoSocialNome ?? '—'}</span>
+                          {pedido.cliente?.vendedor && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 ring-1 ring-violet-200">
+                              {pedido.cliente.vendedor.nome}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">R$ {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                      <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>
+                      <td className="px-6 py-4">{pedido.pesoTotal.toFixed(2)} kg</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${pedido.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'}`}>
+                          {pedido.tipoEntrega === 'Retirada' ? 'Retirada' : 'Entrega'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-400">{new Date(pedido.dataCriacao).toLocaleDateString('pt-BR')}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ${
+                          pedido.status === 'BloqueadoFinanceiro' ? 'bg-amber-100 text-amber-700 ring-amber-300' :
+                          'bg-gray-100 text-black ring-black/20'
+                        }`}>
+                          {STATUS_LABELS[pedido.status] ?? pedido.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => abrirDetalhe(pedido)} className="text-gray-700 hover:underline">Ver</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {((abaAtiva === 'pendentes' && pedidosPendentes.length === 0) || (abaAtiva === 'consulta' && consultaRealizada && resultadosConsulta.length === 0)) && (
+                    <tr><td colSpan={9} className="text-center py-16 text-gray-400 text-sm">
+                      {abaAtiva === 'consulta' && !consultaRealizada ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+                            <Search size={20} className="text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-500">Nenhuma busca realizada</p>
+                            <p className="text-xs mt-1">Use os filtros acima e clique em <strong>Buscar</strong> para pesquisar pedidos</p>
+                          </div>
+                        </div>
+                      ) : 'Nenhum pedido encontrado com os filtros selecionados'}
+                    </td></tr>
+                  )}
+                </tbody>
+              </table>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden flex flex-col gap-3 p-3">
                 {(abaAtiva === 'pendentes' ? pedidosPendentes : resultadosConsulta).map(pedido => (
-                  <tr key={pedido.id} onDoubleClick={() => abrirDetalhe(pedido)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer">
-                    <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span>{pedido.cliente?.razaoSocialNome ?? '—'}</span>
-                        {pedido.cliente?.vendedor && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 ring-1 ring-violet-200">
-                            {pedido.cliente.vendedor.nome}
-                          </span>
-                        )}
+                  <div key={pedido.id} onClick={() => abrirDetalhe(pedido)} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm cursor-pointer relative overflow-hidden active:scale-[0.99] transition-transform">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">#{pedido.id}</span>
+                        <h3 className="font-semibold text-gray-900 leading-tight mt-0.5">{pedido.cliente?.razaoSocialNome ?? '—'}</h3>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">R$ {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4">{pedido.itens?.length ?? 0} itens</td>
-                    <td className="px-6 py-4">{pedido.pesoTotal.toFixed(2)} kg</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${pedido.tipoEntrega === 'Retirada' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'}`}>
-                        {pedido.tipoEntrega === 'Retirada' ? 'Retirada' : 'Entrega'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-400">{new Date(pedido.dataCriacao).toLocaleDateString('pt-BR')}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ${
-                        pedido.status === 'BloqueadoFinanceiro' ? 'bg-amber-100 text-amber-700 ring-amber-300' :
-                        'bg-gray-100 text-black ring-black/20'
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
+                        pedido.status === 'BloqueadoFinanceiro' ? 'bg-amber-100 text-amber-700' :
+                        'bg-gray-100 text-black'
                       }`}>
                         {STATUS_LABELS[pedido.status] ?? pedido.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => abrirDetalhe(pedido)} className="text-gray-700 hover:underline">Ver</button>
-                    </td>
-                  </tr>
-                ))}
-                {((abaAtiva === 'pendentes' && pedidosPendentes.length === 0) || (abaAtiva === 'consulta' && consultaRealizada && resultadosConsulta.length === 0)) && (
-                  <tr><td colSpan={9} className="text-center py-16 text-gray-400 text-sm">
-                    {abaAtiva === 'consulta' && !consultaRealizada ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
-                          <Search size={20} className="text-gray-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-500">Nenhuma busca realizada</p>
-                          <p className="text-xs mt-1">Use os filtros acima e clique em <strong>Buscar</strong> para pesquisar pedidos</p>
-                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Valor Total</p>
+                        <p className="font-medium text-gray-900">R$ {pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                       </div>
-                    ) : 'Nenhum pedido encontrado com os filtros selecionados'}
-                  </td></tr>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Itens / Peso</p>
+                        <p className="text-gray-700">{pedido.itens?.length ?? 0} itens · {pedido.pesoTotal.toFixed(1)} kg</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium ${pedido.tipoEntrega === 'Retirada' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                          {pedido.tipoEntrega === 'Retirada' ? 'Retirada' : 'Entrega'}
+                        </span>
+                        {pedido.cliente?.vendedor && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-violet-50 text-violet-700 border border-violet-200">
+                            Vend: {pedido.cliente.vendedor.nome.split(' ')[0]}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-400">{new Date(pedido.dataCriacao).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
+                ))}
+                
+                {((abaAtiva === 'pendentes' && pedidosPendentes.length === 0) || (abaAtiva === 'consulta' && consultaRealizada && resultadosConsulta.length === 0)) && (
+                  <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-sm text-gray-500">Nenhum pedido encontrado</p>
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
 
           {abaAtiva === 'consulta' && consultaRealizada && totalConsulta > 50 && (
@@ -1121,8 +1162,8 @@ export default function ComercialPedidos() {
 
 
       {pedidoPendenteDialog && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex md:items-center items-end justify-center md:p-4 p-0">
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
                 <span className="text-amber-600 text-lg font-bold">!</span>
@@ -1177,8 +1218,8 @@ export default function ComercialPedidos() {
       )}
 
       {detalhe && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={fecharDetalhe}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex md:items-center items-end justify-center md:p-4 p-0" onClick={fecharDetalhe}>
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Detalhes do Pedido</h2>
               <button onClick={fecharDetalhe} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
@@ -1493,8 +1534,8 @@ export default function ComercialPedidos() {
       )}
 
       {showNovoCliente && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => { setShowNovoCliente(false); setModalAberto(false); }}>
-          <div className="bg-white rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex md:items-center items-end justify-center md:p-4 p-0" onClick={() => { setShowNovoCliente(false); setModalAberto(false); }}>
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Novo Cliente</h2>
               <button onClick={() => { setShowNovoCliente(false); setModalAberto(false); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
@@ -1556,8 +1597,8 @@ export default function ComercialPedidos() {
       )}
 
       {showBloqueadoDialog && clienteBloqueadoSelecionado && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex md:items-center items-end justify-center md:p-4 p-0">
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                 <ShieldAlert size={22} className="text-amber-500" /> Cliente Bloqueado

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Pencil, Trash2, Loader2, ArrowLeft, Tag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { X, Pencil, Trash2, Loader2, Tag } from 'lucide-react';
 import { getSlug } from '../services/tenantSetup';
 import { cupomService, type Cupom, type CriarCupomDto } from '../services/cupomService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { clienteService, type Cliente } from '../services/clienteService';
+import PageHeader from '../components/PageHeader';
 
 const formVazio: CriarCupomDto = {
   codigo: '', descricao: '', tipo: 'percentual', valor: 10, aplicavelEm: 'pedido',
@@ -60,6 +60,7 @@ export default function ComercialCupons() {
   const [cupons, setCupons] = useState<Cupom[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [busca, setBusca] = useState('');
   const [buscaProduto, setBuscaProduto] = useState('');
   const [buscaCliente, setBuscaCliente] = useState('');
   const [carregando, setCarregando] = useState(true);
@@ -84,6 +85,11 @@ export default function ComercialCupons() {
   };
 
   useEffect(() => { carregar(); }, []);
+
+  const filtrados = cupons.filter(c =>
+    c.codigo.toLowerCase().includes(busca.toLowerCase()) ||
+    (c.descricao ?? '').toLowerCase().includes(busca.toLowerCase())
+  );
 
   const abrirCriar = () => {
     setForm(formVazio);
@@ -175,27 +181,24 @@ export default function ComercialCupons() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center gap-4">
-        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-serif font-bold text-gray-900">Cupons de Desconto</h1>
-          <p className="text-gray-500 mt-1">Crie e gerencie cupons para seus clientes.</p>
-        </div>
-        <button onClick={abrirCriar} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary flex items-center gap-2 shadow-sm shadow-black/20 transition-colors">
-          <Plus size={18} /> Novo Cupom
-        </button>
-      </div>
+      <PageHeader
+        titulo="Cupons de Desconto"
+        descricao="Crie e gerencie cupons para seus clientes."
+        voltarPara={`/${getSlug()}/comercial`}
+        busca={busca}
+        onBuscaChange={setBusca}
+        onNovo={abrirCriar}
+        novoLabel="Novo Cupom"
+      />
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-x-auto">
           {carregando ? (
             <div className="flex items-center justify-center py-20 text-gray-400">
               <Loader2 className="animate-spin mr-2" size={20} /> Carregando...
             </div>
           ) : (
-            <table className="w-full text-left text-sm text-gray-500">
+            <table className="w-full text-left text-sm text-gray-500 min-w-[800px]">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 font-semibold">Código</th>
@@ -208,9 +211,9 @@ export default function ComercialCupons() {
                 </tr>
               </thead>
               <tbody>
-                {cupons.length === 0 ? (
+                {filtrados.length === 0 ? (
                   <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">Nenhum cupom criado ainda.</td></tr>
-                ) : cupons.map(c => {
+                ) : filtrados.map(c => {
                   const vigente = estaVigente(c);
                   return (
                     <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">

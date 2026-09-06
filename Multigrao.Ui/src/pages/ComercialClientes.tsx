@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Phone, Pencil, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
-import SearchAutocomplete from '../components/SearchAutocomplete';
-import { Link } from 'react-router-dom';
+import { X, Phone, Pencil, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import { getSlug } from '../services/tenantSetup';
-import { ArrowLeft } from 'lucide-react';
 import { clienteService, type Cliente, type CriarClienteDto } from '../services/clienteService';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
+import PageHeader from '../components/PageHeader';
 
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 const REGIMES = ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI'];
@@ -340,33 +338,19 @@ export default function ComercialClientes() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center gap-4">
-        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-serif font-bold text-gray-900">Clientes</h1>
-          <p className="text-gray-500 mt-1">Cadastro e gestão de clientes do setor comercial.</p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Clientes"
+        descricao="Cadastro e gestão de clientes do setor comercial."
+        voltarPara={`/${getSlug()}/comercial`}
+        busca={busca}
+        onBuscaChange={setBusca}
+        onNovo={abrirCriar}
+        novoLabel="Novo Cliente"
+      />
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        <div className="p-6 flex justify-between items-center border-b border-gray-100">
-          <SearchAutocomplete
-            placeholder="Buscar cliente..."
-            valor={busca}
-            onChange={setBusca}
-            sugestoes={clientes.map(c => ({ rotulo: c.razaoSocialNome, subRotulo: c.cpfCnpj ?? c.cidade ?? '' }))}
-            aoSelecionar={(s) => setBusca(s.rotulo)}
-            className="flex-1 min-w-0"
-          />
-          <button onClick={abrirCriar} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm shadow-black/20">
-            <Plus size={18} /> Novo Cliente
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-auto">
-          <table className="w-full text-left text-sm text-gray-500">
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-500 min-w-[960px]">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 font-semibold">Razão Social</th>

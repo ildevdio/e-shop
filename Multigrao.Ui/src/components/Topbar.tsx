@@ -107,15 +107,6 @@ export default function Topbar({ className }: TopbarProps) {
   return (
     <header className={`sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-3 backdrop-blur transition-all duration-300 sm:px-6 ${modalAberto ? 'pointer-events-none border-transparent bg-transparent' : 'border-border bg-secondary/50'} ${className ?? ''}`.trim()}>
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-        <button
-          type="button"
-          onClick={() => setSidebarAberta(!sidebarAberta)}
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-muted hover:text-foreground lg:hidden ${modalAberto ? 'text-white' : 'text-foreground'}`}
-          title="Abrir menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
         <h1 className={`truncate text-sm font-heading font-semibold transition-colors ${modalAberto ? 'text-white' : 'text-foreground'}`}>{sectorLabel}</h1>
       </div>
 

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search, ArrowLeft, Eye, CheckCircle, Bot, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Eye, CheckCircle, Bot, User } from 'lucide-react';
 import { getSlug, tenantHeaders } from '../services/tenantSetup';
 import { useUiStore } from '../store/uiStore';
+import PageHeader from '../components/PageHeader';
 
 interface Atendimento {
   id: string;
@@ -59,32 +59,17 @@ export default function ComercialListaAtendimentos() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center gap-4">
-        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-serif font-bold text-gray-900">Lista de Atendimentos</h1>
-          <p className="text-gray-500 mt-1">Histórico de todos os atendimentos realizados.</p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Lista de Atendimentos"
+        descricao="Histórico de todos os atendimentos realizados."
+        voltarPara={`/${getSlug()}/comercial`}
+        busca={busca}
+        onBuscaChange={setBusca}
+      />
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-gray-100">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar por nome, telefone, interesse ou bairro..."
-              value={busca}
-              onChange={e => setBusca(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all"
-            />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-auto">
-          <table className="w-full text-left text-sm text-gray-500">
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-500 min-w-[800px]">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 font-semibold">Nome</th>

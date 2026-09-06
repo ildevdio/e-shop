@@ -370,7 +370,7 @@ export default function ConfiguracoesBots() {
                   onClick={() => setForm({ ...form, ativo: !form.ativo })}
                   className={`w-11 h-6 rounded-full relative transition-colors ${form.ativo ? 'bg-primary' : 'bg-gray-300'}`}
                 >
-                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${form.ativo ? 'left-6' : 'left-1'}`} />
+                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 border border-gray-300 transition-all ${form.ativo ? 'left-6' : 'left-1'}`} />
                 </button>
                 <span className="text-sm text-gray-700">{form.ativo ? 'Bot ativo' : 'Bot desativado'}</span>
               </label>

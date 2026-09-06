@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Send, Bot, UserSearch, Paperclip, Mic, FileText, Image as ImageIcon,
+  Send, Bot, UserSearch, Paperclip, Mic, FileText, Image as ImageIcon, Headset,
   User, ArrowRightLeft, Plus, Search, MessageSquareText, Clock, Play, Pause, X,
-  Trash2, Pencil, Copy, ChevronDown, File, Download, Contact, Menu, Phone, ArrowRight
+  Trash2, Pencil, Copy, ChevronDown, File, Download, Contact, Menu, Phone, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import { atendimentoService, type ChatSession, type Message, type Lead } from '../services/atendimentoService';
 import { contatoService, type Contato } from '../services/contatoService';
@@ -16,7 +16,7 @@ export default function OmnichannelChat() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLeadSidebarOpen, setIsLeadSidebarOpen] = useState(true);
-  const [isMobileListOpen, setIsMobileListOpen] = useState(false);
+  const [isMobileListOpen, setIsMobileListOpen] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
@@ -471,7 +471,7 @@ export default function OmnichannelChat() {
     try {
       await atendimentoService.finalizarAtendimento(activeChatId);
       updateActiveLead({ vendaFechada: true });
-      setChatFilter('todos');
+      setChatFilter('abertos');
       alert('Atendimento finalizado com sucesso!');
     } catch {
       alert('Erro ao finalizar atendimento.');
@@ -557,39 +557,43 @@ export default function OmnichannelChat() {
 
       {/* SIDEBAR FIXO — lista de atendimentos */}
       {/* Desktop: always visible. Mobile: overlay drawer */}
-      <div className={`absolute md:relative inset-y-0 left-0 z-20 h-full w-[300px] md:w-[320px] shrink-0 bg-[#f8fafc] flex flex-col border-r border-gray-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+      <div className={`absolute md:relative inset-y-0 left-0 z-20 h-full w-full sm:w-[300px] md:w-[320px] shrink-0 bg-[#f8fafc] flex flex-col border-r border-gray-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
         isMobileListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
-          {/* Título + busca — centralizados na coluna */}
-          <div className="absolute left-4 right-4 z-[61] bg-[#f8fafc] pb-4" style={{ top: '22px' }}>
-            <h2 className="text-xl font-serif font-bold text-gray-900 mb-4 pl-12 tracking-wide flex items-center justify-between">
-              Atendimentos
-              <button onClick={handleNovoAtendimento} className="p-2 bg-primary text-white rounded-xl hover:bg-primary transition-colors shadow-sm" title="Novo atendimento">
+          {/* Título + busca + filtros — área de conversas */}
+          <div className="shrink-0 border-b border-gray-100 bg-[#f8fafc] px-4 pt-4 pb-3">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h2 className="min-w-0 text-xl font-serif font-bold text-gray-900 truncate">Conversas</h2>
+              <button
+                onClick={handleNovoAtendimento}
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-transform active:scale-95"
+                title="Puxar atendimento (nova conversa)"
+              >
                 <Plus size={16} />
+                <span className="hidden min-[380px]:inline">Novo</span>
               </button>
-            </h2>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
-                type="text" placeholder="Buscar cliente ou produto..."
+                type="text" placeholder="Buscar conversa..."
                 value={chatSearchTerm} onChange={(e) => setChatSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all shadow-sm"
               />
             </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {(['abertos', 'fechados', 'todos'] as const).map(f => (
+                <button key={f} onClick={() => setChatFilter(f)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${
+                    chatFilter === f ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                  }`}>
+                  {f === 'abertos' ? 'Em Aberto' : f === 'fechados' ? 'Fechados' : 'Todos'}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 px-4 py-3 border-b border-gray-100 pt-[128px]">
-            {(['abertos', 'fechados', 'todos'] as const).map(f => (
-              <button key={f} onClick={() => setChatFilter(f)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
-                  chatFilter === f ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
-                }`}>
-                {f === 'abertos' ? 'Em Aberto' : f === 'fechados' ? 'Fechados' : 'Todos'}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+          <div className="flex-1 overflow-y-auto p-2 space-y-0.5 pb-24">
             {isLoading ? (
               <div className="flex items-center justify-center h-32 text-sm text-gray-400">Carregando...</div>
             ) : filteredChats.length === 0 ? (
@@ -629,7 +633,7 @@ export default function OmnichannelChat() {
         </div>
 
       {/* ÁREA PRINCIPAL DO CHAT */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className={`flex-1 ${isMobileListOpen ? 'hidden' : 'flex'} md:flex flex-col min-w-0 relative`}>
 
         {!activeChat ? (
           <div className="flex-1 flex items-center justify-center">
@@ -644,38 +648,38 @@ export default function OmnichannelChat() {
         ) : (
           <>
             {/* Header */}
-            <div className="h-[72px] border-b border-gray-100 px-4 md:px-6 md:pl-16 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setIsMobileListOpen(true)} className="md:hidden p-2 -ml-1 hover:bg-gray-100 rounded-xl transition-colors text-gray-500">
-                  <Menu size={20} />
+            <div className="min-h-[64px] border-b border-gray-100 px-2 md:px-6 md:pl-16 flex items-center justify-between gap-2 shrink-0 overflow-hidden">
+              <div className="flex flex-1 min-w-0 items-center gap-2">
+                <button onClick={() => setIsMobileListOpen(true)} className="md:hidden p-1.5 -ml-1 hover:bg-gray-100 rounded-xl transition-colors text-gray-500 shrink-0" title="Voltar para conversas">
+                  <ArrowLeft size={22} />
                 </button>
-                <div className="relative">
+                <div className="relative shrink-0">
                   <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center text-sm font-bold">
                     {activeChat.lead.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                   </div>
                   <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${activeChat.iaActive ? 'bg-primary' : 'bg-gray-400'}`} />
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">{activeChat.lead.nome}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-gray-900 truncate">{activeChat.lead.nome}</h3>
                   {!activeChat.iaActive ? (
-                    <p className="text-xs text-gray-500 font-medium">Atendente: {nome || 'Operador'}</p>
+                    <p className="text-xs text-gray-500 font-medium truncate">Atendente: {nome || 'Operador'}</p>
                   ) : (
-                    <p className="text-xs text-gray-400">{activeChat.lead.telefone || 'Sem telefone'}</p>
+                    <p className="text-xs text-gray-400 truncate">{activeChat.lead.telefone || 'Sem telefone'}</p>
                   )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                 {activeChat.iaActive ? (
                   <>
-                    <button onClick={() => simularMensagemCliente()} className="bg-gray-100 text-black border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors">
-                      <User size={16} /> Simular Cliente
+                    <button onClick={() => simularMensagemCliente()} className="bg-gray-100 text-black border border-gray-200 px-2.5 sm:px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 sm:gap-2 hover:bg-gray-200 transition-colors" title="Simular Cliente">
+                      <User size={16} className="shrink-0" /><span className="hidden sm:inline">Simular Cliente</span>
                     </button>
-                    <button onClick={handleAssumir} className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-primary transition-colors">
-                      Assumir Atendimento
+                    <button onClick={handleAssumir} className="bg-primary text-white px-2.5 sm:px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-primary transition-colors flex items-center gap-1.5 sm:gap-2" title="Assumir Atendimento">
+                      <Headset size={16} className="shrink-0" /><span className="hidden sm:inline">Assumir Atendimento</span>
                     </button>
-                    <button onClick={simulateAIInteraction} className="bg-gray-100 text-black border border-gray-200 px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors">
-                      <Bot size={16} /> Extrair IA
+                    <button onClick={simulateAIInteraction} className="bg-gray-100 text-black border border-gray-200 px-2.5 sm:px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 sm:gap-2 hover:bg-gray-200 transition-colors" title="Extrair IA">
+                      <Bot size={16} className="shrink-0" /><span className="hidden sm:inline">Extrair IA</span>
                     </button>
                   </>
                 ) : (
@@ -706,7 +710,7 @@ export default function OmnichannelChat() {
                       <span>IA</span>
                       <button onClick={() => updateActiveChat({ iaActive: !activeChat.iaActive })}
                         className={`w-10 h-5 rounded-full relative transition-colors ${activeChat.iaActive ? 'bg-primary' : 'bg-gray-300'}`}>
-                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-all ${activeChat.iaActive ? 'left-[22px]' : 'left-[3px]'}`} />
+                        <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] border border-gray-300 transition-all ${activeChat.iaActive ? 'left-[22px]' : 'left-[3px]'}`} />
                       </button>
                     </div>
                     <button onClick={() => setIsLeadSidebarOpen(!isLeadSidebarOpen)}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { Send, Search, Hash, Users, MessageSquareText, Check, CheckCheck, Smile, Paperclip, UserPlus, X, MapPin, Package, File } from 'lucide-react';
+import { Send, Search, Hash, Users, MessageSquareText, Check, CheckCheck, Smile, Paperclip, UserPlus, X, MapPin, Package, File, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { chatService, type MensagemChat } from '../services/chatService';
@@ -31,6 +31,7 @@ export default function Chat() {
   const { setModalAberto } = useUiStore();
   const [canais, setCanais] = useState<CanalUI[]>([]);
   const [canalAtivo, setCanalAtivo] = useState<string>('');
+  const [isMobileListOpen, setIsMobileListOpen] = useState(true);
   const [mensagem, setMensagem] = useState('');
   const [mensagens, setMensagens] = useState<Record<string, MensagemUI[]>>({});
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
@@ -211,6 +212,7 @@ export default function Chat() {
 
   const selecionarCanal = async (canal: CanalUI) => {
     setCanalAtivo(canal.id);
+    setIsMobileListOpen(false);
     if (canal.conversaId) return;
 
     if (canal.tipo === 'setor' && canal.setorId) {
@@ -300,6 +302,7 @@ export default function Chat() {
       ]);
     }
     setCanalAtivo(canalId);
+    setIsMobileListOpen(false);
     setShowNovoChat(false);
     setModalAberto(false);
     setBuscaPessoa('');
@@ -307,7 +310,7 @@ export default function Chat() {
 
   return (
     <div className="h-full flex overflow-hidden bg-white rounded-[2rem] shadow-sm border border-gray-100">
-      <div className="w-full md:w-[260px] shrink-0 bg-[#f8fafc] border-r border-gray-100 flex flex-col">
+      <div className={`${isMobileListOpen ? 'flex' : 'hidden'} md:flex w-full md:w-[260px] shrink-0 bg-[#f8fafc] border-r border-gray-100 flex-col ${isMobileListOpen ? '' : 'md:flex'}`}>
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -392,9 +395,12 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="h-[72px] border-b border-gray-100 px-6 flex items-center justify-between shrink-0">
+      <div className={`flex-1 ${isMobileListOpen ? 'hidden' : 'flex'} md:flex flex-col min-w-0`}>
+        <div className="h-[72px] border-b border-gray-100 px-4 md:px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
+            <button onClick={() => setIsMobileListOpen(true)} className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500" title="Voltar para conversas">
+              <ArrowLeft size={22} />
+            </button>
             <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center">
               {canalAtual?.tipo === 'setor' ? <Hash size={18} /> : <Users size={18} />}
             </div>

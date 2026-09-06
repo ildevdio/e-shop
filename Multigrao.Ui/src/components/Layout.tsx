@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import BottomNav from './BottomNav';
 import FloatingProducts from './FloatingProducts';
 import { useAuthStore } from '../store/authStore';
 
@@ -11,16 +12,18 @@ export default function Layout() {
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <Sidebar role={role} setores={setores} usuarioId={usuarioId} />
 
-      <div className="flex flex-1 flex-col h-full overflow-hidden min-w-0 ml-3">
+      <div className="flex flex-1 flex-col h-full overflow-hidden min-w-0 lg:ml-3">
         <Topbar />
 
         <main className="relative flex-1 overflow-hidden">
           <FloatingProducts className="-z-10" />
-          <div className="relative h-full overflow-auto p-2 pb-6 sm:p-4">
+          <div className="relative h-full overflow-y-auto overflow-x-hidden p-2 pb-24 lg:pb-6 sm:p-4">
             <Outlet />
           </div>
         </main>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

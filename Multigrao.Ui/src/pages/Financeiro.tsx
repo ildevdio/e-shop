@@ -207,8 +207,8 @@ export default function Financeiro() {
       </div>
 
       {detalhe && editDetalhe && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }}>
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex md:items-center items-end justify-center md:p-4 p-0" onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }}>
+          <div className="bg-white md:rounded-2xl rounded-t-2xl rounded-b-none w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-serif font-bold text-gray-900">Pedido #{detalhe.id}</h2>
               <button onClick={() => { setModalAberto(false); setDetalhe(null); setEditDetalhe(null); setObsLiberacao(''); }} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={18} className="text-gray-400" /></button>

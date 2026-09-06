@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Pencil, Trash2, Loader2, ArrowLeft, BadgePercent, MessageCircle, CheckSquare, Square } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { X, Pencil, Trash2, Loader2, BadgePercent, MessageCircle, CheckSquare, Square } from 'lucide-react';
 import { getSlug } from '../services/tenantSetup';
 import { promocaoService, type Promocao, type CriarPromocaoDto } from '../services/promocaoService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { clienteService, type Cliente } from '../services/clienteService';
+import PageHeader from '../components/PageHeader';
 
 const formVazio: CriarPromocaoDto = {
   titulo: '', descricao: '', tipo: 'percentual', valor: 10, dataInicio: null, dataFim: null, ativa: true, produtos: [],
@@ -61,6 +61,7 @@ export default function ComercialPromocoes() {
   const [promocoes, setPromocoes] = useState<Promocao[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [busca, setBusca] = useState('');
   const [buscaProduto, setBuscaProduto] = useState('');
   const [carregando, setCarregando] = useState(true);
 
@@ -84,6 +85,11 @@ export default function ComercialPromocoes() {
   };
 
   useEffect(() => { carregar(); }, []);
+
+  const filtradas = promocoes.filter(p =>
+    p.titulo.toLowerCase().includes(busca.toLowerCase()) ||
+    (p.produtos ?? []).some(pp => pp.produtoNome?.toLowerCase().includes(busca.toLowerCase()))
+  );
 
   const nomeProdutos = (p: Promocao) => {
     const nomes = (p.produtos ?? [])
@@ -214,30 +220,28 @@ export default function ComercialPromocoes() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center gap-4">
-        <Link to={`/${getSlug()}/comercial`} className="p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-serif font-bold text-gray-900">Promoções</h1>
-          <p className="text-gray-500 mt-1">Descontos em produtos e campanhas de WhatsApp para clientes.</p>
-        </div>
-        <button onClick={() => abrirCampanha()} className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm shadow-black/20 transition-colors">
+      <PageHeader
+        titulo="Promoções"
+        descricao="Descontos em produtos e campanhas de WhatsApp para clientes."
+        voltarPara={`/${getSlug()}/comercial`}
+        busca={busca}
+        onBuscaChange={setBusca}
+        onNovo={abrirCriar}
+        novoLabel="Nova Promoção"
+      >
+        <button onClick={() => abrirCampanha()} className="flex h-10 items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 text-sm font-medium shadow-sm transition-colors">
           <MessageCircle size={18} /> Campanha WhatsApp
         </button>
-        <button onClick={abrirCriar} className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary flex items-center gap-2 shadow-sm shadow-black/20 transition-colors">
-          <Plus size={18} /> Nova Promoção
-        </button>
-      </div>
+      </PageHeader>
 
       <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-x-auto">
           {carregando ? (
             <div className="flex items-center justify-center py-20 text-gray-400">
               <Loader2 className="animate-spin mr-2" size={20} /> Carregando...
             </div>
           ) : (
-            <table className="w-full text-left text-sm text-gray-500">
+            <table className="w-full text-left text-sm text-gray-500 min-w-[720px]">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 font-semibold">Promoção</th>
@@ -249,9 +253,9 @@ export default function ComercialPromocoes() {
                 </tr>
               </thead>
               <tbody>
-                {promocoes.length === 0 ? (
+                {filtradas.length === 0 ? (
                   <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">Nenhuma promoção criada ainda.</td></tr>
-                ) : promocoes.map(p => {
+                ) : filtradas.map(p => {
                   const vigente = estaVigente(p);
                   return (
                     <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">

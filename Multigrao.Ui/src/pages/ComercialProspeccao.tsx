@@ -3,6 +3,7 @@ import { MapPin, Search, Loader2, Star, Phone, Globe, ExternalLink, Plus, X, Dow
 import { useSistemaStore } from '../store/sistemaStore';
 import { prospeccaoService, type EmpresaEncontrada, type Prospect, type ResultadoBusca, type CategoriaPredefinida } from '../services/prospeccaoService';
 import { useUiStore } from '../store/uiStore';
+import SearchModal from '../components/SearchModal';
 
 type Aba = 'buscar' | 'salvos';
 
@@ -538,16 +539,7 @@ export default function ComercialProspeccao() {
           <div className="p-5">
             {/* Filtros */}
             <div className="flex flex-wrap items-center gap-3 mb-5">
-              <div className="relative flex-1 min-w-[200px] max-w-sm">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={buscaProspect}
-                  onChange={e => setBuscaProspect(e.target.value)}
-                  placeholder="Buscar prospects..."
-                  className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                />
-              </div>
+              <SearchModal placeholder="Buscar prospects..." valor={buscaProspect} onChange={setBuscaProspect} />
               <div className="flex gap-1.5">
                 {['Todos', ...STATUS_PROSPECT].map(s => (
                   <button

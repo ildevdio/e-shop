@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { PackageCheck, QrCode, Camera, CheckCircle2, ArrowLeft, Search, Package, Hand } from 'lucide-react';
+import { QrCode, Camera, CheckCircle2, ArrowLeft, Package, Hand } from 'lucide-react';
 import { conferenciaService, type Pedido } from '../services/conferenciaService';
 import { pedidoService } from '../services/pedidoService';
+import PageHeader from '../components/PageHeader';
 
 interface ItemConferencia {
   id: number;
@@ -16,6 +17,7 @@ export default function Conferencia() {
   const [itensConferencia, setItensConferencia] = useState<ItemConferencia[]>([]);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [busca, setBusca] = useState('');
 
   const carregar = async () => {
     setCarregando(true);
@@ -70,24 +72,18 @@ export default function Conferencia() {
   };
 
   if (telaAtiva === 'lista') {
+    const pedidosFiltrados = pedidos.filter(p =>
+      String(p.id).includes(busca) ||
+      (p.cliente?.razaoSocialNome ?? '').toLowerCase().includes(busca.toLowerCase())
+    );
     return (
       <div className="space-y-6 h-full flex flex-col">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
-              <PackageCheck size={28} /> Conferência
-            </h1>
-            <p className="text-gray-500 mt-1">Verificação de itens antes da expedição.</p>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar pedido..."
-              className="pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex-1 min-w-0 transition-all"
-            />
-          </div>
-        </div>
+        <PageHeader
+          titulo="Conferência"
+          descricao="Verificação de itens antes da expedição."
+          busca={busca}
+          onBuscaChange={setBusca}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100/50 flex items-center gap-4">
@@ -118,7 +114,7 @@ export default function Conferencia() {
             {carregando ? (
               <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Carregando...</div>
             ) : (
-              <table className="w-full text-left text-sm text-gray-500">
+              <table className="w-full text-left text-sm text-gray-500 min-w-[720px]">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50/80 sticky top-0">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Pedido</th>
@@ -129,7 +125,7 @@ export default function Conferencia() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pedidos.map(pedido => (
+                  {pedidosFiltrados.map(pedido => (
                     <tr key={pedido.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">#{pedido.id}</td>
                       <td className="px-6 py-4">{pedido.cliente?.razaoSocialNome ?? '—'}</td>
@@ -168,7 +164,7 @@ export default function Conferencia() {
                       </td>
                     </tr>
                   ))}
-                  {pedidos.length === 0 && (
+                  {pedidosFiltrados.length === 0 && (
                     <tr><td colSpan={5} className="text-center py-12 text-gray-400 text-sm">Nenhum pedido para conferir</td></tr>
                   )}
                 </tbody>

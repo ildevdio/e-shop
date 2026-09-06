@@ -8,6 +8,7 @@ import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_GRADE } from '../services/cores';
 import { midiaUrl } from '../utils/imageUrl';
 import { parseLinktreeAparencia, LINKTREE_APARENCIA_PADRAO, type LinktreeAparencia } from '../types/linktree';
+import SearchModal from '../components/SearchModal';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -222,6 +223,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [buscaUsuario, setBuscaUsuario] = useState('');
   const [empresasGrupo, setEmpresasGrupo] = useState<EmpresaVinculo[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -667,7 +669,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   }
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="h-full flex flex-col gap-6 min-h-0">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
@@ -677,7 +679,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="inline-flex gap-1 self-start rounded-2xl border border-gray-200 bg-white px-2 py-2 shadow-sm">
         {[
           { id: 'usuarios' as const, label: 'Usuários', icon: Users },
           { id: 'permissoes' as const, label: 'Permissões', icon: Shield },
@@ -687,7 +689,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${
-              activeTab === tab.id ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+              activeTab === tab.id ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
             }`}
           >
             <tab.icon size={18} /> {tab.label}
@@ -695,7 +697,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         ))}
       </div>
 
-      <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         {activeTab === 'usuarios' && (
           <>
             <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-gray-50/50">
@@ -703,13 +705,16 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 <h2 className="text-lg font-serif font-semibold text-gray-800">Usuários do Sistema</h2>
                 <span className="text-xs text-gray-400 bg-gray-200 px-2.5 py-1 rounded-full font-medium">{usuarios.length} cadastrados</span>
               </div>
-              <button onClick={abrirNovoUsuario} className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm">
-                <Plus size={16} /> Novo Usuário
-              </button>
+              <div className="flex items-center gap-2">
+                <SearchModal placeholder="Buscar usuário..." valor={buscaUsuario} onChange={setBuscaUsuario} />
+                <button onClick={abrirNovoUsuario} className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary transition-colors flex items-center gap-2 shadow-sm">
+                  <Plus size={16} /> Novo Usuário
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-auto">
-              <table className="w-full text-left text-sm text-gray-500">
+              <table className="w-full text-left text-sm text-gray-500 min-w-[720px]">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Usuário</th>
@@ -720,7 +725,12 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                   </tr>
                 </thead>
                 <tbody>
-                  {usuarios.map(usuario => (
+                  {usuarios.filter(u =>
+                    u.nome.toLowerCase().includes(buscaUsuario.toLowerCase()) ||
+                    u.usuarioLogin.toLowerCase().includes(buscaUsuario.toLowerCase()) ||
+                    u.setores.some(s => s.toLowerCase().includes(buscaUsuario.toLowerCase())) ||
+                    u.perfil.toLowerCase().includes(buscaUsuario.toLowerCase())
+                  ).map(usuario => (
                     <tr key={usuario.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -816,7 +826,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
 
         {activeTab === 'sistema' && (
           <div className="flex flex-col h-full">
-            <div className="flex flex-wrap gap-2 border-b border-gray-100 px-6 py-3 bg-gray-50/50">
+            <div className="inline-flex gap-0.5 items-center max-w-full overflow-x-auto border-b border-gray-100 px-4 sm:px-6 py-2">
               {[
                 { id: 'empresa' as const, label: 'Empresa', icon: Building2 },
                 { id: 'loja' as const, label: 'Loja', icon: Store },
@@ -829,28 +839,16 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 <button
                   key={tab.id}
                   onClick={() => setSistemaTab(tab.id)}
-                  className={`px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all ${
-                    sistemaTab === tab.id ? 'bg-white shadow-sm text-black ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                  className={`px-3 py-1.5 rounded-lg font-medium text-[13px] flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    sistemaTab === tab.id ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
                   }`}
                 >
-                  <tab.icon size={16} /> {tab.label}
+                  <tab.icon size={14} /> {tab.label}
                 </button>
               ))}
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-serif font-semibold text-gray-800">
-                {sistemaTab === 'empresa' && 'Dados da Empresa'}
-                {sistemaTab === 'loja' && 'Loja — Hero, Menu e Carrinho'}
-                {sistemaTab === 'aparencia' && 'Aparência'}
-                {sistemaTab === 'notificacoes' && 'Notificações'}
-                {sistemaTab === 'regras' && 'Regras de Negócio'}
-                {sistemaTab === 'email' && 'Configuração de E-mail (SMTP)'}
-                {sistemaTab === 'carrinho' && 'Carrinho Abandonado — Lembretes'}
-              </h2>
-            </div>
-
             {sistemaTab === 'empresa' && (
               <>
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
@@ -1154,7 +1152,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                           <div className="text-xs text-gray-400">Exibir o nome da empresa escrito logo abaixo da logo na HeroPage</div>
                         </div>
                         <button onClick={() => setFormEmpresa({ ...formEmpresa, exibirNomeAbaixoLogo: !formEmpresa.exibirNomeAbaixoLogo })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.exibirNomeAbaixoLogo ? 'bg-primary' : 'bg-gray-300'}`}>
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.exibirNomeAbaixoLogo ? 'left-6' : 'left-1'}`} />
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${formEmpresa.exibirNomeAbaixoLogo ? 'left-6' : 'left-1'}`} />
                         </button>
                       </div>
                       <div className="bg-white rounded-xl border border-gray-100 p-4">
@@ -1172,7 +1170,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                                 <div className="text-xs text-gray-400">{opcao.descricao}</div>
                               </div>
                               <button onClick={() => setFormEmpresa({ ...formEmpresa, heroImagemTipo: opcao.key })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.heroImagemTipo === opcao.key ? 'bg-primary' : 'bg-gray-300'}`}>
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.heroImagemTipo === opcao.key ? 'left-6' : 'left-1'}`} />
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${formEmpresa.heroImagemTipo === opcao.key ? 'left-6' : 'left-1'}`} />
                               </button>
                             </div>
                           ))}
@@ -1217,7 +1215,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                             <div className="text-xs text-gray-400">{opcao.descricao}</div>
                           </div>
                           <button onClick={() => setFormEmpresa({ ...formEmpresa, tipoMenu: opcao.key })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.tipoMenu === opcao.key ? 'bg-primary' : 'bg-gray-300'}`}>
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.tipoMenu === opcao.key ? 'left-6' : 'left-1'}`} />
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${formEmpresa.tipoMenu === opcao.key ? 'left-6' : 'left-1'}`} />
                           </button>
                         </div>
                       ))}
@@ -1237,7 +1235,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                             <div className="text-xs text-gray-400">{opcao.descricao}</div>
                           </div>
                           <button onClick={() => setFormEmpresa({ ...formEmpresa, tipoCarrinho: opcao.key })} className={`w-11 h-6 rounded-full transition-all relative ${formEmpresa.tipoCarrinho === opcao.key ? 'bg-primary' : 'bg-gray-300'}`}>
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${formEmpresa.tipoCarrinho === opcao.key ? 'left-6' : 'left-1'}`} />
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${formEmpresa.tipoCarrinho === opcao.key ? 'left-6' : 'left-1'}`} />
                           </button>
                         </div>
                       ))}
@@ -1380,7 +1378,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                       <div className="text-xs text-gray-400">{item.descricao}</div>
                     </div>
                     <button onClick={() => setNotificacoes({ ...notificacoes, [item.key]: !notificacoes[item.key] })} className={`w-11 h-6 rounded-full transition-all relative ${notificacoes[item.key] ? 'bg-primary' : 'bg-gray-300'}`}>
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${notificacoes[item.key] ? 'left-6' : 'left-1'}`} />
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${notificacoes[item.key] ? 'left-6' : 'left-1'}`} />
                     </button>
                   </div>
                 ))}
@@ -1446,7 +1444,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                         onClick={() => setFluxoOperacional({ ...fluxoOperacional, [item.key]: !fluxoOperacional[item.key] })}
                         className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${fluxoOperacional[item.key] ? 'bg-primary' : 'bg-gray-300'}`}
                       >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${fluxoOperacional[item.key] ? 'left-6' : 'left-1'}`} />
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${fluxoOperacional[item.key] ? 'left-6' : 'left-1'}`} />
                       </button>
                     </div>
                   ))}
@@ -1468,7 +1466,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                     <div className="text-xs text-gray-400">Enviar e-mails ao cliente em transições de pedido</div>
                   </div>
                   <button onClick={() => setSmtpForm({ ...smtpForm, emailNotificacoesAtivo: !smtpForm.emailNotificacoesAtivo })} className={`w-11 h-6 rounded-full transition-all relative ${smtpForm.emailNotificacoesAtivo ? 'bg-primary' : 'bg-gray-300'}`}>
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${smtpForm.emailNotificacoesAtivo ? 'left-6' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${smtpForm.emailNotificacoesAtivo ? 'left-6' : 'left-1'}`} />
                   </button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1516,7 +1514,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                       <div className="text-xs text-gray-400">Enviar lembrete quando o carrinho ficar abandonado</div>
                     </div>
                     <button onClick={() => setCarrinhoForm({ ...carrinhoForm, carrinhoLembreteAtivo: !carrinhoForm.carrinhoLembreteAtivo })} className={`w-11 h-6 rounded-full transition-all relative ${carrinhoForm.carrinhoLembreteAtivo ? 'bg-primary' : 'bg-gray-300'}`}>
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${carrinhoForm.carrinhoLembreteAtivo ? 'left-6' : 'left-1'}`} />
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${carrinhoForm.carrinhoLembreteAtivo ? 'left-6' : 'left-1'}`} />
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
