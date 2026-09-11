@@ -14,6 +14,7 @@ import { entregaService } from '../services/entregaService';
 import { avisoService } from '../services/avisoService';
 import type { LucideIcon } from 'lucide-react';
 import { useSistemaStore } from '../store/sistemaStore';
+import { getSlug } from '../services/tenantSetup';
 
 interface Kpi {
   label: string;
@@ -59,6 +60,7 @@ export default function Dashboard() {
   const setores = useAuthStore(state => state.setores);
   const isAdmin = role === 'AdminMaster' || role === 'SuperAdmin';
   const config = useSistemaStore((state) => state.config);
+  const base = `/${getSlug()}`;
 
   const [kpis, setKpis] = useState<Kpi[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -219,10 +221,10 @@ export default function Dashboard() {
           </div>
           <div className="grid grid-cols-1 gap-2">
             {[
-              { to: '/comercial', icon: Headset, label: 'Atendimento' },
-              { to: '/comercial/pedidos', icon: ClipboardList, label: 'Pedidos' },
-              { to: '/separacao', icon: PackageCheck, label: 'Separação' },
-              { to: '/relatorios', icon: BarChart3, label: 'Relatórios' },
+              { to: `${base}/comercial`, icon: Headset, label: 'Atendimento' },
+              { to: `${base}/comercial/pedidos`, icon: ClipboardList, label: 'Pedidos' },
+              { to: `${base}/separacao`, icon: PackageCheck, label: 'Separação' },
+              { to: `${base}/relatorios`, icon: BarChart3, label: 'Relatórios' },
             ].map(item => (
               <Link
                 key={item.to}
@@ -245,7 +247,7 @@ export default function Dashboard() {
         <section className="lg:col-span-2 rounded-2xl border border-border bg-card p-5 anim-fade-in-up anim-delay-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-heading font-semibold text-foreground">Pedidos recentes</h3>
-            <Link to="/comercial/pedidos" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+            <Link to={`${base}/comercial/pedidos`} className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
               Ver todos <ArrowRight size={12} />
             </Link>
           </div>
@@ -288,7 +290,7 @@ export default function Dashboard() {
         <section className="rounded-2xl border border-border bg-card p-5 anim-fade-in-up anim-delay-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-heading font-semibold text-foreground">Avisos</h3>
-            <Link to="/empresa/avisos" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+            <Link to={`${base}/empresa/avisos`} className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
               Ver todos <ArrowRight size={12} />
             </Link>
           </div>
