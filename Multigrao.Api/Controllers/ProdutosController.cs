@@ -243,6 +243,7 @@ namespace Multigrao.Api.Controllers
                     produto.UnidadeVenda = r.UnidadeVenda;
                     produto.Ativo = r.Ativo;
                     produto.ValorFrete = r.ValorFrete;
+                    produto.VendidoAGranel = r.VendidoAGranel;
                     atualizados++;
                 }
                 else
@@ -258,7 +259,8 @@ namespace Multigrao.Api.Controllers
                         Embalagem = embalagem,
                         UnidadeVenda = r.UnidadeVenda,
                         Ativo = r.Ativo,
-                        ValorFrete = r.ValorFrete
+                        ValorFrete = r.ValorFrete,
+                        VendidoAGranel = r.VendidoAGranel
                     });
                     importados++;
                 }
