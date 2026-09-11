@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Bot, UserSearch, Paperclip, Mic, FileText, Image as ImageIcon, Headset,
   User, ArrowRightLeft, Plus, Search, MessageSquareText, Clock, Play, Pause, X,
-  Trash2, Pencil, Copy, ChevronDown, File, Download, Contact, Menu, Phone, ArrowRight, ArrowLeft
+  Trash2, Pencil, Copy, ChevronDown, File, Download, Contact, Phone, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import { atendimentoService, type ChatSession, type Message, type Lead } from '../services/atendimentoService';
 import { contatoService, type Contato } from '../services/contatoService';

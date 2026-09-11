@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Building2, Check, ChevronDown, LogOut, Menu } from 'lucide-react';
+import { Building2, Check, ChevronDown, LogOut } from 'lucide-react';
 import { useAuthStore, type EmpresaInfo } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -40,7 +40,7 @@ interface TopbarProps {
 
 export default function Topbar({ className }: TopbarProps) {
   const { nome, role, empresas, setSessaoEmpresa, logout } = useAuthStore();
-  const { modalAberto, sidebarAberta, setSidebarAberta } = useUiStore();
+  const { modalAberto } = useUiStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [seletorAberto, setSeletorAberto] = useState(false);

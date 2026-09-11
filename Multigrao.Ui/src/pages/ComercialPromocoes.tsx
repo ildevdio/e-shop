@@ -88,7 +88,7 @@ export default function ComercialPromocoes() {
 
   const filtradas = promocoes.filter(p =>
     p.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-    (p.produtos ?? []).some(pp => pp.produtoNome?.toLowerCase().includes(busca.toLowerCase()))
+    (p.produtos ?? []).some(pp => pp.produto?.nome?.toLowerCase().includes(busca.toLowerCase()))
   );
 
   const nomeProdutos = (p: Promocao) => {
