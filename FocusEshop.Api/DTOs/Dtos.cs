@@ -1,4 +1,4 @@
-namespace Multigrao.Api.DTOs
+namespace FocusEshop.Api.DTOs
 {
     // Auth
     public class LoginRequestDto
@@ -336,7 +336,7 @@ namespace Multigrao.Api.DTOs
     // Configuração do Sistema
     public class ConfiguracaoSistemaDto
     {
-        public string NomeEmpresa { get; set; } = "Multigrãos";
+        public string NomeEmpresa { get; set; } = "Focus E-shop";
         public string? Cnpj { get; set; }
         public string? Slogan { get; set; }
         public string? Endereco { get; set; }

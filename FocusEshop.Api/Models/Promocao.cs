@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Multigrao.Api.Models
+namespace FocusEshop.Api.Models
 {
     public class Promocao : IEmpresa
     {

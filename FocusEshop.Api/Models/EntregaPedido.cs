@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Multigrao.Api.Models
+namespace FocusEshop.Api.Models
 {
     public class EntregaPedido
     {

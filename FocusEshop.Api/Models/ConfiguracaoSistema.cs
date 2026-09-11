@@ -1,10 +1,10 @@
-namespace Multigrao.Api.Models
+namespace FocusEshop.Api.Models
 {
     public class ConfiguracaoSistema
     {
         public int Id { get; set; }
-        public string NomeEmpresa { get; set; } = "Multigrãos";
-        public string Slug { get; set; } = "multigraos";
+        public string NomeEmpresa { get; set; } = "Focus E-shop";
+        public string Slug { get; set; } = "focus-eshop";
         public string? Cnpj { get; set; }
         public string? Slogan { get; set; }
         public string? Endereco { get; set; }

@@ -4,7 +4,7 @@
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class SeedDataAndUsuarioLoginUpdate : Migration
@@ -66,7 +66,7 @@ namespace Multigrao.Api.Migrations
                 columns: new[] { "Id", "Ativo", "Nome", "Role", "SenhaHash", "UsuarioLogin" },
                 values: new object[,]
                 {
-                    { 1, true, "Admin Multigrãos", "AdminMaster", "$2a$11$n.NPXBGoATdtu.nH.p3i1OcHYRXFm/NGGVGzXy0YT3KKipUj4E.we", "admin" },
+                    { 1, true, "Admin Focus E-shop", "AdminMaster", "$2a$11$n.NPXBGoATdtu.nH.p3i1OcHYRXFm/NGGVGzXy0YT3KKipUj4E.we", "admin" },
                     { 2, true, "João Comercial", "Comum", "$2a$11$n.NPXBGoATdtu.nH.p3i1OcHYRXFm/NGGVGzXy0YT3KKipUj4E.we", "joao" },
                     { 3, true, "Ana Separação", "Comum", "$2a$11$n.NPXBGoATdtu.nH.p3i1OcHYRXFm/NGGVGzXy0YT3KKipUj4E.we", "ana" },
                     { 4, true, "Pedro Motorista", "Comum", "$2a$11$n.NPXBGoATdtu.nH.p3i1OcHYRXFm/NGGVGzXy0YT3KKipUj4E.we", "pedro" }

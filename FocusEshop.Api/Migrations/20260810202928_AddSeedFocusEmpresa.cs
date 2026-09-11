@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddSeedFocusEmpresa : Migration
@@ -12,7 +12,7 @@ namespace Multigrao.Api.Migrations
         {
             migrationBuilder.Sql("""
                 INSERT INTO "ConfiguracoesSistema" ("Id", "Ativo", "CorPrincipal", "Endereco", "LogoUrl", "NomeEmpresa", "Slogan", "Slug")
-                SELECT 2, TRUE, '#111827', 'Paulista — PE', '/multigraos-logo.png', 'Focus Solutions', 'Plataforma de Gestão', 'focus'
+                SELECT 2, TRUE, '#111827', 'Paulista — PE', '/focus-eshop-logo.png', 'Focus Solutions', 'Plataforma de Gestão', 'focus'
                 WHERE NOT EXISTS (SELECT 1 FROM "ConfiguracoesSistema" WHERE "Id" = 2);
                 """);
 

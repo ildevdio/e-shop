@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Multigrao.Api.Models;
-using Multigrao.Api.Services;
+using FocusEshop.Api.Models;
+using FocusEshop.Api.Services;
 
-namespace Multigrao.Api.Data
+namespace FocusEshop.Api.Data
 {
     public class AppDbContext : DbContext
     {
@@ -305,7 +305,7 @@ namespace Multigrao.Api.Data
             // Seed: Usuários
             const string hash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq";
             modelBuilder.Entity<Usuario>().HasData(
-                new Usuario { Id = 1, EmpresaId = 1, Nome = "Admin Multigrãos", UsuarioLogin = "admin", SenhaHash = hash, Role = "AdminMaster", Ativo = true },
+                new Usuario { Id = 1, EmpresaId = 1, Nome = "Admin Focus E-shop", UsuarioLogin = "admin", SenhaHash = hash, Role = "AdminMaster", Ativo = true },
                 new Usuario { Id = 2, EmpresaId = 1, Nome = "João Comercial", UsuarioLogin = "joao", SenhaHash = hash, Role = "Comum", Ativo = true },
                 new Usuario { Id = 3, EmpresaId = 1, Nome = "Ana Separação", UsuarioLogin = "ana", SenhaHash = hash, Role = "Comum", Ativo = true },
                 new Usuario { Id = 4, EmpresaId = 1, Nome = "Pedro Motorista", UsuarioLogin = "pedro", SenhaHash = hash, Role = "Comum", Ativo = true },
@@ -363,8 +363,8 @@ namespace Multigrao.Api.Data
                 new ConfiguracaoSistema
                 {
                     Id = 1,
-                    NomeEmpresa = "Multigrãos",
-                    Slug = "multigraos",
+                    NomeEmpresa = "Focus E-shop",
+                    Slug = "focus-eshop",
                     Cnpj = "26.277.355/0001-70",
                     Slogan = "Amendoim & Especiarias",
                     Endereco = "Centro — Paulista — PE",
@@ -374,8 +374,8 @@ namespace Multigrao.Api.Data
                     Bairro = "Centro",
                     Cidade = "Paulista",
                     Estado = "PE",
-                    LogoUrl = "/multigraos-logo.png",
-                    VideoUrl = "/multigraosvid.mp4",
+                    LogoUrl = "/focus-eshop-logo.png",
+                    VideoUrl = "/focus-eshop-vid.mp4",
                     CorPrincipal = "#0a0a0a",
                     Ativo = true
                 }
@@ -396,7 +396,7 @@ namespace Multigrao.Api.Data
                     Bairro = null,
                     Cidade = "Paulista",
                     Estado = "PE",
-                    LogoUrl = "/multigraos-logo.png",
+                    LogoUrl = "/focus-eshop-logo.png",
                     VideoUrl = null,
                     CorPrincipal = "#111827",
                     Ativo = true

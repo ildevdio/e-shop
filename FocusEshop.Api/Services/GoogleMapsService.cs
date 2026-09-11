@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Multigrao.Api.DTOs;
+using FocusEshop.Api.DTOs;
 
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public class GoogleMapsService
     {

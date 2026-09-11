@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Multigrãos — Sistema Interno",
+  title: "Focus E-shop — Sistema Interno",
   description:
-    "Sistema interno de gestão da Multigrãos — controle operacional do comercial à entrega.",
+    "Sistema interno de gestão da Focus E-shop — controle operacional do comercial à entrega.",
   generator: "v0.app",
 };
 

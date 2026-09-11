@@ -110,7 +110,7 @@ export default function Links() {
         </div>
 
         <div className="mt-16 text-center">
-          <p className={`text-xs uppercase tracking-widest font-semibold ${temaEscuro ? 'text-white/50' : 'text-gray-400'}`}>Tecnologia Multigrãos</p>
+          <p className={`text-xs uppercase tracking-widest font-semibold ${temaEscuro ? 'text-white/50' : 'text-gray-400'}`}>Tecnologia Focus E-shop</p>
         </div>
       </div>
     </div>

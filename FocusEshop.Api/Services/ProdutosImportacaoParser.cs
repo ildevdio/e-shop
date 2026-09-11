@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public class LinhaImportacaoProduto
     {

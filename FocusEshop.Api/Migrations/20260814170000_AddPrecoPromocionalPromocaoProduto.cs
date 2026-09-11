@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddPrecoPromocionalPromocaoProduto : Migration

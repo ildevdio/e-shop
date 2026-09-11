@@ -25,8 +25,8 @@ export function LoginForm() {
     <div className="w-full max-w-sm">
       <div className="mb-8 flex flex-col items-center text-center">
         <Image
-          src="/multigraos-logo.png"
-          alt="Multigrãos — Amendoim & Especiarias"
+          src="/focus-eshop-logo.png"
+          alt="Focus E-shop — Amendoim & Especiarias"
           width={160}
           height={160}
           priority

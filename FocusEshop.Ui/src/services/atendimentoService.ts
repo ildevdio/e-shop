@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Usar API local na porta 5000 (ou a porta onde a API do Multigrao estiver rodando)
+// Usar API local na porta 5000 (ou a porta onde a API do FocusEshop estiver rodando)
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/atendimento';
 
 export interface Message {

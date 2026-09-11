@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddVideoUrlEmpresa : Migration
@@ -21,7 +21,7 @@ namespace Multigrao.Api.Migrations
                 keyColumn: "Id",
                 keyValue: 1,
                 column: "VideoUrl",
-                value: "/multigraosvid.mp4");
+                value: "/focus-eshop-vid.mp4");
 
             migrationBuilder.UpdateData(
                 table: "ConfiguracoesSistema",

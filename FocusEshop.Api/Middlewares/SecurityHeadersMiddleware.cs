@@ -1,4 +1,4 @@
-namespace Multigrao.Api.Middlewares
+namespace FocusEshop.Api.Middlewares
 {
     public class SecurityHeadersMiddleware
     {

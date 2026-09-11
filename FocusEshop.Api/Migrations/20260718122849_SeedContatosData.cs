@@ -4,7 +4,7 @@
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class SeedContatosData : Migration

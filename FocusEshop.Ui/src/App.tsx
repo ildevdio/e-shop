@@ -56,7 +56,7 @@ function TenantLoginRoute() {
 function HomeRoute() {
   const { slug } = useParams();
   if (isShopDomain()) return <Navigate to="/login" replace />;
-  return <Navigate to={slug ? `/${slug}` : '/multigraos'} replace />;
+  return <Navigate to={slug ? `/${slug}` : '/focus-eshop'} replace />;
 }
 
 function IndexRoute() {

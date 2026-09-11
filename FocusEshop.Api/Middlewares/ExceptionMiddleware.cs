@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace Multigrao.Api.Middlewares
+namespace FocusEshop.Api.Middlewares
 {
     public class ExceptionMiddleware
     {

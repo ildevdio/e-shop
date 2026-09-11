@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddMultiTenant : Migration
@@ -201,7 +201,7 @@ namespace Multigrao.Api.Migrations
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "Ativo", "Slug" },
-                values: new object[] { true, "multigraos" });
+                values: new object[] { true, "focus-eshop" });
 
             migrationBuilder.UpdateData(
                 table: "Contatos",

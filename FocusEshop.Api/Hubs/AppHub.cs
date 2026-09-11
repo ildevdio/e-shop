@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace Multigrao.Api.Hubs
+namespace FocusEshop.Api.Hubs
 {
     public class AppHub : Hub
     {

@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using Multigrao.Api.Data;
+using FocusEshop.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public class WhatsAppService
     {

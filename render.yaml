@@ -1,24 +1,24 @@
 services:
   - type: web
-    name: multigrao-api
+    name: focus-eshop-api
     runtime: docker
-    dockerfilePath: Multigrao.Api/Dockerfile
-    dockerContext: Multigrao.Api
+    dockerfilePath: FocusEshop.Api/Dockerfile
+    dockerContext: FocusEshop.Api
     envVars:
       - key: DB_CONNECTION_STRING
         fromDatabase:
-          name: multigrao-db
+          name: focus-eshop-db
           property: connectionString
       - key: JWT_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://multigraos.vercel.app,https://shop.focus-solutions.tech
+        value: https://focus-eshop.vercel.app,https://shop.focus-solutions.tech
       - key: MASTER_PASSWORD
         sync: false
       - key: DOTNET_USE_POLLING_FILE_WATCHER
         value: "true"
 
 databases:
-  - name: multigrao-db
+  - name: focus-eshop-db
     plan: free
-    databaseName: multigrao_db
+    databaseName: focus_eshop_db

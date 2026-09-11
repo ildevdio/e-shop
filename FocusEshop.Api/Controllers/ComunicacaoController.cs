@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Multigrao.Api.Data;
-using Multigrao.Api.Models;
+using FocusEshop.Api.Data;
+using FocusEshop.Api.Models;
 
-namespace Multigrao.Api.Controllers
+namespace FocusEshop.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

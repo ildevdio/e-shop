@@ -1,4 +1,4 @@
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public interface ITenantContext
     {

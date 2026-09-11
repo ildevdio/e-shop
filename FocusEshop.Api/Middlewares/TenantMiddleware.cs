@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Multigrao.Api.Data;
-using Multigrao.Api.Services;
+using FocusEshop.Api.Data;
+using FocusEshop.Api.Services;
 
-namespace Multigrao.Api.Middlewares
+namespace FocusEshop.Api.Middlewares
 {
     public class TenantMiddleware
     {

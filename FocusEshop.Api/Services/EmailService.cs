@@ -1,11 +1,11 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using Multigrao.Api.Data;
-using Multigrao.Api.Models;
+using FocusEshop.Api.Data;
+using FocusEshop.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public class EmailService
     {

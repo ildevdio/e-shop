@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Multigrao.Api.Controllers
+namespace FocusEshop.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Multigrao.Api.Models
+namespace FocusEshop.Api.Models
 {
     public class Setor
     {

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Multigrao.Api.Data;
-using Multigrao.Api.Hubs;
+using FocusEshop.Api.Data;
+using FocusEshop.Api.Hubs;
 using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -39,13 +39,13 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 
-builder.Services.AddScoped<Multigrao.Api.Services.IAuthService, Multigrao.Api.Services.AuthService>();
-builder.Services.AddScoped<Multigrao.Api.Services.ITenantContext, Multigrao.Api.Services.TenantContext>();
-builder.Services.AddScoped<Multigrao.Api.Services.EmailService>();
-builder.Services.AddScoped<Multigrao.Api.Services.WhatsAppService>();
-builder.Services.AddScoped<Multigrao.Api.Services.ChatbotService>();
-builder.Services.AddScoped<Multigrao.Api.Services.GoogleMapsService>();
-builder.Services.AddHostedService<Multigrao.Api.Services.CarrinhoAbandonadoService>();
+builder.Services.AddScoped<FocusEshop.Api.Services.IAuthService, FocusEshop.Api.Services.AuthService>();
+builder.Services.AddScoped<FocusEshop.Api.Services.ITenantContext, FocusEshop.Api.Services.TenantContext>();
+builder.Services.AddScoped<FocusEshop.Api.Services.EmailService>();
+builder.Services.AddScoped<FocusEshop.Api.Services.WhatsAppService>();
+builder.Services.AddScoped<FocusEshop.Api.Services.ChatbotService>();
+builder.Services.AddScoped<FocusEshop.Api.Services.GoogleMapsService>();
+builder.Services.AddHostedService<FocusEshop.Api.Services.CarrinhoAbandonadoService>();
 builder.Services.AddHttpClient();
 
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
@@ -62,7 +62,7 @@ var configuredOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS")
     ?? builder.Configuration["Cors:Origins"]
     ?? "http://localhost:5173").Split(',', StringSplitOptions.TrimEntries);
 
-var hardcodedOrigins = new[] { "https://multigraos.vercel.app", "https://shop.focus-solutions.tech" };
+var hardcodedOrigins = new[] { "https://focus-eshop.vercel.app", "https://shop.focus-solutions.tech" };
 
 var corsOrigins = configuredOrigins
     .Concat(hardcodedOrigins)
@@ -192,11 +192,11 @@ app.UseResponseCompression();
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<Multigrao.Api.Middlewares.SecurityHeadersMiddleware>();
+app.UseMiddleware<FocusEshop.Api.Middlewares.SecurityHeadersMiddleware>();
 
 app.UseCors();
 
-app.UseMiddleware<Multigrao.Api.Middlewares.ExceptionMiddleware>();
+app.UseMiddleware<FocusEshop.Api.Middlewares.ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
@@ -222,10 +222,10 @@ app.UseStaticFiles();
 app.UseRateLimiter();
 
 app.UseAuthentication();
-app.UseMiddleware<Multigrao.Api.Middlewares.TenantMiddleware>();
+app.UseMiddleware<FocusEshop.Api.Middlewares.TenantMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers().RequireRateLimiting("fixed-ip");
-app.MapHub<Multigrao.Api.Hubs.AppHub>("/hubs/app").RequireRateLimiting("fixed-ip");
+app.MapHub<FocusEshop.Api.Hubs.AppHub>("/hubs/app").RequireRateLimiting("fixed-ip");
 
 app.Run();

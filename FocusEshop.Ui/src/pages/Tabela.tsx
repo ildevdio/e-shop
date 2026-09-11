@@ -2079,7 +2079,7 @@ const salvarCarrinhoRef = useRef<number | null>(null);
       {isWild ? (
         <div className="relative overflow-hidden bg-ecom-deep min-h-[calc(100vh-135px)] lg:min-h-[calc(100vh-110px)] flex items-end">
           <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
-            <source src="/multigraosvid.mp4" type="video/mp4" />
+            <source src="/focus-eshop-vid.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-r from-ecom-deep/95 via-ecom-deep/65 to-ecom-deep/10" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
@@ -2144,7 +2144,7 @@ const salvarCarrinhoRef = useRef<number | null>(null);
       ) : (
       <div className="relative overflow-hidden shadow-sm h-screen rounded-none bg-ecom-card">
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
-          <source src="/multigraosvid.mp4" type="video/mp4" />
+          <source src="/focus-eshop-vid.mp4" type="video/mp4" />
         </video>
         <div className={`absolute inset-0 ${ds.heroOverlay}`} />
 

@@ -48,7 +48,7 @@ function injectMeta(html: string, meta: {
   siteName: string;
   type?: string;
 }) {
-  const title = meta.title || 'Multigrãos - Sistema de Gestão';
+  const title = meta.title || 'Focus E-shop - Sistema de Gestão';
   const description = meta.description || 'Sistema de gestão';
   const image = meta.image || '';
   const url = esc(meta.url);
@@ -175,11 +175,11 @@ export default async function handler(
         };
         const landing = eCommerce ? `${base}/${slug}/commerce` : `${base}/${slug}`;
         html = injectMeta(template, {
-          title: d.nomeEmpresa || 'Multigrãos',
+          title: d.nomeEmpresa || 'Focus E-shop',
           description: d.slogan || d.nomeEmpresa || 'Loja virtual',
           image: absoluteUrl(d.logourl || '', base),
           url: landing,
-          siteName: d.nomeEmpresa || 'Multigrãos',
+          siteName: d.nomeEmpresa || 'Focus E-shop',
           type: eCommerce ? 'website' : 'website',
         });
       }
@@ -188,11 +188,11 @@ export default async function handler(
     }
   } else {
     const isFocus = slug === 'focus';
-    const appName = isFocus ? 'Focus Solutions' : (slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Multigrãos');
+    const appName = isFocus ? 'Focus Solutions' : (slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Focus E-shop');
     html = injectMeta(template, {
       title: appName,
       description: isFocus ? 'Plataforma de Gestão' : 'Sistema de gestão',
-      image: `${base}/multigraos-logo.png`,
+      image: `${base}/focus-eshop-logo.png`,
       url: url,
       siteName: appName,
     });

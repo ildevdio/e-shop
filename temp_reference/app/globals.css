@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Corporate light theme — Multigrãos */
+  /* Corporate light theme — Focus E-shop */
   --background: #f6f5f3;
   --foreground: #1c1917;
 
@@ -33,7 +33,7 @@
   --input: #e7e5e4;
   --ring: #a16207;
 
-  /* Dark sidebar so the white Multigrãos logo reads naturally */
+  /* Dark sidebar so the white Focus E-shop logo reads naturally */
   --sidebar: #17140f;
   --sidebar-foreground: #d6d3d1;
   --sidebar-muted: #a8a29e;

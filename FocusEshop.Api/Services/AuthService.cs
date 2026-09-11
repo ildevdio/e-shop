@@ -1,10 +1,10 @@
 using Microsoft.IdentityModel.Tokens;
-using Multigrao.Api.Models;
+using FocusEshop.Api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public interface IAuthService
     {

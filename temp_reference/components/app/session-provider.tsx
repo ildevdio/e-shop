@@ -39,7 +39,7 @@ export function SessionProvider({
     () => ({
       user: {
         name: "Usuário Demo",
-        email: "demo@multigraos.com.br",
+        email: "demo@focuseshop.com.br",
         sector,
       },
       setSector,

@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddConfiguracaoSistema : Migration
@@ -43,7 +43,7 @@ namespace Multigrao.Api.Migrations
             migrationBuilder.InsertData(
                 table: "ConfiguracoesSistema",
                 columns: new[] { "Id", "CorPrincipal", "Endereco", "LogoUrl", "NomeEmpresa", "Slogan" },
-                values: new object[] { 1, "#0a0a0a", "Centro — Paulista — PE", "/multigraos-logo.png", "Multigrãos", "Amendoim & Especiarias" });
+                values: new object[] { 1, "#0a0a0a", "Centro — Paulista — PE", "/focus-eshop-logo.png", "Focus E-shop", "Amendoim & Especiarias" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AtendimentoLeads_PedidoId",

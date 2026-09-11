@@ -274,8 +274,8 @@ export const DESIGNS_ECOMMERCE: Record<string, DesignEcommerce> = {
 };
 
 export const CONFIG_PADRAO: ConfiguracaoSistema = {
-  slug: 'multigraos',
-  nomeEmpresa: 'Multigrãos',
+  slug: 'focus-eshop',
+  nomeEmpresa: 'Focus E-shop',
   cnpj: '',
   slogan: 'Amendoim & Especiarias',
   endereco: 'Centro — Paulista — PE',
@@ -285,9 +285,9 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   bairro: '',
   cidade: '',
   estado: '',
-  logoUrl: '/multigraos-logo.png',
+  logoUrl: '/focus-eshop-logo.png',
   telefone: '',
-  videoUrl: '/multigraosvid.mp4',
+  videoUrl: '/focus-eshop-vid.mp4',
   corPrincipal: '#0a0a0a',
   fonte: 'classica',
   corSecundaria: '#f97316',

@@ -22,8 +22,8 @@ export function Sidebar() {
           aria-label="Ir para o início"
         >
           <Image
-            src="/multigraos-logo.png"
-            alt="Multigrãos"
+            src="/focus-eshop-logo.png"
+            alt="Focus E-shop"
             width={44}
             height={44}
             className="h-11 w-11 object-contain mix-blend-lighten"
@@ -31,7 +31,7 @@ export function Sidebar() {
           />
           <span className="flex flex-col leading-tight">
             <span className="font-semibold tracking-wide text-sidebar-foreground">
-              Multigrãos
+              Focus E-shop
             </span>
             <span className="text-xs text-sidebar-muted">Sistema Interno</span>
           </span>

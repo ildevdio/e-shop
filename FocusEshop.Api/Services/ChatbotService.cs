@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
-using Multigrao.Api.Data;
-using Multigrao.Api.Models;
+using FocusEshop.Api.Data;
+using FocusEshop.Api.Models;
 
-namespace Multigrao.Api.Services
+namespace FocusEshop.Api.Services
 {
     public class ChatbotService
     {

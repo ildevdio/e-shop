@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Multigrao.Api.Data;
+using FocusEshop.Api.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Multigrao.Api.Migrations
+namespace FocusEshop.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260819002824_AddTelefoneEmpresa")]
@@ -25,7 +25,7 @@ namespace Multigrao.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Multigrao.Api.Models.ArquivoUpload", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.ArquivoUpload", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,7 +60,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("ArquivosUpload");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.AtendimentoLead", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.AtendimentoLead", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -146,7 +146,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("AtendimentoLeads");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Aviso", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Aviso", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -184,7 +184,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Avisos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Carrinho", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Carrinho", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -211,7 +211,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Carrinhos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.CarrinhoItem", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.CarrinhoItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -240,7 +240,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("CarrinhoItens");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Categoria", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Categoria", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -264,7 +264,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Categorias");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Cliente", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -442,7 +442,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.ConfiguracaoSistema", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.ConfiguracaoSistema", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -578,13 +578,13 @@ namespace Multigrao.Api.Migrations
                             Fonte = "classica",
                             FreteAtivo = false,
                             HeroImagemTipo = "produto",
-                            LogoUrl = "/multigraos-logo.png",
-                            NomeEmpresa = "Multigrãos",
+                            LogoUrl = "/focus-eshop-logo.png",
+                            NomeEmpresa = "Focus E-shop",
                             Slogan = "Amendoim & Especiarias",
-                            Slug = "multigraos",
+                            Slug = "focus-eshop",
                             TipoCarrinho = "pagina",
                             TipoMenu = "dock",
-                            VideoUrl = "/multigraosvid.mp4"
+                            VideoUrl = "/focus-eshop-vid.mp4"
                         },
                         new
                         {
@@ -601,7 +601,7 @@ namespace Multigrao.Api.Migrations
                             Fonte = "classica",
                             FreteAtivo = false,
                             HeroImagemTipo = "produto",
-                            LogoUrl = "/multigraos-logo.png",
+                            LogoUrl = "/focus-eshop-logo.png",
                             NomeEmpresa = "Focus Solutions",
                             Slogan = "Plataforma de Gestão",
                             Slug = "focus",
@@ -610,7 +610,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Contato", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Contato", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -721,7 +721,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Conversa", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Conversa", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -753,7 +753,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Conversas");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Enquete", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -788,7 +788,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Enquetes");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Entrega", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -825,7 +825,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Entregas");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.EntregaPedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.EntregaPedido", b =>
                 {
                     b.Property<int>("EntregaId")
                         .HasColumnType("integer");
@@ -840,7 +840,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("EntregasPedidos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.FaixaFrete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.FaixaFrete", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -865,7 +865,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("FaixasFrete");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.ItemPedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.ItemPedido", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -913,7 +913,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("ItensPedido");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Marca", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Marca", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -949,7 +949,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Marcas");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Mensagem", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Mensagem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -989,7 +989,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Mensagens");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Notificacao", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Notificacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1036,7 +1036,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Notificacoes");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.OpcaoEnquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.OpcaoEnquete", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1065,7 +1065,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("OpcoesEnquete");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Pedido", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1171,7 +1171,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Pedidos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Produto", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Produto", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1383,7 +1383,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Promocao", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Promocao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1425,7 +1425,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Promocoes");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.PromocaoProduto", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.PromocaoProduto", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1454,7 +1454,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("PromocoesProduto");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Rota", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Rota", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1492,7 +1492,7 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("Rotas");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Setor", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Setor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1552,7 +1552,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Usuario", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1595,7 +1595,7 @@ namespace Multigrao.Api.Migrations
                             Id = 1,
                             Ativo = true,
                             EmpresaId = 1,
-                            Nome = "Admin Multigrãos",
+                            Nome = "Admin Focus E-shop",
                             Role = "AdminMaster",
                             SenhaHash = "$2a$11$9tpv10peRM0MqlDYoaqhDeVEnG04k8PxomSXoA2qGVL8q01aM4xvq",
                             UsuarioLogin = "admin"
@@ -1642,7 +1642,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.UsuarioSetor", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.UsuarioSetor", b =>
                 {
                     b.Property<int>("UsuarioId")
                         .HasColumnType("integer");
@@ -1689,7 +1689,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Veiculo", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Veiculo", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1736,7 +1736,7 @@ namespace Multigrao.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.VotoEnquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.VotoEnquete", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1770,20 +1770,20 @@ namespace Multigrao.Api.Migrations
                     b.ToTable("VotosEnquete");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.AtendimentoLead", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.AtendimentoLead", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Conversa", "Conversa")
+                    b.HasOne("FocusEshop.Api.Models.Conversa", "Conversa")
                         .WithMany()
                         .HasForeignKey("ConversaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
+                    b.HasOne("FocusEshop.Api.Models.Pedido", "Pedido")
                         .WithMany()
                         .HasForeignKey("PedidoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Multigrao.Api.Models.Usuario", "UsuarioAtendente")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "UsuarioAtendente")
                         .WithMany()
                         .HasForeignKey("UsuarioAtendenteId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1795,15 +1795,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("UsuarioAtendente");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Aviso", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Aviso", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Usuario", "Autor")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "Autor")
                         .WithMany()
                         .HasForeignKey("AutorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Setor", "SetorAlvo")
+                    b.HasOne("FocusEshop.Api.Models.Setor", "SetorAlvo")
                         .WithMany()
                         .HasForeignKey("SetorAlvoId");
 
@@ -1812,15 +1812,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("SetorAlvo");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.CarrinhoItem", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.CarrinhoItem", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Carrinho", "Carrinho")
+                    b.HasOne("FocusEshop.Api.Models.Carrinho", "Carrinho")
                         .WithMany("Itens")
                         .HasForeignKey("CarrinhoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Produto", "Produto")
+                    b.HasOne("FocusEshop.Api.Models.Produto", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1831,9 +1831,9 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Produto");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Cliente", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Usuario", "Vendedor")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "Vendedor")
                         .WithMany("ClientesVendedor")
                         .HasForeignKey("VendedorId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1841,27 +1841,27 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Vendedor");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Contato", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Contato", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Cliente", "Cliente")
+                    b.HasOne("FocusEshop.Api.Models.Cliente", "Cliente")
                         .WithMany("Contatos")
                         .HasForeignKey("ClienteId");
 
                     b.Navigation("Cliente");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Conversa", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Conversa", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Cliente", "Cliente")
+                    b.HasOne("FocusEshop.Api.Models.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId");
 
                     b.Navigation("Cliente");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Enquete", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Usuario", "Autor")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "Autor")
                         .WithMany()
                         .HasForeignKey("AutorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1870,9 +1870,9 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Autor");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Entrega", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Rota", "Rota")
+                    b.HasOne("FocusEshop.Api.Models.Rota", "Rota")
                         .WithMany("Entregas")
                         .HasForeignKey("RotaId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1881,15 +1881,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Rota");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.EntregaPedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.EntregaPedido", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Entrega", "Entrega")
+                    b.HasOne("FocusEshop.Api.Models.Entrega", "Entrega")
                         .WithMany("EntregaPedidos")
                         .HasForeignKey("EntregaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
+                    b.HasOne("FocusEshop.Api.Models.Pedido", "Pedido")
                         .WithMany("EntregaPedidos")
                         .HasForeignKey("PedidoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1900,21 +1900,21 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Pedido");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.ItemPedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.ItemPedido", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Pedido", "Pedido")
+                    b.HasOne("FocusEshop.Api.Models.Pedido", "Pedido")
                         .WithMany("Itens")
                         .HasForeignKey("PedidoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Produto", "Produto")
+                    b.HasOne("FocusEshop.Api.Models.Produto", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Usuario", "SeparadoPorUsuario")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "SeparadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("SeparadoPorUsuarioId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1926,15 +1926,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("SeparadoPorUsuario");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Mensagem", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Mensagem", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Conversa", "Conversa")
+                    b.HasOne("FocusEshop.Api.Models.Conversa", "Conversa")
                         .WithMany("Mensagens")
                         .HasForeignKey("ConversaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Usuario", "UsuarioRemetente")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "UsuarioRemetente")
                         .WithMany()
                         .HasForeignKey("UsuarioRemetenteId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1944,9 +1944,9 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("UsuarioRemetente");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.OpcaoEnquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.OpcaoEnquete", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Enquete", "Enquete")
+                    b.HasOne("FocusEshop.Api.Models.Enquete", "Enquete")
                         .WithMany("Opcoes")
                         .HasForeignKey("EnqueteId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1955,23 +1955,23 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Enquete");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Pedido", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Cliente", "Cliente")
+                    b.HasOne("FocusEshop.Api.Models.Cliente", "Cliente")
                         .WithMany("Pedidos")
                         .HasForeignKey("ClienteId");
 
                     b.Navigation("Cliente");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Produto", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Produto", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Categoria", "Categoria")
+                    b.HasOne("FocusEshop.Api.Models.Categoria", "Categoria")
                         .WithMany("Produtos")
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Multigrao.Api.Models.Marca", "Marca")
+                    b.HasOne("FocusEshop.Api.Models.Marca", "Marca")
                         .WithMany("Produtos")
                         .HasForeignKey("MarcaId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1981,15 +1981,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Marca");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.PromocaoProduto", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.PromocaoProduto", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Produto", "Produto")
+                    b.HasOne("FocusEshop.Api.Models.Produto", "Produto")
                         .WithMany()
                         .HasForeignKey("ProdutoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Promocao", "Promocao")
+                    b.HasOne("FocusEshop.Api.Models.Promocao", "Promocao")
                         .WithMany("Produtos")
                         .HasForeignKey("PromocaoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2000,15 +2000,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Promocao");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Rota", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Rota", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Usuario", "Motorista")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "Motorista")
                         .WithMany()
                         .HasForeignKey("MotoristaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Veiculo", "Veiculo")
+                    b.HasOne("FocusEshop.Api.Models.Veiculo", "Veiculo")
                         .WithMany()
                         .HasForeignKey("VeiculoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2019,15 +2019,15 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Veiculo");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.UsuarioSetor", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.UsuarioSetor", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Setor", "Setor")
+                    b.HasOne("FocusEshop.Api.Models.Setor", "Setor")
                         .WithMany("UsuarioSetores")
                         .HasForeignKey("SetorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Usuario", "Usuario")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "Usuario")
                         .WithMany("UsuarioSetores")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2038,21 +2038,21 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.VotoEnquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.VotoEnquete", b =>
                 {
-                    b.HasOne("Multigrao.Api.Models.Enquete", "Enquete")
+                    b.HasOne("FocusEshop.Api.Models.Enquete", "Enquete")
                         .WithMany("Votos")
                         .HasForeignKey("EnqueteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.OpcaoEnquete", "OpcaoEnquete")
+                    b.HasOne("FocusEshop.Api.Models.OpcaoEnquete", "OpcaoEnquete")
                         .WithMany()
                         .HasForeignKey("OpcaoEnqueteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Multigrao.Api.Models.Usuario", "Usuario")
+                    b.HasOne("FocusEshop.Api.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2065,68 +2065,68 @@ namespace Multigrao.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Carrinho", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Carrinho", b =>
                 {
                     b.Navigation("Itens");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Categoria", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Categoria", b =>
                 {
                     b.Navigation("Produtos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Cliente", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Cliente", b =>
                 {
                     b.Navigation("Contatos");
 
                     b.Navigation("Pedidos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Conversa", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Conversa", b =>
                 {
                     b.Navigation("Mensagens");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Enquete", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Enquete", b =>
                 {
                     b.Navigation("Opcoes");
 
                     b.Navigation("Votos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Entrega", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Entrega", b =>
                 {
                     b.Navigation("EntregaPedidos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Marca", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Marca", b =>
                 {
                     b.Navigation("Produtos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Pedido", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Pedido", b =>
                 {
                     b.Navigation("EntregaPedidos");
 
                     b.Navigation("Itens");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Promocao", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Promocao", b =>
                 {
                     b.Navigation("Produtos");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Rota", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Rota", b =>
                 {
                     b.Navigation("Entregas");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Setor", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Setor", b =>
                 {
                     b.Navigation("UsuarioSetores");
                 });
 
-            modelBuilder.Entity("Multigrao.Api.Models.Usuario", b =>
+            modelBuilder.Entity("FocusEshop.Api.Models.Usuario", b =>
                 {
                     b.Navigation("ClientesVendedor");
 

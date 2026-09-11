@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Multigrao.Api.Services;
+using FocusEshop.Api.Services;
 
-namespace Multigrao.Api.Data
+namespace FocusEshop.Api.Data
 {
     public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {

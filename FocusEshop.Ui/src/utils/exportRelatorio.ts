@@ -11,7 +11,7 @@ export interface ExportSheet {
   rows: (string | number)[][];
 }
 
-const BRAND = 'Multigrãos';
+const BRAND = 'Focus E-shop';
 
 function download(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob);
