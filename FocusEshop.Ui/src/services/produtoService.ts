@@ -6,6 +6,21 @@ export interface Categoria {
   id: number;
   nome: string;
   ordem: number;
+  departamentoId: number | null;
+  departamento?: Departamento | null;
+  ativo?: boolean;
+}
+
+export interface SubCategoria {
+  id: number;
+  nome: string;
+  ordem: number;
+}
+
+export interface Departamento {
+  id: number;
+  nome: string;
+  ordem: number;
 }
 
 export interface Marca {
@@ -21,9 +36,13 @@ export interface Produto {
   nome: string;
   pesoUnidade: number;
   codigoERP: string;
+  departamentoId: number | null;
   categoriaId: number | null;
+  subCategoriaId: number | null;
   marcaId: number | null;
+  departamento?: Departamento | null;
   categoria?: Categoria | null;
+  subCategoria?: SubCategoria | null;
   marca?: Marca | null;
   precoVarejo: number;
   precoAtacado: number;

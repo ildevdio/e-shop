@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace FocusEshop.Api.Models
 {
-    public class Marca : IEmpresa
+    public class SubCategoria : IEmpresa
     {
         [Key]
         public int Id { get; set; }
@@ -13,17 +14,14 @@ namespace FocusEshop.Api.Models
         [StringLength(100)]
         public string Nome { get; set; } = string.Empty;
 
-        [StringLength(500)]
-        public string? ImagemUrl { get; set; }
+        public int Ordem { get; set; }
 
-        [JsonIgnore]
-        public byte[]? ImagemBytes { get; set; }
+        public int? CategoriaId { get; set; }
 
-        [StringLength(30)]
-        public string? ImagemContentType { get; set; }
+        [ForeignKey(nameof(CategoriaId))]
+        public Categoria? Categoria { get; set; }
 
-[StringLength(7)]
-        public string? Cor { get; set; }
+        public bool Ativo { get; set; } = true;
 
         [JsonIgnore]
         public ICollection<Produto> Produtos { get; set; } = new List<Produto>();

@@ -2,20 +2,50 @@ import axios from 'axios';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Categorias';
 
-export interface Categoria {
+export interface Departamento {
   id: number;
   nome: string;
   ordem: number;
 }
 
+export interface Categoria {
+  id: number;
+  nome: string;
+  ordem: number;
+  departamentoId: number | null;
+  ativo: boolean;
+  departamento?: Departamento | null;
+}
+
 export const categoriaService = {
-  getCategorias: async (): Promise<Categoria[]> => {
+  getCategorias: async (departamentoId?: number): Promise<Categoria[]> => {
     try {
-      const response = await axios.get(API_URL);
+      const params = departamentoId != null ? { departamentoId } : undefined;
+      const response = await axios.get(API_URL, { params });
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error('Erro ao buscar categorias', error);
       return [];
+    }
+  },
+
+  getCategoria: async (id: number): Promise<Categoria | null> => {
+    try {
+      const response = await axios.get(`${API_URL}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar categoria', error);
+      return null;
+    }
+  },
+
+  getDetalhe: async (id: number): Promise<Categoria | null> => {
+    try {
+      const response = await axios.get(`${API_URL}/${id}/detalhe`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar detalhe da categoria', error);
+      return null;
     }
   },
 

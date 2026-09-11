@@ -77,8 +77,8 @@ namespace FocusEshop.Api.Controllers
                 return BadRequest(new { message = "Envie a imagem do banner." });
 
             var tipoLink = (dto.LinkTipo ?? "").Trim().ToLowerInvariant();
-            if (tipoLink != "" && tipoLink != "produto" && tipoLink != "categoria" && tipoLink != "externo")
-                return BadRequest(new { message = "Tipo de link inválido. Use 'produto', 'categoria' ou 'externo'." });
+            if (tipoLink != "" && tipoLink != "produto" && tipoLink != "categoria" && tipoLink != "externo" && tipoLink != "departamento")
+                return BadRequest(new { message = "Tipo de link inválido. Use 'produto', 'categoria', 'departamento' ou 'externo'." });
 
             var posicao = (dto.Posicao ?? "").Trim().ToLowerInvariant();
             if (posicao != "carrossel" && posicao != "secao" && posicao != "ambos")
@@ -118,8 +118,8 @@ namespace FocusEshop.Api.Controllers
                 return BadRequest(new { message = "Envie a imagem do banner." });
 
             var tipoLink = (dto.LinkTipo ?? "").Trim().ToLowerInvariant();
-            if (tipoLink != "" && tipoLink != "produto" && tipoLink != "categoria" && tipoLink != "externo")
-                return BadRequest(new { message = "Tipo de link inválido. Use 'produto', 'categoria' ou 'externo'." });
+            if (tipoLink != "" && tipoLink != "produto" && tipoLink != "categoria" && tipoLink != "externo" && tipoLink != "departamento")
+                return BadRequest(new { message = "Tipo de link inválido. Use 'produto', 'categoria', 'departamento' ou 'externo'." });
 
             var posicao = (dto.Posicao ?? "").Trim().ToLowerInvariant();
             if (posicao != "carrossel" && posicao != "secao" && posicao != "ambos")

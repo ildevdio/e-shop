@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api/Banners';
 
-export type TipoLinkBanner = '' | 'produto' | 'categoria' | 'externo';
+export type TipoLinkBanner = '' | 'produto' | 'categoria' | 'departamento' | 'externo';
 export type PosicaoBanner = 'carrossel' | 'secao' | 'ambos';
 
 export interface Banner {

@@ -5,6 +5,7 @@ import { getSlug, tenantHeaders, authHeaders } from '../services/tenantSetup';
 import { mascaraCep, buscarCep } from '../services/cep';
 import { CORES_DISPONIVEIS } from '../services/cores';
 import { midiaUrl } from '../utils/imageUrl';
+import { copiarTexto } from '../utils/clipboard';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -72,11 +73,11 @@ export default function NovaEmpresa() {
     setErro('');
   };
 
-  const copiar = (valor: string, chave: string) => {
-    navigator.clipboard.writeText(valor).then(() => {
-      setCopiado(chave);
-      setTimeout(() => setCopiado(''), 1500);
-    });
+  const copiar = async (valor: string, chave: string) => {
+    const ok = await copiarTexto(valor);
+    if (!ok) return;
+    setCopiado(chave);
+    setTimeout(() => setCopiado(''), 1500);
   };
 
   const buscarCepNovo = async () => {

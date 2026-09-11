@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search, Leaf, Truck, MessageCircle, BadgePercent, Home } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
-import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
+import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type SubCategoria, type Marca } from '../services/produtoService';
 import { promocaoService, precoPromocional, pctDesconto, type PromocaoAtiva } from '../services/promocaoService';
 import { bannerService, type Banner } from '../services/bannerService';
 import { categoriaService } from '../services/categoriaService';
+import { departamentoService, type Departamento } from '../services/departamentoService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
 import { carrinhoService } from '../services/carrinhoService';
@@ -663,40 +664,40 @@ function FaixaMarca({ marca, total }: { marca: Marca | null; total: number }) {
 }
 
 function PainelFiltros({
-  todasCategorias,
+  todasDepartamentos,
   marcas,
-  categoriaFiltrada,
+  departamentoFiltrado,
   filtroMarcaId,
-  aoSelecionarCategoria,
+  aoSelecionarDepartamento,
   aoSelecionarMarca,
 }: {
-  todasCategorias: Categoria[];
+  todasDepartamentos: Departamento[];
   marcas: Marca[];
-  categoriaFiltrada: number | null;
+  departamentoFiltrado: number | null;
   filtroMarcaId: number | null;
-  aoSelecionarCategoria: (id: number | null) => void;
+  aoSelecionarDepartamento: (id: number | null) => void;
   aoSelecionarMarca: (id: number | null) => void;
 }) {
   return (
     <>
       <div>
-        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-2">Categorias</p>
+        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted mb-2">Departamentos</p>
         <div className="space-y-2">
           <button
-            onClick={() => aoSelecionarCategoria(null)}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
+            onClick={() => aoSelecionarDepartamento(null)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${departamentoFiltrado === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
           >
-            <span className="font-bold text-sm">Todas as categorias</span>
-            {categoriaFiltrada === null && <Check size={16} className="shrink-0" />}
+            <span className="font-bold text-sm">Todos os departamentos</span>
+            {departamentoFiltrado === null && <Check size={16} className="shrink-0" />}
           </button>
-          {todasCategorias.map(c => (
+          {todasDepartamentos.map(d => (
             <button
-              key={c.id}
-              onClick={() => aoSelecionarCategoria(c.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${categoriaFiltrada === c.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
+              key={d.id}
+              onClick={() => aoSelecionarDepartamento(d.id)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors text-left ${departamentoFiltrado === d.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-ecom-card border-ecom-border hover:border-primary'}`}
             >
-              <span className="font-bold text-sm">{c.nome}</span>
-              {categoriaFiltrada === c.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-ecom-muted shrink-0" />}
+              <span className="font-bold text-sm">{d.nome}</span>
+              {departamentoFiltrado === d.id ? <Check size={16} className="shrink-0" /> : <ChevronRight size={16} className="text-ecom-muted shrink-0" />}
             </button>
           ))}
         </div>
@@ -729,6 +730,7 @@ function PainelFiltros({
 
 interface ProdutoAgrupado {
   marca: Marca | null;
+  subCategoria: SubCategoria | null;
   produtos: Produto[];
 }
 
@@ -739,7 +741,7 @@ interface CategoriaComProdutos {
 
 export default function Tabela() {
   const [categorias, setCategorias] = useState<CategoriaComProdutos[]>([]);
-  const [todasCategorias, setTodasCategorias] = useState<Categoria[]>([]);
+  const [todasDepartamentos, setTodasDepartamentos] = useState<Departamento[]>([]);
   const [promosAtivas, setPromosAtivas] = useState<PromocaoAtiva[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -764,6 +766,7 @@ export default function Tabela() {
   const [sidebarExpandida, setSidebarExpandida] = useState(true);
   const [carrinhoDrawer, setCarrinhoDrawer] = useState(false);
 const [categoriaFiltrada, setCategoriaFiltrada] = useState<number | null>(null);
+const [departamentoFiltrado, setDepartamentoFiltrado] = useState<number | null>(null);
 const [marcaFiltradaId, setMarcaFiltradaId] = useState<number | null>(null);
 const [opacidadeNav, setOpacidadeNav] = useState(0);
 const [contaAberta, setContaAberta] = useState(false);
@@ -845,13 +848,14 @@ const salvarCarrinhoRef = useRef<number | null>(null);
 
   const carregar = async () => {
     setCarregando(true);
-    const [produtos, cats, promos, bannes] = await Promise.all([
+    const [produtos, cats, deps, promos, bannes] = await Promise.all([
       produtoService.getCatalogo(),
       categoriaService.getCategorias(),
+      departamentoService.getDepartamentos(),
       promocaoService.getAtivas(),
       bannerService.getAtivos(),
     ]);
-    setTodasCategorias(cats);
+    setTodasDepartamentos(deps);
     setPromosAtivas(promos);
     setBanners(bannes);
 
@@ -864,9 +868,10 @@ const salvarCarrinhoRef = useRef<number | null>(null);
           map.set(p.categoria.id, { categoria: p.categoria, grupos: [] });
         }
         const entry = map.get(p.categoria.id)!;
-        let grupo = entry.grupos.find(g => g.marca?.id === p.marca?.id);
+        const chave = `${p.subCategoria?.id ?? 0}-${p.marca?.id ?? 0}`;
+        let grupo = entry.grupos.find(g => `${g.subCategoria?.id ?? 0}-${g.marca?.id ?? 0}` === chave);
         if (!grupo) {
-          grupo = { marca: p.marca ?? null, produtos: [] };
+          grupo = { marca: p.marca ?? null, subCategoria: p.subCategoria ?? null, produtos: [] };
           entry.grupos.push(grupo);
         }
         grupo.produtos.push(p);
@@ -878,8 +883,8 @@ const salvarCarrinhoRef = useRef<number | null>(null);
     const lista = [...map.values()];
     if (semCategoria.length > 0) {
       lista.push({
-        categoria: { id: 0, nome: 'Sem Categoria', ordem: 999 },
-        grupos: [{ marca: null, produtos: semCategoria }],
+        categoria: { id: 0, nome: 'Sem Categoria', ordem: 999, departamentoId: null },
+        grupos: [{ marca: null, subCategoria: null, produtos: semCategoria }],
       });
     }
 
@@ -1056,7 +1061,8 @@ const salvarCarrinhoRef = useRef<number | null>(null);
         }))
         .filter(g => g.produtos.length > 0),
     }))
-    .filter(c => c.grupos.length > 0);
+    .filter(c => c.grupos.length > 0)
+    .filter(c => departamentoFiltrado == null || c.categoria.departamentoId === departamentoFiltrado);
 
   const produtosDestaque = useMemo(() => {
     const todos = categorias
@@ -1183,6 +1189,21 @@ const salvarCarrinhoRef = useRef<number | null>(null);
     }, 60);
   };
 
+  const aplicarFiltroDepartamento = (id: number | null) => {
+    setDepartamentoFiltrado(id);
+    setCategoriaFiltrada(null);
+    setMenuFiltros(false);
+    setTimeout(() => {
+      const alvo = id != null
+        ? categorias.find(c => c.categoria.departamentoId === id)?.categoria.id
+        : categorias[0]?.categoria.id;
+      if (alvo === undefined) return;
+      const el = document.getElementById(`cat-${alvo}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 60);
+  };
+
   const aplicarFiltroMarca = (id: number | null) => {
     setMarcaFiltradaId(id);
     setMenuFiltros(false);
@@ -1195,6 +1216,8 @@ const salvarCarrinhoRef = useRef<number | null>(null);
   };
 
   const qtdFiltrosAtivos = (categoriaFiltrada !== null ? 1 : 0) + (marcaFiltradaId !== null ? 1 : 0);
+
+  const nomeDepartamento = (id: number | null | undefined) => todasDepartamentos.find(d => d.id === id)?.nome;
 
   const abrirDetalhe = (p: Produto) => {
     setQtdDetalhe(qtdNoCarrinho(p.id) || 1);
@@ -1217,6 +1240,10 @@ const salvarCarrinhoRef = useRef<number | null>(null);
       const id = Number(b.linkValor);
       setVista('catalogo');
       setTimeout(() => aplicarFiltroCategoria(id || null), 60);
+    } else if (b.linkTipo === 'departamento') {
+      const id = Number(b.linkValor);
+      setVista('catalogo');
+      setTimeout(() => aplicarFiltroDepartamento(id || null), 60);
     } else if (b.linkTipo === 'externo' && b.linkValor) {
       window.open(b.linkValor, '_blank', 'noopener,noreferrer');
     }
@@ -1401,12 +1428,12 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                   />
                 </div>
                 <PainelFiltros
-                  todasCategorias={todasCategorias}
+                  todasDepartamentos={todasDepartamentos}
                   marcas={marcas}
-                  categoriaFiltrada={categoriaFiltrada}
+                  departamentoFiltrado={departamentoFiltrado}
                   filtroMarcaId={marcaFiltradaId}
-                  aoSelecionarCategoria={id => setCategoriaFiltrada(id)}
-                  aoSelecionarMarca={id => setMarcaFiltradaId(id)}
+                  aoSelecionarDepartamento={aplicarFiltroDepartamento}
+                  aoSelecionarMarca={aplicarFiltroMarca}
                 />
                 <div className="mt-6 space-y-2">
                   <button
@@ -1665,11 +1692,11 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                 />
               </div>
               <PainelFiltros
-                todasCategorias={todasCategorias}
+                todasDepartamentos={todasDepartamentos}
                 marcas={marcas}
-                categoriaFiltrada={categoriaFiltrada}
+                departamentoFiltrado={departamentoFiltrado}
                 filtroMarcaId={marcaFiltradaId}
-                aoSelecionarCategoria={id => { setCategoriaFiltrada(id); setMenuLateral(false); }}
+                aoSelecionarDepartamento={id => { aplicarFiltroDepartamento(id); setMenuLateral(false); }}
                 aoSelecionarMarca={id => { setMarcaFiltradaId(id); setMenuLateral(false); }}
               />
               <div className="mt-6 space-y-2">
@@ -2160,20 +2187,20 @@ const salvarCarrinhoRef = useRef<number | null>(null);
               <div className="max-w-7xl mx-auto px-4">
                 <div className="flex items-center gap-2 py-2 overflow-x-auto scrollbar-hide">
                   <button
-                    onClick={() => { setFiltro(''); aplicarFiltroCategoria(null); }}
-                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-text hover:bg-ecom-fill'}`}
+                    onClick={() => { setFiltro(''); aplicarFiltroDepartamento(null); }}
+                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${categoriaFiltrada === null && marcaFiltradaId === null && departamentoFiltrado === null ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-text hover:bg-ecom-fill'}`}
                   >
                     Todos
                   </button>
-                  {todasCategorias.filter(c => c.id !== 0).slice(0, 8).map(c => {
-                    const ativa = categoriaFiltrada === c.id && marcaFiltradaId === null;
+                  {todasDepartamentos.filter(d => d.id !== 0).slice(0, 8).map(d => {
+                    const ativa = departamentoFiltrado === d.id && categoriaFiltrada === null && marcaFiltradaId === null;
                     return (
                       <button
-                        key={c.id}
-                        onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
+                        key={d.id}
+                        onClick={() => { setFiltro(''); aplicarFiltroDepartamento(d.id); }}
                         className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${ativa ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-text hover:bg-ecom-fill'}`}
                       >
-                        {c.nome}
+                        {d.nome}
                       </button>
                     );
                   })}
@@ -2361,23 +2388,29 @@ const salvarCarrinhoRef = useRef<number | null>(null);
 
           <section className="max-w-7xl mx-auto px-4 pt-10 pb-4">
             <div className="mb-5">
-              <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase tracking-tight text-ecom-text">Nossas categorias</h2>
-              <p className="text-sm text-ecom-muted mt-1">Navegue pelo que temos de melhor</p>
+              <h2 className="font-heading text-2xl sm:text-3xl font-black uppercase tracking-tight text-ecom-text">Nossos departamentos</h2>
+              <p className="text-sm text-ecom-muted mt-1">Encontre o que você procura por afinidade</p>
             </div>
             <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
-              {todasCategorias.filter(c => c.id !== 0).map(c => {
-                const total = categorias.find(x => x.categoria.id === c.id)?.grupos.reduce((a, g) => a + g.produtos.length, 0) ?? 0;
+              {todasDepartamentos.filter(d => d.id !== 0).map(d => {
+                const total = categorias
+                  .filter(c => c.categoria.departamentoId === d.id)
+                  .reduce((a, c) => a + c.grupos.reduce((acc, g) => acc + g.produtos.length, 0), 0);
+                const foto = d.fotoUrl ? imageUrl(d.fotoUrl) : `https://placehold.co/600x400/e0f2fe/0f766e?text=${encodeURIComponent(d.nome)}`;
                 return (
                   <button
-                    key={c.id}
-                    onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }}
-                    className={`shrink-0 w-[10.5rem] rounded-2xl border p-4 text-left transition-all ${categoriaFiltrada === c.id ? 'border-ecom-strong bg-ecom-strong/5' : 'border-ecom-border bg-white hover:-translate-y-0.5 hover:shadow-[0_8px_20px] hover:shadow-ecom-text/10'}`}
+                    key={d.id}
+                    onClick={() => { setFiltro(''); aplicarFiltroDepartamento(d.id); }}
+                    className={`shrink-0 w-40 sm:w-44 overflow-hidden rounded-2xl border text-left transition-all ${departamentoFiltrado === d.id ? 'border-ecom-strong' : 'border-ecom-border hover:-translate-y-0.5 hover:shadow-[0_8px_20px] hover:shadow-ecom-text/10'}`}
                   >
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-3 ${categoriaFiltrada === c.id ? 'bg-ecom-strong text-white' : 'bg-ecom-surface text-ecom-strong'}`}>
-                      <LayoutGrid size={18} />
+                    <div className="relative h-28 overflow-hidden bg-ecom-surface">
+                      <img src={foto} alt={d.nome} loading="lazy" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <span className="absolute bottom-2 left-3 text-white font-bold text-sm leading-tight z-10">{d.nome}</span>
                     </div>
-                    <p className="font-bold text-ecom-text text-sm leading-tight line-clamp-2">{c.nome}</p>
-                    <p className="text-[11px] font-medium text-ecom-muted mt-1">{total} {total === 1 ? 'produto' : 'produtos'}</p>
+                    <div className="px-3 py-2 bg-white">
+                      <p className="text-[11px] font-medium text-ecom-muted">{total} {total === 1 ? 'produto' : 'produtos'}</p>
+                    </div>
                   </button>
                 );
               })}
@@ -2490,7 +2523,12 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                       <div key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="h-7 w-2 shrink-0 bg-primary rounded-full" />
-                          <h2 className={`font-heading text-xl sm:text-2xl font-bold tracking-tight text-ecom-text ${ds.tituloTransform}`}>{categoria.nome}</h2>
+                          <div>
+                            {nomeDepartamento(categoria.departamentoId) && (
+                              <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted">{nomeDepartamento(categoria.departamentoId)}</p>
+                            )}
+                            <h2 className={`font-heading text-xl sm:text-2xl font-bold tracking-tight text-ecom-text ${ds.tituloTransform}`}>{categoria.nome}</h2>
+                          </div>
                           <span className="text-[11px] font-bold uppercase tracking-widest text-ecom-muted">{produtos.length} {produtos.length === 1 ? 'produto' : 'produtos'}</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -2516,9 +2554,14 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                 <section key={categoria.id} id={`cat-${categoria.id}`} className="scroll-mt-32">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="h-8 w-2 shrink-0 bg-primary rounded-full" />
-                    <h2 className={`font-heading text-2xl md:text-3xl font-bold tracking-tight text-ecom-text ${ds.tituloTransform}`}>
-                      {categoria.nome}
-                    </h2>
+                    <div>
+                      {nomeDepartamento(categoria.departamentoId) && (
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted">{nomeDepartamento(categoria.departamentoId)}</p>
+                      )}
+                      <h2 className={`font-heading text-2xl md:text-3xl font-bold tracking-tight text-ecom-text ${ds.tituloTransform}`}>
+                        {categoria.nome}
+                      </h2>
+                    </div>
                   </div>
 
                   <div className="space-y-10">
@@ -2534,6 +2577,12 @@ const salvarCarrinhoRef = useRef<number | null>(null);
 
                           return (
                           <div key={gi}>
+                            {grupo.subCategoria && (
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="text-[10px] uppercase tracking-widest font-bold text-ecom-muted">Subcategoria</span>
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-ecom-fill border border-ecom-border text-ecom-text text-[11px] font-bold">{grupo.subCategoria.nome}</span>
+                              </div>
+                            )}
                             <FaixaMarca marca={grupo.marca} total={grupo.produtos.length} />
                             <div className={gridClasses}>
                               {grupo.produtos.map(p => (
@@ -2599,11 +2648,11 @@ const salvarCarrinhoRef = useRef<number | null>(null);
               )}
             </div>
             <div>
-              <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Categorias</h3>
+              <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Departamentos</h3>
               <ul className="space-y-2.5 text-sm">
-                {todasCategorias.filter(c => c.id !== 0).slice(0, 6).map(c => (
-                  <li key={c.id}>
-                    <button onClick={() => { setFiltro(''); aplicarFiltroCategoria(c.id); }} className="hover:text-white transition-colors text-left">{c.nome}</button>
+                {todasDepartamentos.filter(d => d.id !== 0).slice(0, 6).map(d => (
+                  <li key={d.id}>
+                    <button onClick={() => { setFiltro(''); aplicarFiltroDepartamento(d.id); }} className="hover:text-white transition-colors text-left">{d.nome}</button>
                   </li>
                 ))}
               </ul>
@@ -2636,7 +2685,7 @@ const salvarCarrinhoRef = useRef<number | null>(null);
               <Home size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Início</span>
             </button>
             <button onClick={() => setMenuFiltros(true)} className="flex flex-col items-center gap-1 py-2.5 text-ecom-text">
-              <LayoutGrid size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Categorias</span>
+              <LayoutGrid size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Departamentos</span>
             </button>
             <button onClick={() => setMenuLateral(true)} className="flex flex-col items-center gap-1 py-2.5 text-ecom-text">
               <Search size={19} /> <span className="text-[9px] font-bold uppercase tracking-wider">Buscar</span>
@@ -2807,11 +2856,11 @@ const salvarCarrinhoRef = useRef<number | null>(null);
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <PainelFiltros
-                todasCategorias={todasCategorias}
+                todasDepartamentos={todasDepartamentos}
                 marcas={marcas}
-                categoriaFiltrada={categoriaFiltrada}
+                departamentoFiltrado={departamentoFiltrado}
                 filtroMarcaId={marcaFiltradaId}
-                aoSelecionarCategoria={aplicarFiltroCategoria}
+                aoSelecionarDepartamento={aplicarFiltroDepartamento}
                 aoSelecionarMarca={aplicarFiltroMarca}
               />
             </div>

@@ -4,6 +4,7 @@ import { useSistemaStore } from '../store/sistemaStore';
 import { prospeccaoService, type EmpresaEncontrada, type Prospect, type ResultadoBusca, type CategoriaPredefinida } from '../services/prospeccaoService';
 import { useUiStore } from '../store/uiStore';
 import SearchModal from '../components/SearchModal';
+import { buscarCEP as buscarCEPPublico } from '../utils/buscarCEP';
 
 type Aba = 'buscar' | 'salvos';
 
@@ -62,23 +63,18 @@ export default function ComercialProspeccao() {
   }, []);
 
   const buscarCEP = async (cep: string) => {
-    const digits = cep.replace(/\D/g, '');
-    if (digits.length !== 8) return;
     setBuscandoCEP(true);
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cep/v2/${digits}`);
-      if (resp.ok) {
-        const data = await resp.json();
+      const resultado = await buscarCEPPublico(cep);
+      if (resultado) {
         setEndereco(prev => ({
           ...prev,
-          logradouro: data.street ?? prev.logradouro,
-          bairro: data.neighborhood ?? prev.bairro,
-          cidade: data.city ?? prev.cidade,
-          estado: data.state ?? prev.estado,
+          logradouro: resultado.logradouro || prev.logradouro,
+          bairro: resultado.bairro || prev.bairro,
+          cidade: resultado.cidade || prev.cidade,
+          estado: resultado.estado || prev.estado,
         }));
       }
-    } catch {
-      // ignora erro
     } finally {
       setBuscandoCEP(false);
     }

@@ -217,6 +217,12 @@ catch (OperationCanceledException)
         "Verifique se o PostgreSQL está acessível e se não há locks pendentes nas tabelas.", null);
 }
 
+// Configuração demonstrativa 'Mundo Verde Boa Viagem' (dados 100% fictícios,
+// opt-in via env DEMO_MUNDO_VERDE — padrão: habilitado).
+var seedDemo = Environment.GetEnvironmentVariable("DEMO_MUNDO_VERDE");
+if (string.IsNullOrEmpty(seedDemo) || seedDemo.Equals("true", StringComparison.OrdinalIgnoreCase))
+    await DemoSeedMundoVerde.SeedAsync(db);
+
 app.UseStaticFiles();
 
 app.UseRateLimiter();

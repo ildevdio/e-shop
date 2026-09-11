@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace FocusEshop.Api.Models
 {
-    public class Categoria : IEmpresa
+    public class Departamento : IEmpresa
     {
         [Key]
         public int Id { get; set; }
@@ -16,14 +15,21 @@ namespace FocusEshop.Api.Models
 
         public int Ordem { get; set; }
 
-        public int? DepartamentoId { get; set; }
+        [StringLength(500)]
+        public string? FotoUrl { get; set; }
 
-        [ForeignKey(nameof(DepartamentoId))]
-        public Departamento? Departamento { get; set; }
+        [JsonIgnore]
+        public byte[]? FotoBytes { get; set; }
+
+        [StringLength(30)]
+        public string? FotoContentType { get; set; }
+
+        [StringLength(500)]
+        public string? Descricao { get; set; }
 
         public bool Ativo { get; set; } = true;
 
         [JsonIgnore]
-        public ICollection<SubCategoria> SubCategorias { get; set; } = new List<SubCategoria>();
+        public ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
     }
 }

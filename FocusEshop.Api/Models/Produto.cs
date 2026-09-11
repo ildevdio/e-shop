@@ -19,10 +19,20 @@ namespace FocusEshop.Api.Models
         [StringLength(50)]
         public string CodigoERP { get; set; } = string.Empty;
 
+        public int? DepartamentoId { get; set; }
+
+        [ForeignKey(nameof(DepartamentoId))]
+        public Departamento? Departamento { get; set; }
+
         public int? CategoriaId { get; set; }
 
         [ForeignKey(nameof(CategoriaId))]
         public Categoria? Categoria { get; set; }
+
+        public int? SubCategoriaId { get; set; }
+
+        [ForeignKey(nameof(SubCategoriaId))]
+        public SubCategoria? SubCategoria { get; set; }
 
         public int? MarcaId { get; set; }
 

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2, Star, Search, ArrowLeft, Download } from 'lucide-react';
+import { ChevronDown, ChevronUp, Store, Package, Plus, X, Pencil, Trash2, ShoppingCart, ShoppingBag, Loader2, Star, Search, ArrowLeft, Download, Check } from 'lucide-react';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { produtoService, UNIDADES_MEDIDA, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { categoriaService } from '../services/categoriaService';
+import { departamentoService, type Departamento } from '../services/departamentoService';
+import { subCategoriaService, type SubCategoria } from '../services/subCategoriaService';
 import { marcaService } from '../services/marcaService';
 import { pedidoService } from '../services/pedidoService';
 import { imageUrl, produtoImagemUrl } from '../utils/imageUrl';
@@ -12,11 +14,19 @@ import { resizeImage } from '../utils/resizeImage';
 import { formatEstoque } from '../utils/formatEstoque';
 import { getSlug } from '../services/tenantSetup';
 import { buscarCEP } from '../utils/buscarCEP';
+import { copiarTexto } from '../utils/clipboard';
 
 function marcaImagemUrl(marca: { id: number; imagemUrl?: string | null; imagemContentType?: string | null } | null | undefined): string | undefined {
   if (!marca) return undefined;
   if (marca.imagemContentType && marca.id) return marcaService.getImagemUrl(marca.id);
   if (marca.imagemUrl) return imageUrl(marca.imagemUrl);
+  return undefined;
+}
+
+function fotoDepartamento(d: Departamento): string | undefined {
+  if (!d) return undefined;
+  if (d.fotoUrl) return imageUrl(d.fotoUrl);
+  if (d.id) return departamentoService.getImagemUrl(d.id);
   return undefined;
 }
 
@@ -39,6 +49,7 @@ export default function Catalogo() {
 
   const [categorias, setCategorias] = useState<CategoriaComProdutos[]>([]);
   const [todasCategorias, setTodasCategorias] = useState<Categoria[]>([]);
+  const [todasDepartamentos, setTodasDepartamentos] = useState<Departamento[]>([]);
   const [todasMarcas, setTodasMarcas] = useState<Marca[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState('');
@@ -67,20 +78,26 @@ export default function Catalogo() {
     setBuscandoCEP(false);
   };
 
-  const copiarLinkTabela = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/${getSlug()}/commerce`);
+  const copiarLinkTabela = async () => {
+    const ok = await copiarTexto(`${window.location.origin}/${getSlug()}/commerce`);
+    if (!ok) {
+      alert('Não foi possível copiar o link automaticamente. Copie manualmente: ' + `${window.location.origin}/${getSlug()}/commerce`);
+      return;
+    }
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2500);
   };
 
   const carregar = async () => {
     setCarregando(true);
-    const [produtos, cats, marcas] = await Promise.all([
+    const [produtos, cats, deps, marcas] = await Promise.all([
       produtoService.getCatalogo(),
       categoriaService.getCategorias(),
+      departamentoService.getDepartamentos(),
       marcaService.getMarcas(),
     ]);
     setTodasCategorias(cats);
+    setTodasDepartamentos(deps);
     setTodasMarcas(marcas);
 
     const map = new Map<number, CategoriaComProdutos>();
@@ -106,7 +123,7 @@ export default function Catalogo() {
     const lista = [...map.values()];
     if (semCategoria.length > 0) {
       lista.push({
-        categoria: { id: 0, nome: 'Sem Categoria', ordem: 999 },
+        categoria: { id: 0, nome: 'Sem Categoria', ordem: 999, departamentoId: null },
         grupos: [{ marca: null, produtos: semCategoria }],
       });
     }
@@ -205,7 +222,7 @@ export default function Catalogo() {
             className="px-4 py-2 rounded-xl text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors flex items-center gap-1.5"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            {copiado ? 'Link copiado!' : 'Compartilhar Tabela de Preços'}
+            {copiado ? 'Link copiado!' : 'Compartilhar plataforma de vendas'}
           </button>
         </div>
       </div>
@@ -330,6 +347,7 @@ export default function Catalogo() {
         <GerenciarCatalogo
           produtos={categorias.flatMap(c => c.grupos.flatMap(g => g.produtos))}
           categorias={todasCategorias}
+          departamentos={todasDepartamentos}
           marcas={todasMarcas}
           onSalvo={carregar}
         />
@@ -437,16 +455,18 @@ export default function Catalogo() {
 }
 
 function GerenciarCatalogo({
-  produtos, categorias, marcas, onSalvo,
+  produtos, categorias, departamentos, marcas, onSalvo,
 }: {
   produtos: Produto[];
   categorias: Categoria[];
+  departamentos: Departamento[];
   marcas: Marca[];
   onSalvo: () => void;
 }) {
   const { setModalAberto } = useUiStore();
-  const [abaGerenciar, setAbaGerenciar] = useState<'produtos' | 'categorias' | 'marcas'>('produtos');
+  const [abaGerenciar, setAbaGerenciar] = useState<'produtos' | 'categorias' | 'departamentos' | 'marcas'>('produtos');
   const [editandoProduto, setEditandoProduto] = useState<Partial<Produto> | null>(null);
+  const [editandoDepartamento, setEditandoDepartamento] = useState<Partial<Departamento> | null>(null);
   const [editandoMarca, setEditandoMarca] = useState<Partial<Marca> | null>(null);
   const [filtroProdutos, setFiltroProdutos] = useState('');
   const [emAjusteEstoque, setEmAjusteEstoque] = useState(false);
@@ -488,13 +508,13 @@ function GerenciarCatalogo({
       ) : (
       <>
       <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1 mb-4 self-start">
-        {(['produtos', 'categorias', 'marcas'] as const).map(tab => (
+        {(['produtos', 'categorias', 'departamentos', 'marcas'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setAbaGerenciar(tab)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${abaGerenciar === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            {tab === 'produtos' ? 'Produtos' : tab === 'categorias' ? 'Categorias' : 'Marcas'}
+            {tab === 'produtos' ? 'Produtos' : tab === 'categorias' ? 'Categorias' : tab === 'departamentos' ? 'Departamentos' : 'Marcas'}
           </button>
         ))}
       </div>
@@ -561,7 +581,9 @@ function GerenciarCatalogo({
                           nome: p.nome,
                           pesoUnidade: p.pesoUnidade,
                           codigoERP: p.codigoERP,
+                          departamentoId: p.departamentoId,
                           categoriaId: p.categoriaId,
+                          subCategoriaId: p.subCategoriaId,
                           marcaId: p.marcaId,
                           precoVarejo: p.precoVarejo,
                           precoAtacado: p.precoAtacado,
@@ -595,7 +617,7 @@ function GerenciarCatalogo({
         )}
 
         {abaGerenciar === 'categorias' && (
-          <CategoriasList categorias={categorias} onSalvo={onSalvo} />
+          <CategoriasList categorias={categorias} departamentos={departamentos} onSalvo={onSalvo} />
         )}
 
         {abaGerenciar === 'marcas' && (
@@ -616,9 +638,19 @@ function GerenciarCatalogo({
             ))}
           </div>
         )}
+
+        {abaGerenciar === 'departamentos' && (
+          <DepartamentosList
+            departamentos={departamentos}
+            onNovo={() => { setEditandoDepartamento({ nome: '', ordem: 0, ativo: true, fotoUrl: null, descricao: null }); setModalAberto(true); }}
+            onEditar={d => { setEditandoDepartamento({ ...d }); setModalAberto(true); }}
+            onSalvo={onSalvo}
+          />
+        )}
       </div>
 
-      {editandoProduto && <ProdutoForm produto={editandoProduto} categorias={categorias} marcas={marcas} onClose={() => { setEditandoProduto(null); setModalAberto(false); }} onSalvo={onSalvo} />}
+      {editandoProduto && <ProdutoForm produto={editandoProduto} categorias={categorias} departamentos={departamentos} marcas={marcas} onClose={() => { setEditandoProduto(null); setModalAberto(false); }} onSalvo={onSalvo} />}
+      {editandoDepartamento && <DepartamentoForm departamento={editandoDepartamento} onClose={() => { setEditandoDepartamento(null); setModalAberto(false); }} onSalvo={onSalvo} />}
       {editandoMarca && <MarcaForm marca={editandoMarca} onClose={() => { setEditandoMarca(null); setModalAberto(false); }} onSalvo={onSalvo} />}
       </>
       )}
@@ -626,9 +658,10 @@ function GerenciarCatalogo({
   );
 }
 
-function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
+function ProdutoForm({ produto, categorias, departamentos, marcas, onClose, onSalvo }: {
   produto: Partial<Produto>;
   categorias: Categoria[];
+  departamentos: Departamento[];
   marcas: Marca[];
   onClose: () => void;
   onSalvo: () => void;
@@ -637,7 +670,20 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
   const [erro, setErro] = useState('');
   const [uploading, setUploading] = useState(false);
   const [arquivo, setArquivo] = useState<File | null>(null);
+  const [subCategorias, setSubCategorias] = useState<SubCategoria[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    if (form.categoriaId) {
+      subCategoriaService.getSubCategorias(form.categoriaId).then(lista => {
+        if (!cancelado) setSubCategorias(lista);
+      });
+    } else {
+      setSubCategorias([]);
+    }
+    return () => { cancelado = true; };
+  }, [form.categoriaId]);
 
   const validarENumero = (v: any): v is number => typeof v === 'number' && !isNaN(v);
 
@@ -665,7 +711,9 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
       nome: form.nome.trim(),
       pesoUnidade: validarENumero(form.pesoUnidade) ? form.pesoUnidade : 0,
       codigoERP: form.codigoERP ?? '',
+      departamentoId: form.departamentoId ?? null,
       categoriaId: form.categoriaId ?? null,
+      subCategoriaId: form.subCategoriaId ?? null,
       marcaId: form.marcaId ?? null,
       precoVarejo: precoV,
       precoAtacado: precoA,
@@ -709,8 +757,33 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
+              <label className="text-sm font-medium text-gray-700">Departamento</label>
+              <select
+                value={form.departamentoId ?? ''}
+                onChange={e => { const v = e.target.value ? parseInt(e.target.value) : null; setForm({ ...form, departamentoId: v }); }}
+                className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5"
+              >
+                <option value="">Sem departamento</option>
+                {departamentos.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Subcategoria</label>
+              <select
+                value={form.subCategoriaId ?? ''}
+                onChange={e => setForm({ ...form, subCategoriaId: e.target.value ? parseInt(e.target.value) : null })}
+                disabled={!form.categoriaId}
+                className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Sem subcategoria</option>
+                {subCategorias.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
               <label className="text-sm font-medium text-gray-700">Categoria</label>
-              <select value={form.categoriaId ?? ''} onChange={e => setForm({ ...form, categoriaId: e.target.value ? parseInt(e.target.value) : null })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
+              <select value={form.categoriaId ?? ''} onChange={e => { const v = e.target.value ? parseInt(e.target.value) : null; setForm({ ...form, categoriaId: v, subCategoriaId: null }); }} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5">
                 <option value="">Sem categoria</option>
                 {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
@@ -810,17 +883,40 @@ function ProdutoForm({ produto, categorias, marcas, onClose, onSalvo }: {
   );
 }
 
-function CategoriasList({ categorias, onSalvo }: {
+function CategoriasList({ categorias, departamentos, onSalvo }: {
   categorias: Categoria[];
+  departamentos: Departamento[];
   onSalvo: () => void;
 }) {
   const [editando, setEditando] = useState<{ [id: number]: string }>({});
   const [nova, setNova] = useState('');
+  const [novoDepartamentoId, setNovoDepartamentoId] = useState<number | null>(null);
   const [salvando, setSalvando] = useState<number | 'nova' | null>(null);
+  const [expandida, setExpandida] = useState<number | null>(null);
+  const [subCategorias, setSubCategorias] = useState<SubCategoria[]>([]);
+  const [novaSub, setNovaSub] = useState('');
+  const [carregandoSubs, setCarregandoSubs] = useState(false);
+
+  useEffect(() => {
+    if (expandida != null) {
+      setCarregandoSubs(true);
+      subCategoriaService.getSubCategorias(expandida).then(lista => {
+        setSubCategorias(lista);
+        setCarregandoSubs(false);
+      });
+    } else {
+      setSubCategorias([]);
+    }
+  }, [expandida]);
 
   const salvarExistente = async (c: Categoria) => {
     setSalvando(c.id);
-    await categoriaService.atualizarCategoria(c.id, { nome: editando[c.id] ?? c.nome, ordem: c.ordem });
+    await categoriaService.atualizarCategoria(c.id, {
+      nome: editando[c.id] ?? c.nome,
+      ordem: c.ordem,
+      departamentoId: c.departamentoId ?? null,
+      ativo: c.ativo ?? true,
+    });
     setEditando(prev => { const next = { ...prev }; delete next[c.id]; return next; });
     setSalvando(null);
     onSalvo();
@@ -829,9 +925,29 @@ function CategoriasList({ categorias, onSalvo }: {
   const criarNova = async () => {
     if (!nova.trim()) return;
     setSalvando('nova');
-    await categoriaService.criarCategoria({ nome: nova.trim(), ordem: 0 });
+    await categoriaService.criarCategoria({ nome: nova.trim(), ordem: 0, departamentoId: novoDepartamentoId, ativo: true });
     setNova('');
     setSalvando(null);
+    onSalvo();
+  };
+
+  const alterarDepartamento = async (c: Categoria, departamentoId: number | null) => {
+    await categoriaService.atualizarCategoria(c.id, { nome: c.nome, ordem: c.ordem, departamentoId, ativo: c.ativo ?? true });
+    onSalvo();
+  };
+
+  const togglarAtivo = async (c: Categoria) => {
+    await categoriaService.atualizarCategoria(c.id, { nome: c.nome, ordem: c.ordem, departamentoId: c.departamentoId ?? null, ativo: !(c.ativo ?? true) });
+    onSalvo();
+  };
+
+  const adicionarSub = async (catId: number) => {
+    if (!novaSub.trim()) return;
+    setSalvando('nova');
+    await subCategoriaService.criarSubCategoria({ nome: novaSub.trim(), ordem: 0, categoriaId: catId, ativo: true });
+    setNovaSub('');
+    setSalvando(null);
+    subCategoriaService.getSubCategorias(catId).then(lista => setSubCategorias(lista));
     onSalvo();
   };
 
@@ -845,40 +961,237 @@ function CategoriasList({ categorias, onSalvo }: {
           placeholder="Nova categoria..."
           className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm"
         />
+        <select
+          value={novoDepartamentoId ?? ''}
+          onChange={e => setNovoDepartamentoId(e.target.value ? parseInt(e.target.value) : null)}
+          className="border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm"
+        >
+          <option value="">Sem departamento</option>
+          {departamentos.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+        </select>
         <button onClick={criarNova} disabled={!nova.trim() || salvando === 'nova'} className="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
           {salvando === 'nova' ? '...' : 'Adicionar'}
         </button>
       </div>
       {categorias.map(c => (
-        <div key={c.id} className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-2">
-          {editando[c.id] !== undefined ? (
-            <>
-              <input
-                value={editando[c.id]}
-                onChange={e => setEditando({ ...editando, [c.id]: e.target.value })}
-                onKeyDown={e => { if (e.key === 'Enter') salvarExistente(c); if (e.key === 'Escape') setEditando(prev => { const next = { ...prev }; delete next[c.id]; return next; }); }}
-                className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm"
-                autoFocus
-              />
-              <button onClick={() => salvarExistente(c)} disabled={salvando === c.id} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                {salvando === c.id ? <span className="text-xs">...</span> : <span className="text-sm font-medium">Salvar</span>}
-              </button>
-              <button onClick={() => setEditando(prev => { const next = { ...prev }; delete next[c.id]; return next; })} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                <X size={16} />
-              </button>
-            </>
-          ) : (
-            <>
-              <span className="flex-1 font-medium text-gray-900">{c.nome}</span>
-              <span className="text-xs text-gray-400 mr-2">ordem {c.ordem}</span>
-              <button onClick={() => setEditando({ ...editando, [c.id]: c.nome })} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <Pencil size={16} />
-              </button>
-            </>
+        <div key={c.id} className="rounded-xl border border-gray-100 bg-white">
+          <div className={`p-3 flex items-center gap-2 ${expandida === c.id ? 'border-b border-gray-50' : ''}`}>
+            {editando[c.id] !== undefined ? (
+              <>
+                <input
+                  value={editando[c.id]}
+                  onChange={e => setEditando({ ...editando, [c.id]: e.target.value })}
+                  onKeyDown={e => { if (e.key === 'Enter') salvarExistente(c); if (e.key === 'Escape') setEditando(prev => { const next = { ...prev }; delete next[c.id]; return next; }); }}
+                  className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm"
+                  autoFocus
+                />
+                <button onClick={() => salvarExistente(c)} disabled={salvando === c.id} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                  {salvando === c.id ? <span className="text-xs">...</span> : <span className="text-sm font-medium">Salvar</span>}
+                </button>
+                <button onClick={() => setEditando(prev => { const next = { ...prev }; delete next[c.id]; return next; })} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                  <X size={16} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setExpandida(expandida === c.id ? null : c.id)} className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
+                  {expandida === c.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                <span className={`flex-1 font-medium ${c.ativo === false ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{c.nome}</span>
+                <span className="text-xs text-gray-400">ordem {c.ordem}</span>
+                <select
+                  value={c.departamentoId ?? ''}
+                  onChange={e => alterarDepartamento(c, e.target.value ? parseInt(e.target.value) : null)}
+                  className="border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-primary text-xs"
+                >
+                  <option value="">Sem departamento</option>
+                  {departamentos.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+                </select>
+                <button onClick={() => togglarAtivo(c)} title={c.ativo === false ? 'Ativar' : 'Desativar'} className={`p-2 transition-colors ${c.ativo === false ? 'text-gray-300 hover:text-gray-500' : 'text-emerald-600 hover:text-emerald-700'}`}>
+                  <Check size={16} />
+                </button>
+                <button onClick={() => setEditando({ ...editando, [c.id]: c.nome })} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                  <Pencil size={16} />
+                </button>
+              </>
+            )}
+          </div>
+          {expandida === c.id && (
+            <div className="p-3 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Subcategorias</p>
+              <div className="flex items-center gap-2">
+                <input
+                  value={novaSub}
+                  onChange={e => setNovaSub(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') adicionarSub(c.id); }}
+                  placeholder="Nova subcategoria..."
+                  className="flex-1 border border-gray-300 rounded-lg p-2 outline-none focus:border-primary text-sm"
+                />
+                <button onClick={() => adicionarSub(c.id)} disabled={!novaSub.trim() || salvando === 'nova'} className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
+                  {salvando === 'nova' ? '...' : 'Adicionar'}
+                </button>
+              </div>
+              {carregandoSubs ? (
+                <p className="text-xs text-gray-400">Carregando...</p>
+              ) : subCategorias.length === 0 ? (
+                <p className="text-xs text-gray-400">Nenhuma subcategoria nesta categoria.</p>
+              ) : (
+                subCategorias.map(s => (
+                  <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg">
+                    <span className={`flex-1 text-sm ${s.ativo === false ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{s.nome}</span>
+                    <button onClick={async () => { await subCategoriaService.atualizarSubCategoria(s.id, { nome: s.nome, ordem: s.ordem, categoriaId: s.categoriaId, ativo: !s.ativo }); subCategoriaService.getSubCategorias(c.id).then(lista => setSubCategorias(lista)); onSalvo(); }} className="p-1.5 text-gray-300 hover:text-emerald-600 transition-colors">
+                      <Check size={14} />
+                    </button>
+                    <button onClick={async () => { if (confirm(`Excluir "${s.nome}"?`)) { await subCategoriaService.deletarSubCategoria(s.id); subCategoriaService.getSubCategorias(c.id).then(lista => setSubCategorias(lista)); onSalvo(); } }} className="p-1.5 text-red-300 hover:text-red-600 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </div>
       ))}
       {categorias.length === 0 && <p className="text-sm text-gray-400 text-center py-8">Nenhuma categoria cadastrada.</p>}
+    </div>
+  );
+}
+
+function DepartamentosList({ departamentos, onNovo, onEditar, onSalvo }: {
+  departamentos: Departamento[];
+  onNovo: () => void;
+  onEditar: (d: Departamento) => void;
+  onSalvo: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <button onClick={onNovo} className="flex items-center gap-2 text-sm font-medium text-black hover:underline mb-2">
+        <Plus size={16} /> Novo Departamento
+      </button>
+      {departamentos.map(d => (
+        <div key={d.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {fotoDepartamento(d) ? (
+              <img src={fotoDepartamento(d)} alt={d.nome} className="h-10 w-14 rounded-lg object-cover" onError={e => { e.currentTarget.style.display = 'none'; }} />
+            ) : (
+              <div className="h-10 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">{d.nome.charAt(0)}</div>
+            )}
+            <div className="min-w-0">
+              <span className={`font-medium ${d.ativo === false ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{d.nome}</span>
+              <span className="text-xs text-gray-400 ml-2">ordem {d.ordem}</span>
+              {d.descricao && <p className="text-xs text-gray-400 truncate max-w-md">{d.descricao}</p>}
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <button title={d.ativo === false ? 'Ativar' : 'Desativar'} onClick={async () => { await departamentoService.atualizarDepartamento(d.id, { nome: d.nome, ordem: d.ordem, fotoUrl: d.fotoUrl, descricao: d.descricao, ativo: !(d.ativo === false) }); onSalvo(); }} className={`p-2 transition-colors ${d.ativo === false ? 'text-gray-300 hover:text-gray-500' : 'text-emerald-600 hover:text-emerald-700'}`}>
+              <Check size={16} />
+            </button>
+            <button onClick={() => onEditar(d)} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+              <Pencil size={16} />
+            </button>
+            <button onClick={async () => { if (confirm(`Excluir departamento "${d.nome}"?`)) { const ok = await departamentoService.deletarDepartamento(d.id); if (!ok) alert('Não foi possível excluir o departamento. Exclua ou mova as categorias dele primeiro.'); onSalvo(); } }} className="p-2 text-red-400 hover:text-red-600 transition-colors">
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+      ))}
+      {departamentos.length === 0 && <p className="text-sm text-gray-400 text-center py-8">Nenhum departamento cadastrado.</p>}
+    </div>
+  );
+}
+
+function DepartamentoForm({ departamento, onClose, onSalvo }: {
+  departamento: Partial<Departamento>;
+  onClose: () => void;
+  onSalvo: () => void;
+}) {
+  const [form, setForm] = useState({ ...departamento });
+  const [erro, setErro] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pendingFileRef = useRef<File | null>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    pendingFileRef.current = file;
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const salvar = async () => {
+    setErro('');
+    if (!form.nome?.trim()) return;
+    const dto = {
+      nome: form.nome.trim(),
+      ordem: form.ordem ?? 0,
+      fotoUrl: form.fotoUrl ?? null,
+      descricao: form.descricao ?? null,
+      ativo: form.ativo ?? true,
+    };
+    let id = form.id;
+    if (id) {
+      const ok = await departamentoService.atualizarDepartamento(id, dto);
+      if (!ok) { setErro('Não foi possível salvar o departamento.'); return; }
+    } else {
+      const criado = await departamentoService.criarDepartamento(dto);
+      if (!criado) { setErro('Não foi possível criar o departamento.'); return; }
+      id = criado.id;
+    }
+    if (id && pendingFileRef.current) {
+      setUploading(true);
+      await departamentoService.uploadImagem(id, pendingFileRef.current);
+      setUploading(false);
+    }
+    onSalvo();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-serif font-bold text-gray-900">{form.id ? 'Editar' : 'Novo'} Departamento</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><X size={20} /></button>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Nome *</label>
+            <input value={form.nome ?? ''} onChange={e => setForm({ ...form, nome: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Ordem (posição na vitrine)</label>
+            <input type="number" min={0} value={form.ordem ?? 0} onChange={e => setForm({ ...form, ordem: parseInt(e.target.value) || 0 })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Descrição</label>
+            <input value={form.descricao ?? ''} onChange={e => setForm({ ...form, descricao: e.target.value })} className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm mt-0.5" placeholder="Ex: Suplementos e vitaminas para sua rotina" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Foto do Departamento</label>
+            <div className="flex flex-col sm:flex-row gap-2 mt-0.5">
+              <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png" onChange={handleFile} className="hidden" />
+              <div onClick={() => fileRef.current?.click()} className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors text-sm text-gray-500">
+                {uploading ? 'Enviando...' : 'Clique para selecionar JPG ou PNG'}
+              </div>
+              <input value={form.fotoUrl ?? ''} onChange={e => setForm({ ...form, fotoUrl: e.target.value || null })} className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary text-sm" placeholder="Ou cole uma URL da imagem" />
+            </div>
+            {(previewUrl || (form.id && form.fotoUrl)) && <img src={previewUrl ?? fotoDepartamento({ ...form, id: form.id } as Departamento)} alt="Preview" className="h-16 mt-2 object-contain border rounded-lg" />}
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.ativo ?? true} onChange={e => setForm({ ...form, ativo: e.target.checked })} className="rounded" />
+            Departamento ativo
+          </label>
+        </div>
+        {erro && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5 mt-3">{erro}</p>}
+        <div className="flex gap-3 justify-end mt-6">
+          <button onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors text-sm">Cancelar</button>
+          <button onClick={salvar} disabled={!form.nome?.trim() || uploading} className={`px-5 py-2.5 rounded-xl font-medium transition-colors text-sm ${form.nome?.trim() && !uploading ? 'bg-primary text-white hover:bg-primary' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+            {uploading ? 'Salvando...' : form.id ? 'Salvar' : 'Criar'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

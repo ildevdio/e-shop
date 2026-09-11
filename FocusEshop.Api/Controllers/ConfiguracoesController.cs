@@ -614,6 +614,11 @@ namespace FocusEshop.Api.Controllers
             await _context.Conversas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.CarrinhoItens.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Carrinhos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.LembretesCarrinho.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.CupomProdutos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.CupomClientes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Cupons.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.BotsConfig.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.PromocoesProduto.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Promocoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.FaixasFrete.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
@@ -624,7 +629,9 @@ namespace FocusEshop.Api.Controllers
             await _context.Clientes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Prospects.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Produtos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.SubCategorias.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Categorias.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Departamentos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Marcas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Rotas.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Veiculos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();

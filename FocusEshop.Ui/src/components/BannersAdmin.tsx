@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, X, ImageIcon, UploadCloud, Loader2, Link as LinkI
 import { bannerService, type Banner, type CriarBannerDto, type TipoLinkBanner, type PosicaoBanner } from '../services/bannerService';
 import { produtoService, type Produto } from '../services/produtoService';
 import { categoriaService, type Categoria } from '../services/categoriaService';
+import { departamentoService, type Departamento } from '../services/departamentoService';
 import { uploadService } from '../services/uploadService';
 import { midiaUrl } from '../utils/imageUrl';
 
@@ -15,6 +16,7 @@ const POSICOES: { value: PosicaoBanner; nome: string; descricao: string }[] = [
 const TIPOS_LINK: { value: TipoLinkBanner; nome: string }[] = [
   { value: '', nome: 'Sem link' },
   { value: 'produto', nome: 'Produto' },
+  { value: 'departamento', nome: 'Departamento' },
   { value: 'categoria', nome: 'Categoria' },
   { value: 'externo', nome: 'Link externo' },
 ];
@@ -84,6 +86,7 @@ export const rotuloPosicao = (p: string) => POSICOES.find(x => x.value === p)?.n
 export const rotuloLink = (b: Banner) => {
   if (!b.linkTipo) return 'Sem link';
   if (b.linkTipo === 'produto') return `Produto #${b.linkValor}`;
+  if (b.linkTipo === 'departamento') return `Departamento #${b.linkValor}`;
   if (b.linkTipo === 'categoria') return `Categoria #${b.linkValor}`;
   return b.linkValor ?? 'Externo';
 };
@@ -92,6 +95,7 @@ export default function BannersAdmin() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState<Banner | null>(null);
@@ -102,14 +106,16 @@ export default function BannersAdmin() {
 
   const carregar = async () => {
     setCarregando(true);
-    const [lista, prods, cats] = await Promise.all([
+    const [lista, prods, cats, deps] = await Promise.all([
       bannerService.getBanners(),
       produtoService.getProdutos(),
       categoriaService.getCategorias(),
+      departamentoService.getDepartamentos(),
     ]);
     setBanners(lista);
     setProdutos(prods);
     setCategorias(cats);
+    setDepartamentos(deps);
     setCarregando(false);
   };
 
@@ -200,6 +206,9 @@ export default function BannersAdmin() {
     : null;
   const categoriaSelecionada = form.linkTipo === 'categoria' && form.linkValor
     ? categorias.find(c => c.id === Number(form.linkValor))
+    : null;
+  const departamentoSelecionado = form.linkTipo === 'departamento' && form.linkValor
+    ? departamentos.find(d => d.id === Number(form.linkValor))
     : null;
 
   return (
@@ -370,6 +379,15 @@ export default function BannersAdmin() {
                   </select>
                 )}
 
+                {form.linkTipo === 'departamento' && (
+                  <select value={form.linkValor} onChange={e => setForm({ ...form, linkValor: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white">
+                    <option value="">Selecione um departamento...</option>
+                    {departamentos.map(d => (
+                      <option key={d.id} value={d.id}>{d.nome}</option>
+                    ))}
+                  </select>
+                )}
+
                 {form.linkTipo === 'categoria' && (
                   <select value={form.linkValor} onChange={e => setForm({ ...form, linkValor: e.target.value })} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white">
                     <option value="">Selecione uma categoria...</option>
@@ -388,6 +406,9 @@ export default function BannersAdmin() {
                 )}
                 {categoriaSelecionada && (
                   <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5"><Store size={13} /> Filtra o catálogo pela categoria "{categoriaSelecionada.nome}"</p>
+                )}
+                {departamentoSelecionado && (
+                  <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5"><Store size={13} /> Filtra o catálogo pelo departamento "{departamentoSelecionado.nome}"</p>
                 )}
               </div>
 

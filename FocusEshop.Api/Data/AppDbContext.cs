@@ -22,7 +22,9 @@ namespace FocusEshop.Api.Data
         public DbSet<Contato> Contatos { get; set; }
         
         public DbSet<Produto> Produtos { get; set; }
+        public DbSet<Departamento> Departamentos { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<SubCategoria> SubCategorias { get; set; }
         public DbSet<Marca> Marcas { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
@@ -101,7 +103,9 @@ namespace FocusEshop.Api.Data
             modelBuilder.Entity<Cliente>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Contato>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Produto>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<Departamento>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Categoria>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+            modelBuilder.Entity<SubCategoria>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Marca>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Pedido>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<ItemPedido>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
@@ -196,10 +200,34 @@ namespace FocusEshop.Api.Data
                 .HasForeignKey(a => a.PedidoId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Categoria>()
+                .HasOne(c => c.Departamento)
+                .WithMany(d => d.Categorias)
+                .HasForeignKey(c => c.DepartamentoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<SubCategoria>()
+                .HasOne(sc => sc.Categoria)
+                .WithMany(c => c.SubCategorias)
+                .HasForeignKey(sc => sc.CategoriaId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Produto>()
+                .HasOne(p => p.Departamento)
+                .WithMany()
+                .HasForeignKey(p => p.DepartamentoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<Produto>()
                 .HasOne(p => p.Categoria)
-                .WithMany(c => c.Produtos)
+                .WithMany()
                 .HasForeignKey(p => p.CategoriaId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Produto>()
+                .HasOne(p => p.SubCategoria)
+                .WithMany(sp => sp.Produtos)
+                .HasForeignKey(p => p.SubCategoriaId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Produto>()

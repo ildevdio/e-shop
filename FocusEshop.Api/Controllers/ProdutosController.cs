@@ -23,7 +23,9 @@ namespace FocusEshop.Api.Controllers
         public async Task<IActionResult> GetProdutos()
         {
             var produtos = await _context.Produtos
+                .Include(p => p.Departamento)
                 .Include(p => p.Categoria)
+                .Include(p => p.SubCategoria)
                 .Include(p => p.Marca)
                 .OrderBy(p => p.Nome)
                 .ToListAsync();
@@ -35,13 +37,17 @@ namespace FocusEshop.Api.Controllers
         public async Task<IActionResult> GetCatalogo()
         {
             var produtos = await _context.Produtos
+                .Include(p => p.Departamento)
                 .Include(p => p.Categoria)
+                .Include(p => p.SubCategoria)
                 .Include(p => p.Marca)
                 .Where(p => p.Ativo)
                 .ToListAsync();
 
             var ordenados = produtos
-                .OrderBy(p => p.Categoria?.Ordem ?? 999)
+                .OrderBy(p => p.SubCategoria != null ? p.SubCategoria.Ordem : 999)
+                .ThenBy(p => p.Departamento != null ? p.Departamento.Ordem : 999)
+                .ThenBy(p => p.Categoria != null ? p.Categoria.Ordem : 999)
                 .ThenBy(p => p.Marca?.Nome ?? "")
                 .ThenBy(p => p.Nome)
                 .ToList();
@@ -80,7 +86,9 @@ namespace FocusEshop.Api.Controllers
         public async Task<IActionResult> GetProduto(int id)
         {
             var produto = await _context.Produtos
+                .Include(p => p.Departamento)
                 .Include(p => p.Categoria)
+                .Include(p => p.SubCategoria)
                 .Include(p => p.Marca)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (produto == null) return NotFound();
@@ -135,7 +143,9 @@ namespace FocusEshop.Api.Controllers
                 Nome = dto.Nome,
                 PesoUnidade = dto.PesoUnidade,
                 CodigoERP = dto.CodigoERP,
+                DepartamentoId = dto.DepartamentoId,
                 CategoriaId = dto.CategoriaId,
+                SubCategoriaId = dto.SubCategoriaId,
                 MarcaId = dto.MarcaId,
                 PrecoVarejo = dto.PrecoVarejo,
                 PrecoAtacado = dto.PrecoAtacado,
@@ -164,7 +174,9 @@ namespace FocusEshop.Api.Controllers
             produto.Nome = dto.Nome;
             produto.PesoUnidade = dto.PesoUnidade;
             produto.CodigoERP = dto.CodigoERP;
+            produto.DepartamentoId = dto.DepartamentoId;
             produto.CategoriaId = dto.CategoriaId;
+            produto.SubCategoriaId = dto.SubCategoriaId;
             produto.MarcaId = dto.MarcaId;
             produto.PrecoVarejo = dto.PrecoVarejo;
             produto.PrecoAtacado = dto.PrecoAtacado;

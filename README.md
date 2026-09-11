@@ -53,10 +53,9 @@ Cria o banco `focus_eshop_db` (usuário/senha `postgres`).
 ### 2. API
 
 ```bash
-cd FocusEshop.Api
 dotnet restore
 dotnet ef database update   # aplica as migrations
-dotnet run --profile http
+./dev.ps1
 ```
 
 A API sobe em `http://localhost:5050` (Swagger em `/swagger`).
@@ -81,7 +80,7 @@ npm run dev
 A UI sobe em `http://localhost:5173`. Rotas principais:
 
 - `/` — área administrativa (login)
-- `/focus-eshop-portal` — portal público (e-commerce) · `/tabela` redireciona para ele
+- `/focus-eshop-portal` — portal público (e-commerce) · `/commerce` redireciona para ele
 
 Variáveis de ambiente do frontend (arquivo `FocusEshop.Ui/.env`):
 

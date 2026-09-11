@@ -17,19 +17,43 @@ namespace FocusEshop.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCategorias()
+        public async Task<IActionResult> GetCategorias([FromQuery] int? departamentoId)
         {
-            var categorias = await _context.Categorias
-                .OrderBy(c => c.Ordem)
+            var categorias = _context.Categorias
+                .Include(c => c.Departamento)
+                .AsQueryable();
+
+            if (departamentoId.HasValue)
+                categorias = categorias.Where(c => c.DepartamentoId == departamentoId.Value);
+
+            var resultado = await categorias
+                .OrderBy(c => c.Departamento!.Ordem)
+                .ThenBy(c => c.Ordem)
                 .ThenBy(c => c.Nome)
                 .ToListAsync();
-            return Ok(categorias);
+            return Ok(resultado);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoria(int id)
         {
-            var categoria = await _context.Categorias.FindAsync(id);
+            var categoria = await _context.Categorias
+                .Include(c => c.Departamento)
+                .Include(c => c.SubCategorias)
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (categoria == null) return NotFound();
+            return Ok(categoria);
+        }
+
+        [HttpGet("{id}/detalhe")]
+        public async Task<IActionResult> GetCategoriaDetalhe(int id)
+        {
+            var categoria = await _context.Categorias
+                .Include(c => c.Departamento)
+                .Include(c => c.SubCategorias)
+                .Include(c => c.SubCategorias)
+                .ThenInclude(sc => sc.Produtos)
+                .FirstOrDefaultAsync(c => c.Id == id);
             if (categoria == null) return NotFound();
             return Ok(categoria);
         }
@@ -37,7 +61,13 @@ namespace FocusEshop.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCategoria([FromBody] Categoria dto)
         {
-            var categoria = new Categoria { Nome = dto.Nome, Ordem = dto.Ordem };
+            var categoria = new Categoria
+            {
+                Nome = dto.Nome,
+                Ordem = dto.Ordem,
+                DepartamentoId = dto.DepartamentoId,
+                Ativo = dto.Ativo
+            };
             _context.Categorias.Add(categoria);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetCategoria), new { id = categoria.Id }, categoria);
@@ -50,6 +80,8 @@ namespace FocusEshop.Api.Controllers
             if (categoria == null) return NotFound();
             categoria.Nome = dto.Nome;
             categoria.Ordem = dto.Ordem;
+            categoria.DepartamentoId = dto.DepartamentoId;
+            categoria.Ativo = dto.Ativo;
             await _context.SaveChangesAsync();
             return NoContent();
         }
@@ -57,8 +89,12 @@ namespace FocusEshop.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategoria(int id)
         {
-            var categoria = await _context.Categorias.FindAsync(id);
+            var categoria = await _context.Categorias
+                .Include(c => c.SubCategorias)
+                .FirstOrDefaultAsync(c => c.Id == id);
             if (categoria == null) return NotFound();
+            if (categoria.SubCategorias.Any())
+                return BadRequest(new { message = "Esta categoria possui subcategorias. Exclua as subcategorias primeiro." });
             _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();
             return NoContent();

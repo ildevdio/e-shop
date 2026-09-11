@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Phone, Pencil, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import { getSlug } from '../services/tenantSetup';
+import { buscarCEP } from '../utils/buscarCEP';
 import { clienteService, type Cliente, type CriarClienteDto } from '../services/clienteService';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
@@ -141,27 +142,21 @@ export default function ComercialClientes() {
     }
   };
 
-  const buscarCEP = async () => {
-    const cep = (form.cep ?? '').replace(/\D/g, '');
-    if (cep.length !== 8) return;
+  const buscarCEPAoBlur = async () => {
+    if ((form.cep ?? '').replace(/\D/g, '').length !== 8) return;
     setBuscandoCEP(true);
-    try {
-      const res = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
-      if (!res.ok) return;
-      const data = await res.json();
+    const resultado = await buscarCEP(form.cep ?? '');
+    if (resultado) {
       setForm(f => ({
         ...f,
-        logradouro: data.logradouro || f.logradouro,
-        complemento: data.complemento || f.complemento,
-        bairro: data.bairro || f.bairro,
-        cidade: data.city || f.cidade,
-        estado: data.state || f.estado,
+        logradouro: resultado.logradouro || f.logradouro,
+        complemento: resultado.complemento || f.complemento,
+        bairro: resultado.bairro || f.bairro,
+        cidade: resultado.cidade || f.cidade,
+        estado: resultado.estado || f.estado,
       }));
-    } catch {
-      // CEP não encontrado, ignora
-    } finally {
-      setBuscandoCEP(false);
     }
+    setBuscandoCEP(false);
   };
 
   const inputClass = "w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm";
@@ -248,7 +243,7 @@ export default function ComercialClientes() {
           <label className={labelClass}>CEP</label>
           <div className="relative">
             <input type="text" value={form.cep} onChange={e => setCampo('cep', e.target.value)}
-              onBlur={buscarCEP}
+              onBlur={buscarCEPAoBlur}
               className={`${inputClass} ${buscandoCEP ? 'pr-9' : ''}`}
               placeholder="00000-000" />
             {buscandoCEP && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
