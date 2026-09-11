@@ -9,6 +9,7 @@ import { CORES_GRADE } from '../services/cores';
 import { midiaUrl } from '../utils/imageUrl';
 import { parseLinktreeAparencia, LINKTREE_APARENCIA_PADRAO, type LinktreeAparencia } from '../types/linktree';
 import SearchModal from '../components/SearchModal';
+import BannersAdmin from '../components/BannersAdmin';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -219,7 +220,7 @@ function PreviewLoja({
 export default function Configuracoes() {  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>(getSlug() === 'focus' ? 'sistema' : 'usuarios');
-  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'notificacoes' | 'regras' | 'email' | 'carrinho'>('empresa');
+  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'banners' | 'notificacoes' | 'regras' | 'email' | 'carrinho'>('empresa');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -831,6 +832,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 { id: 'empresa' as const, label: 'Empresa', icon: Building2 },
                 { id: 'loja' as const, label: 'Loja', icon: Store },
                 { id: 'aparencia' as const, label: 'Aparência', icon: Palette },
+                { id: 'banners' as const, label: 'Banners de Venda', icon: ImageIcon },
                 { id: 'notificacoes' as const, label: 'Notificações', icon: Bell },
                 { id: 'regras' as const, label: 'Regras', icon: Clock },
                 { id: 'email' as const, label: 'E-mail', icon: Mail },
@@ -1361,6 +1363,10 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 </div>
               </div>
             </div>
+            )}
+
+            {sistemaTab === 'banners' && (
+              <BannersAdmin />
             )}
 
             {sistemaTab === 'notificacoes' && (

@@ -426,6 +426,21 @@ namespace FocusEshop.Api.DTOs
         public List<PromocaoProdutoDto> Produtos { get; set; } = new();
     }
 
+    // Banners de venda (loja pública)
+    public class CriarBannerDto
+    {
+        public string Titulo { get; set; } = string.Empty;
+        public string? Subtitulo { get; set; }
+        public string ImagemUrl { get; set; } = string.Empty;
+        public string LinkTipo { get; set; } = string.Empty;
+        public string? LinkValor { get; set; }
+        public string Posicao { get; set; } = "ambos";
+        public int Ordem { get; set; }
+        public bool Ativo { get; set; } = true;
+        public DateTime? DataInicio { get; set; }
+        public DateTime? DataFim { get; set; }
+    }
+
     public class CriarEmpresaDto
     {
         public string NomeEmpresa { get; set; } = string.Empty;

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search, Leaf, Truck, MessageCircle, BadgePercent, Home } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ShoppingBag, MapPin, Phone, Loader2, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, CheckCircle2, X, User, LayoutGrid, Menu, IdCard, LogOut, Package, CalendarDays, KeyRound, AlertTriangle, Check, Trash2, SlidersHorizontal, Search, Leaf, Truck, MessageCircle, BadgePercent, Home } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import SearchAutocomplete, { type Sugestao } from '../components/SearchAutocomplete';
 import { produtoService, qtdMinimaAtacado, ehAtacado, precoPorQtd, type Produto, type Categoria, type Marca } from '../services/produtoService';
 import { promocaoService, precoPromocional, pctDesconto, type PromocaoAtiva } from '../services/promocaoService';
+import { bannerService, type Banner } from '../services/bannerService';
 import { categoriaService } from '../services/categoriaService';
 import { pedidoService, type Pedido } from '../services/pedidoService';
 import { clienteService, type Cliente } from '../services/clienteService';
@@ -452,6 +453,100 @@ function CardCarrossel({
   );
 }
 
+function BannerCarrossel({
+  banners,
+  onAbrir,
+}: {
+  banners: Banner[];
+  onAbrir: (b: Banner) => void;
+}) {
+  const [indice, setIndice] = useState(0);
+  const [pausado, setPausado] = useState(false);
+  const total = banners.length;
+
+  useEffect(() => {
+    if (total <= 1 || pausado) return;
+    const t = setInterval(() => setIndice(i => (i + 1) % total), 5000);
+    return () => clearInterval(t);
+  }, [total, pausado]);
+
+  if (total === 0) return null;
+
+  const irPara = (i: number) => setIndice(((i % total) + total) % total);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-3xl bg-ecom-surface shadow-lg group"
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={() => setPausado(false)}
+    >
+      <div className="flex transition-transform duration-700 ease-out" style={{ transform: `translateX(-${indice * 100}%)` }}>
+        {banners.map(b => (
+          <div key={b.id} className="w-full shrink-0">
+            <button
+              onClick={() => onAbrir(b)}
+              className="relative block w-full h-[260px] sm:h-[340px] md:h-[430px] text-left cursor-pointer"
+              aria-label={b.titulo}
+            >
+              <img
+                src={midiaUrl(b.imagemUrl)}
+                alt={b.titulo}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+              {(b.titulo || b.subtitulo) && (
+                <div className="absolute inset-y-0 left-0 flex flex-col justify-center w-full max-w-2xl px-6 sm:px-12">
+                  {b.subtitulo && (
+                    <p className="text-white/80 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] mb-2">{b.subtitulo}</p>
+                  )}
+                  {b.titulo && (
+                    <h2 className="font-heading font-bold text-white text-2xl sm:text-4xl md:text-5xl leading-tight">{b.titulo}</h2>
+                  )}
+                  {(b.titulo || b.subtitulo) && (
+                    <span className="mt-5 inline-flex items-center gap-2 text-white text-sm font-bold uppercase tracking-wider">
+                      Ver oferta <ArrowRight size={16} />
+                    </span>
+                  )}
+                </div>
+              )}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {total > 1 && (
+        <>
+          <button
+            onClick={() => irPara(indice - 1)}
+            aria-label="Banner anterior"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2.5 backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            onClick={() => irPara(indice + 1)}
+            aria-label="Próximo banner"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2.5 backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <ChevronRight size={20} />
+          </button>
+          <div className="absolute bottom-4 inset-x-0 flex justify-center gap-2">
+            {banners.map((b, i) => (
+              <button
+                key={b.id}
+                onClick={() => irPara(i)}
+                aria-label={`Banner ${i + 1}`}
+                className={`h-2.5 rounded-full transition-all ${i === indice ? 'w-8 bg-white' : 'w-2.5 bg-white/50 hover:bg-white/80'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function CampoQuantidade({
   valor,
   onChange,
@@ -646,6 +741,7 @@ export default function Tabela() {
   const [categorias, setCategorias] = useState<CategoriaComProdutos[]>([]);
   const [todasCategorias, setTodasCategorias] = useState<Categoria[]>([]);
   const [promosAtivas, setPromosAtivas] = useState<PromocaoAtiva[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState('');
   const [categoriaAberta, setCategoriaAberta] = useState<number | null>(null);
@@ -749,13 +845,15 @@ const salvarCarrinhoRef = useRef<number | null>(null);
 
   const carregar = async () => {
     setCarregando(true);
-    const [produtos, cats, promos] = await Promise.all([
+    const [produtos, cats, promos, bannes] = await Promise.all([
       produtoService.getCatalogo(),
       categoriaService.getCategorias(),
       promocaoService.getAtivas(),
+      bannerService.getAtivos(),
     ]);
     setTodasCategorias(cats);
     setPromosAtivas(promos);
+    setBanners(bannes);
 
     const map = new Map<number, CategoriaComProdutos>();
     const semCategoria: Produto[] = [];
@@ -1102,6 +1200,26 @@ const salvarCarrinhoRef = useRef<number | null>(null);
     setQtdDetalhe(qtdNoCarrinho(p.id) || 1);
     setProdutoDetalhe(p);
     setVista('produto');
+  };
+
+  const bannersCarrossel = banners.filter(b => b.posicao === 'carrossel' || b.posicao === 'ambos');
+  const bannersSecao = banners.filter(b => b.posicao === 'secao' || b.posicao === 'ambos');
+
+  const aoClicarBanner = (b: Banner) => {
+    if (b.linkTipo === 'produto') {
+      const id = Number(b.linkValor);
+      const p = categorias.flatMap(c => c.grupos.flatMap(g => g.produtos)).find(x => x.id === id);
+      if (p) {
+        setVista('catalogo');
+        setTimeout(() => abrirDetalhe(p), 0);
+      }
+    } else if (b.linkTipo === 'categoria') {
+      const id = Number(b.linkValor);
+      setVista('catalogo');
+      setTimeout(() => aplicarFiltroCategoria(id || null), 60);
+    } else if (b.linkTipo === 'externo' && b.linkValor) {
+      window.open(b.linkValor, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const adicionarDoDetalhe = () => {
@@ -2196,6 +2314,12 @@ const salvarCarrinhoRef = useRef<number | null>(null);
           </div>
         </div>
 
+      {bannersCarrossel.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 pt-6 pb-2">
+          <BannerCarrossel banners={bannersCarrossel} onAbrir={aoClicarBanner} />
+        </section>
+      )}
+
       {isWild && (
         <>
           <section className="bg-white border-b border-ecom-border">
@@ -2278,6 +2402,37 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                 ))}
               </div>
             </div>
+          </section>
+        )}
+
+        {bannersSecao.length > 0 && (
+          <section className="mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {bannersSecao.map(b => (
+              <button
+                key={b.id}
+                onClick={() => aoClicarBanner(b)}
+                className={`relative overflow-hidden rounded-2xl bg-ecom-surface text-left group ${bannersSecao.length === 1 ? 'sm:col-span-2' : ''}`}
+                aria-label={b.titulo}
+              >
+                <div className="aspect-[21/9] w-full">
+                  <img
+                    src={midiaUrl(b.imagemUrl)}
+                    alt={b.titulo}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
+                  {b.titulo && (
+                    <div className="absolute inset-y-0 left-0 flex flex-col justify-center pl-5 sm:pl-7 pr-20">
+                      {b.subtitulo && (
+                        <p className="text-white/75 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] mb-1">{b.subtitulo}</p>
+                      )}
+                      <p className="font-heading font-bold text-white text-lg sm:text-2xl leading-tight line-clamp-2">{b.titulo}</p>
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
           </section>
         )}
 

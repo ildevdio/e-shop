@@ -618,6 +618,7 @@ namespace FocusEshop.Api.Controllers
             await _context.Promocoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.FaixasFrete.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Notificacoes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
+            await _context.Banners.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Avisos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Contatos.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();
             await _context.Clientes.IgnoreQueryFilters().Where(x => x.EmpresaId == id).ExecuteDeleteAsync();

@@ -59,6 +59,8 @@ namespace FocusEshop.Api.Data
         public DbSet<Prospect> Prospects { get; set; }
         public DbSet<LembreteCarrinho> LembretesCarrinho { get; set; }
 
+        public DbSet<Banner> Banners { get; set; }
+
         public override int SaveChanges()
         {
             AplicarEmpresa();
@@ -127,6 +129,8 @@ namespace FocusEshop.Api.Data
 
             modelBuilder.Entity<LembreteCarrinho>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
             modelBuilder.Entity<Prospect>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
+
+            modelBuilder.Entity<Banner>().HasQueryFilter(e => e.EmpresaId == _tenant.EmpresaId);
 
             modelBuilder.Entity<UsuarioSetor>()
                 .HasKey(us => new { us.UsuarioId, us.SetorId });
