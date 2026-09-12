@@ -1519,8 +1519,8 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                   <Menu size={18} />
                 </button>
                 <button onClick={scrollParaCatalogo} className="flex items-center gap-2 shrink-0">
-                  <span className={`flex items-center justify-center rounded-lg bg-ecom-strong shadow-sm shrink-0 overflow-hidden ${config.logoEhLogotipo ? 'h-14 px-2 py-1' : 'h-12 w-12'}`}>
-                    <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className={`object-contain ${config.logoEhLogotipo ? 'h-12 w-auto max-w-40' : 'h-10 w-auto max-w-10'}`} />
+                  <span className={`flex items-center justify-center rounded-lg bg-ecom-strong shadow-sm shrink-0 overflow-hidden ${config.logoEhLogotipo ? 'h-12 px-2' : 'h-12 w-12'}`}>
+                    <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className={`object-contain ${config.logoEhLogotipo ? 'h-10 w-auto max-w-40' : 'h-10 w-auto max-w-10'}`} />
                   </span>
                   {!config.logoEhLogotipo && (
                     <span className="hidden xl:inline font-heading font-black text-lg tracking-tight whitespace-nowrap" style={{ color: config.corPrincipal }}>{config.nomeEmpresa}</span>
