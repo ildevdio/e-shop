@@ -9,7 +9,6 @@ import Dashboard from './pages/Dashboard';
 import Empresas from './pages/Empresas';
 import NovaEmpresa from './pages/NovaEmpresa';
 import Configuracoes from './pages/Configuracoes';
-import ConfiguracoesBots from './pages/ConfiguracoesBots';
 import Chat from './pages/Chat';
 import Empresa from './pages/Empresa';
 import EmpresaAvisos from './pages/EmpresaAvisos';
@@ -124,7 +123,6 @@ function App() {
           <Route path="empresas" element={<Empresas />} />
           <Route path="empresas/nova" element={<NovaEmpresa />} />
           <Route path="configuracoes" element={<Configuracoes />} />
-          <Route path="configuracoes/bots" element={<ConfiguracoesBots />} />
           <Route path="chat" element={<Chat />} />
 
           <Route path="empresa" element={<Empresa />} />

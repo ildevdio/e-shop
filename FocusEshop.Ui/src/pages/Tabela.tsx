@@ -1519,10 +1519,12 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                   <Menu size={18} />
                 </button>
                 <button onClick={scrollParaCatalogo} className="flex items-center gap-2 shrink-0">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-ecom-strong shadow-sm shrink-0 overflow-hidden">
-                    <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-10 w-auto max-w-10 object-contain" />
+                  <span className={`flex items-center justify-center rounded-lg bg-ecom-strong shadow-sm shrink-0 overflow-hidden ${config.logoEhLogotipo ? 'h-14 px-2 py-1' : 'h-12 w-12'}`}>
+                    <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className={`object-contain ${config.logoEhLogotipo ? 'h-12 w-auto max-w-40' : 'h-10 w-auto max-w-10'}`} />
                   </span>
-                  <span className="hidden xl:inline font-heading font-black text-lg tracking-tight whitespace-nowrap" style={{ color: config.corPrincipal }}>{config.nomeEmpresa}</span>
+                  {!config.logoEhLogotipo && (
+                    <span className="hidden xl:inline font-heading font-black text-lg tracking-tight whitespace-nowrap" style={{ color: config.corPrincipal }}>{config.nomeEmpresa}</span>
+                  )}
                 </button>
                 <div className="flex-1 flex justify-center px-1 sm:px-2 min-w-0">
                   <SearchAutocomplete
@@ -1612,7 +1614,11 @@ const salvarCarrinhoRef = useRef<number | null>(null);
                     </button>
                   )}
                 </div>
-                <h1 className="font-heading font-bold text-xl sm:text-2xl -mt-1 tracking-wide drop-shadow-md whitespace-nowrap" style={{ color: ds.navTexto }}>{config.nomeEmpresa}</h1>
+                {config.logoEhLogotipo ? (
+                  <img src={midiaUrl(config.logoUrl || CONFIG_PADRAO.logoUrl)} alt={config.nomeEmpresa} className="h-10 sm:h-12 w-auto max-w-44 sm:max-w-60 object-contain drop-shadow-md" />
+                ) : (
+                  <h1 className="font-heading font-bold text-xl sm:text-2xl -mt-1 tracking-wide drop-shadow-md whitespace-nowrap" style={{ color: ds.navTexto }}>{config.nomeEmpresa}</h1>
+                )}
                 <div className="flex-1 flex items-center justify-end gap-2">
                   {config.tipoMenu === 'dock' && (
                     <>

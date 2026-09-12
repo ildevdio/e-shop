@@ -357,6 +357,7 @@ namespace FocusEshop.Api.DTOs
         public string? TituloHero { get; set; }
         public string? SubtextoHero { get; set; }
         public bool? ExibirNomeAbaixoLogo { get; set; }
+        public bool? LogoEhLogotipo { get; set; }
         public string? TipoMenu { get; set; }
         public string? TipoCarrinho { get; set; }
         public string? LinksBio { get; set; }

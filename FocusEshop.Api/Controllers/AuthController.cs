@@ -166,7 +166,7 @@ namespace FocusEshop.Api.Controllers
             {
                 Nome = "Administrador",
                 UsuarioLogin = "admin",
-                Role = "Admin",
+                Role = "AdminMaster",
                 Ativo = true,
                 EmpresaId = _tenant.EmpresaId
             };

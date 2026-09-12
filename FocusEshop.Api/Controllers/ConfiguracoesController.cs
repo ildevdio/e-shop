@@ -136,6 +136,8 @@ namespace FocusEshop.Api.Controllers
                 config.SubtextoHero = dto.SubtextoHero;
             if (dto.ExibirNomeAbaixoLogo.HasValue)
                 config.ExibirNomeAbaixoLogo = dto.ExibirNomeAbaixoLogo.Value;
+            if (dto.LogoEhLogotipo.HasValue)
+                config.LogoEhLogotipo = dto.LogoEhLogotipo.Value;
             if (!string.IsNullOrWhiteSpace(dto.TipoMenu))
                 config.TipoMenu = dto.TipoMenu;
             if (!string.IsNullOrWhiteSpace(dto.TipoCarrinho))
@@ -797,6 +799,7 @@ namespace FocusEshop.Api.Controllers
                 tituloHero = config.TituloHero,
                 subtextoHero = config.SubtextoHero,
                 exibirNomeAbaixoLogo = config.ExibirNomeAbaixoLogo,
+                logoEhLogotipo = config.LogoEhLogotipo,
                 tipoMenu = config.TipoMenu,
                 tipoCarrinho = config.TipoCarrinho,
                 heroImagemTipo = config.HeroImagemTipo,

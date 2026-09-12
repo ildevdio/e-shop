@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Settings, MessageSquare, Package, Map, CheckSquare, Truck,
-  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3, Bot, MapPin,
+  Bell, Users, Contact, ClipboardList, Wheat, BookOpen, ShieldCheck, Building2, X, BadgePercent, Tag, BarChart3, MapPin,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import GrainPattern from './GrainPattern';
@@ -96,7 +96,6 @@ export default function Sidebar({ role, setores, usuarioId, className }: Sidebar
   const sysNav: NavItem[] = [];
   if (isAdmin || hasSetor('Compras')) {
     sysNav.push({ icon: Settings, label: 'Configurações', path: '/configuracoes' });
-    sysNav.push({ icon: Bot, label: 'Bots de Atendimento', path: '/configuracoes/bots' });
   }
 
   const focusNav: NavItem[] = [

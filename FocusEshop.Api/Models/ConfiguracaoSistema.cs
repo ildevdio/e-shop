@@ -25,6 +25,7 @@ namespace FocusEshop.Api.Models
         public string? TituloHero { get; set; }
         public string? SubtextoHero { get; set; }
         public bool ExibirNomeAbaixoLogo { get; set; } = true;
+        public bool LogoEhLogotipo { get; set; }
         public string TipoMenu { get; set; } = "dock";
         public string TipoCarrinho { get; set; } = "pagina";
         public string? LinksBio { get; set; }

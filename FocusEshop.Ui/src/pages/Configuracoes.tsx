@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare, Package, CheckSquare, Scale, MapPin } from 'lucide-react';
+import { Settings, Users, Shield, Palette, Plus, Edit3, Trash2, X, Check, Save, Bell, Bot, Clock, Lock, Building2, Store, LayoutGrid, ShoppingCart, UploadCloud, Loader2, ImageIcon, Eye, Menu, SlidersHorizontal, User, ChevronLeft, Search, Link, ExternalLink, Route, Truck, Mail, MessageSquare, Package, CheckSquare, Scale, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUiStore } from '../store/uiStore';
 import { useSistemaStore, FONTES_ECOMMERCE, DESIGNS_ECOMMERCE, coresWild, TIPOS_EMPRESA, PRESET_TIPO_EMPRESA, type FaixaFrete } from '../store/sistemaStore';
@@ -10,6 +10,7 @@ import { midiaUrl } from '../utils/imageUrl';
 import { parseLinktreeAparencia, LINKTREE_APARENCIA_PADRAO, type LinktreeAparencia } from '../types/linktree';
 import SearchModal from '../components/SearchModal';
 import BannersAdmin from '../components/BannersAdmin';
+import ConfiguracoesBots from './ConfiguracoesBots';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5050') + '/api';
 
@@ -220,7 +221,7 @@ function PreviewLoja({
 export default function Configuracoes() {  const { role, senhaMestreVerificada, setSenhaMestreVerificada } = useAuthStore();
   const { setModalAberto } = useUiStore();
   const [activeTab, setActiveTab] = useState<'usuarios' | 'permissoes' | 'sistema'>(getSlug() === 'focus' ? 'sistema' : 'usuarios');
-  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'banners' | 'notificacoes' | 'regras' | 'email' | 'carrinho'>('empresa');
+  const [sistemaTab, setSistemaTab] = useState<'empresa' | 'loja' | 'aparencia' | 'banners' | 'bots' | 'notificacoes' | 'regras' | 'email' | 'carrinho'>('empresa');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -240,10 +241,11 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
 
   const configSistema = useSistemaStore((state) => state.config);
   const carregada = useSistemaStore((state) => state.carregada);
+  const carregarConfigSistema = useSistemaStore((state) => state.carregar);
   const atualizarConfig = useSistemaStore((state) => state.atualizar);
   const salvarConfig = useSistemaStore((state) => state.salvar);
   const salvarFaixasFrete = useSistemaStore((state) => state.salvarFaixasFrete);
-  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', telefone: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '', freteAtivo: false });
+  const [formEmpresa, setFormEmpresa] = useState({ nomeEmpresa: '', cnpj: '', slogan: '', endereco: '', cep: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', logoUrl: '', telefone: '', videoUrl: '', tituloHero: '', subtextoHero: '', exibirNomeAbaixoLogo: true, logoEhLogotipo: false, tipoMenu: 'dock', tipoCarrinho: 'pagina', linksBio: '', redirecionamentos: '', heroImagemTipo: 'produto', mascoteUrl: '', freteAtivo: false });
   const [linktreeAparencia, setLinktreeAparencia] = useState<LinktreeAparencia>(LINKTREE_APARENCIA_PADRAO);
   const [faixasFrete, setFaixasFrete] = useState<FaixaFrete[]>([]);
   const [enviandoLogo, setEnviandoLogo] = useState(false);
@@ -281,6 +283,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         tituloHero: configSistema.tituloHero,
         subtextoHero: configSistema.subtextoHero,
         exibirNomeAbaixoLogo: configSistema.exibirNomeAbaixoLogo,
+        logoEhLogotipo: configSistema.logoEhLogotipo ?? false,
         tipoMenu: configSistema.tipoMenu,
         tipoCarrinho: configSistema.tipoCarrinho,
         linksBio: configSistema.linksBio ?? '',
@@ -322,7 +325,11 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         googleMapsApiKey: configSistema.googleMapsApiKey ?? '',
       });
     }
-  }, [carregada]);
+  }, [carregada, configSistema]);
+
+  useEffect(() => {
+    carregarConfigSistema();
+  }, [carregarConfigSistema]);
 
   const [senhaMestreModal, setSenhaMestreModal] = useState(false);
   const [senhaMestreInput, setSenhaMestreInput] = useState('');
@@ -336,8 +343,14 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
   const setoresAuth = useAuthStore((state) => state.setores);
   const temCompras = setoresAuth.some(s => normalize(s) === 'compras');
 
-  const isAdmin = role === 'AdminMaster';
+  const isAdmin = role === 'AdminMaster' || role === 'Admin';
+  const podeVerSistema = role === 'AdminMaster' || role === 'SuperAdmin' || role === 'Admin' || senhaMestreVerificada;
   const acessoPermitido = isAdmin || senhaMestreVerificada || temCompras;
+  const tabsDisponiveis = [
+    { id: 'usuarios' as const, label: 'Usuários', icon: Users },
+    { id: 'permissoes' as const, label: 'Permissões', icon: Shield },
+    { id: 'sistema' as const, label: 'Sistema', icon: Palette },
+  ].filter(tab => (getSlug() !== 'focus' || tab.id === 'sistema') && (tab.id !== 'sistema' || podeVerSistema));
 
   useEffect(() => {
     if (acessoPermitido) {
@@ -522,6 +535,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
       tituloHero: formEmpresa.tituloHero,
       subtextoHero: formEmpresa.subtextoHero,
       exibirNomeAbaixoLogo: formEmpresa.exibirNomeAbaixoLogo,
+      logoEhLogotipo: formEmpresa.logoEhLogotipo,
       tipoMenu: formEmpresa.tipoMenu,
       tipoCarrinho: formEmpresa.tipoCarrinho,
       linksBio: formEmpresa.linksBio,
@@ -680,23 +694,23 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
         </div>
       </div>
 
-      <div className="inline-flex gap-1 self-start rounded-2xl border border-gray-200 bg-white px-2 py-2 shadow-sm">
-        {[
-          { id: 'usuarios' as const, label: 'Usuários', icon: Users },
-          { id: 'permissoes' as const, label: 'Permissões', icon: Shield },
-          { id: 'sistema' as const, label: 'Sistema', icon: Palette },
-        ].filter(tab => getSlug() !== 'focus' || tab.id === 'sistema').map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${
-              activeTab === tab.id ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
-            }`}
-          >
-            <tab.icon size={18} /> {tab.label}
-          </button>
-        ))}
-      </div>
+      {tabsDisponiveis.length > 0 ? (
+        <div className="inline-flex gap-1 self-start rounded-2xl border border-gray-200 bg-white px-2 py-2 shadow-sm">
+          {tabsDisponiveis.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-5 py-2.5 font-medium text-sm flex items-center gap-2 rounded-xl transition-all ${
+                activeTab === tab.id ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+              }`}
+            >
+              <tab.icon size={18} /> {tab.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="self-start rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-500 shadow-sm">Você não tem permissão para visualizar as configurações do sistema.</div>
+      )}
 
       <div className="flex-1 min-h-0 bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         {activeTab === 'usuarios' && (
@@ -825,7 +839,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
           </div>
         )}
 
-        {activeTab === 'sistema' && (
+        {activeTab === 'sistema' && podeVerSistema && (
           <div className="flex flex-col h-full">
             <div className="inline-flex gap-0.5 items-center max-w-full overflow-x-auto border-b border-gray-100 px-4 sm:px-6 py-2">
               {[
@@ -837,6 +851,7 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                 { id: 'regras' as const, label: 'Regras', icon: Clock },
                 { id: 'email' as const, label: 'E-mail', icon: Mail },
                 { id: 'carrinho' as const, label: 'Carrinho', icon: ShoppingCart },
+                { id: 'bots' as const, label: 'Bots de Atendimento', icon: Bot },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -930,6 +945,15 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
                       )}
                       <p className="text-[11px] text-gray-400 italic">PNG ou JPG. A logo substitui a marca exibida em todo o sistema.</p>
                     </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 mt-3">
+                    <div>
+                      <div className="font-medium text-gray-900 text-sm">Esta imagem é um logotipo?</div>
+                      <div className="text-xs text-gray-400">Logotipos (PNG/JPG) são exibidos maiores verticalmente no topo da loja e ocultam o nome da empresa.</div>
+                    </div>
+                    <button onClick={() => setFormEmpresa({ ...formEmpresa, logoEhLogotipo: !formEmpresa.logoEhLogotipo })} className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${formEmpresa.logoEhLogotipo ? 'bg-primary' : 'bg-gray-300'}`}>
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm border border-gray-300 transition-all ${formEmpresa.logoEhLogotipo ? 'left-6' : 'left-1'}`} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1369,6 +1393,10 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
               <BannersAdmin />
             )}
 
+            {sistemaTab === 'bots' && (
+              <ConfiguracoesBots />
+            )}
+
             {sistemaTab === 'notificacoes' && (
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><Bell size={18} className="text-black" /> Notificações</h3>
@@ -1608,11 +1636,13 @@ export default function Configuracoes() {  const { role, senhaMestreVerificada, 
             </div>
             )}
 
+            {sistemaTab !== 'bots' && (
             <button onClick={salvarConfigSistema} disabled={salvandoConfig || !formEmpresa.nomeEmpresa.trim()} className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-sm ${
               corSalva ? 'bg-gray-800 text-white shadow-black/20' : salvandoConfig || !formEmpresa.nomeEmpresa.trim() ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary shadow-black/20'
             }`}>
               {corSalva ? <><Check size={16} /> Salvo!</> : salvandoConfig ? 'Salvando...' : <><Save size={16} /> Salvar Configurações</>}
             </button>
+            )}
             </div>
           </div>
         )}

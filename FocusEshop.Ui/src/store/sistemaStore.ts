@@ -24,6 +24,7 @@ export interface ConfiguracaoSistema {
   tituloHero: string;
   subtextoHero: string;
   exibirNomeAbaixoLogo: boolean;
+  logoEhLogotipo: boolean;
   tipoMenu: string;
   tipoCarrinho: string;
   linksBio?: string | null;
@@ -296,6 +297,7 @@ export const CONFIG_PADRAO: ConfiguracaoSistema = {
   tituloHero: 'O melhor da natureza para a sua loja.',
   subtextoHero: 'Sua distribuidora de produtos naturais',
   exibirNomeAbaixoLogo: true,
+  logoEhLogotipo: false,
   tipoMenu: 'dock',
   tipoCarrinho: 'pagina',
   heroImagemTipo: 'produto',
@@ -454,6 +456,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           tituloHero: data.tituloHero || CONFIG_PADRAO.tituloHero,
           subtextoHero: data.subtextoHero ?? null,
           exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? true,
+          logoEhLogotipo: data.logoEhLogotipo ?? false,
           tipoMenu: data.tipoMenu || CONFIG_PADRAO.tipoMenu,
           tipoCarrinho: data.tipoCarrinho || CONFIG_PADRAO.tipoCarrinho,
           linksBio: data.linksBio ?? null,
@@ -535,6 +538,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
           tituloHero: config.tituloHero,
           subtextoHero: config.subtextoHero,
           exibirNomeAbaixoLogo: config.exibirNomeAbaixoLogo,
+          logoEhLogotipo: config.logoEhLogotipo,
           tipoMenu: config.tipoMenu,
           tipoCarrinho: config.tipoCarrinho,
           linksBio: config.linksBio,
@@ -593,6 +597,7 @@ export const useSistemaStore = create<SistemaStore>((set, get) => ({
         tituloHero: data.tituloHero || config.tituloHero,
         subtextoHero: data.subtextoHero ?? config.subtextoHero,
         exibirNomeAbaixoLogo: data.exibirNomeAbaixoLogo ?? config.exibirNomeAbaixoLogo,
+        logoEhLogotipo: data.logoEhLogotipo ?? config.logoEhLogotipo,
         tipoMenu: data.tipoMenu || config.tipoMenu,
         tipoCarrinho: data.tipoCarrinho || config.tipoCarrinho,
         linksBio: data.linksBio ?? config.linksBio,
